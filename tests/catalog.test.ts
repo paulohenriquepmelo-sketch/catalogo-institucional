@@ -26,6 +26,7 @@ import {
 import { POST as postConfig } from '../app/api/config/route';
 import { GET as getUpload, POST as postUpload } from '../app/api/uploads/route';
 import { database, setIdentity } from './runtime';
+import { webp } from './image-fixtures';
 
 const clone = () => structuredClone(defaultConfig);
 const request = (
@@ -131,10 +132,17 @@ test('configuration and media validation reject unsafe or inconsistent input', (
   const multiline = clone();
   multiline.segments[0].keywords.push('');
   assert.ok(!validateConfig(multiline).segments[0].keywords.includes(''));
+  const invalidShowcase = clone();
+  invalidShowcase.offers.interval = 2;
+  assert.throws(() => validateConfig(invalidShowcase), /animação/);
 });
 test('persistent workflow: migrations, seeded records, drafts, revisions, ACL, uploads', async () => {
   const settings = await getConfig();
   assert.equal(settings.revision, 1);
+  assert.ok(settings.config.blocks.some((block) => block.type === 'offers'));
+  assert.ok(
+    settings.config.blocks.some((block) => block.type === 'new-products'),
+  );
   assert.equal((await listCatalogProducts()).length, 2525);
   const seed = (await listCatalogProducts(true)).find((p) => p.code === '32')!;
   assert.equal(seed.name, 'BALA FLOPI DIET 40G FLORESTAL');
@@ -151,8 +159,21 @@ test('persistent workflow: migrations, seeded records, drafts, revisions, ACL, u
     id: 0,
     code: 'TEST-DRAFT',
     published: false,
+    details: {
+      ...seed.details,
+      offer: {
+        enabled: true,
+        discount: 40,
+        startsAt: '2026-09-01',
+        endsAt: '2026-09-30',
+      },
+      showAsNew: false,
+    },
   });
   assert.ok(saved.id);
+  assert.ok(saved.createdAt);
+  assert.equal(saved.details?.offer?.discount, 40);
+  assert.equal(saved.details?.showAsNew, false);
   assert.equal((await listCatalogProducts()).length, 2525);
   assert.equal((await listCatalogProducts(true)).length, 2526);
   await assert.rejects(
@@ -240,14 +261,16 @@ test('persistent workflow: migrations, seeded records, drafts, revisions, ACL, u
       'base64',
     ),
   );
-  const upload = await postUpload(makeUpload(png, 'image/png'));
+  const upload = await postUpload(makeUpload(webp, 'image/webp'));
   assert.equal(upload.status, 200);
   const { url } = (await upload.json()) as { url: string };
   assert.equal(imageUrl(url), url);
   const stored = await getUpload(new Request(`https://catalog.test${url}`));
   assert.equal(stored.status, 200);
-  assert.equal(stored.headers.get('content-type'), 'image/png');
-  assert.deepEqual(new Uint8Array(await stored.arrayBuffer()), png);
+  assert.equal(stored.headers.get('content-type'), 'image/webp');
+  assert.match(url, /\.webp$/);
+  assert.deepEqual(new Uint8Array(await stored.arrayBuffer()), webp);
+  assert.equal((await postUpload(makeUpload(png, 'image/webp'))).status, 400);
   assert.equal(
     (
       await postUpload(

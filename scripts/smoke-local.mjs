@@ -13,7 +13,7 @@ assert.ok(
 const configResponse = await fetch(`${origin}/api/config`);
 assert.equal(configResponse.status, 200);
 const { config } = await configResponse.json();
-assert.equal(config.brands.length, 253);
+assert.ok(config.brands.every((brand) => brand.published === true));
 assert.equal(config.taxonomy.length, 43);
 assert.equal((await fetch(`${origin}/api/products?editor=1`)).status, 403);
 assert.equal(
@@ -32,6 +32,42 @@ const signIn = await fetch(`${origin}/signin-with-chatgpt?return_to=/editor`, {
 assert.ok([302, 303, 307].includes(signIn.status));
 const cookie = signIn.headers.get('set-cookie')?.split(';')[0];
 assert.ok(cookie);
+const editorConfigResponse = await fetch(`${origin}/api/config?editor=1`, { headers: { cookie } });
+assert.equal(editorConfigResponse.status, 200);
+const { config: editorConfig } = await editorConfigResponse.json();
+assert.ok(config.brands.every((brand) => editorConfig.brands.some((saved) => saved.name === brand.name)));
+for (const path of ['/api/import/products', '/api/import/images']) {
+  assert.equal(
+    (
+      await fetch(`${origin}${path}`, {
+        method: 'POST',
+        headers: { origin },
+        body: '{}',
+      })
+    ).status,
+    403,
+  );
+  assert.equal(
+    (
+      await fetch(`${origin}${path}`, {
+        method: 'POST',
+        headers: { cookie, origin: 'https://untrusted.test' },
+        body: '{}',
+      })
+    ).status,
+    403,
+  );
+  assert.equal(
+    (
+      await fetch(`${origin}${path}`, {
+        method: 'POST',
+        headers: { cookie, origin, 'content-type': 'application/json' },
+        body: '{}',
+      })
+    ).status,
+    400,
+  );
+}
 const editor = await fetch(`${origin}/editor`, { headers: { cookie } });
 assert.equal(editor.status, 200);
 await editor.arrayBuffer();

@@ -11,6 +11,14 @@ export type ProductDetails = {
   supplier?: string;
   sourceFile?: string;
   sourceRow?: number;
+  offer?: ProductOffer;
+  showAsNew?: boolean;
+};
+export type ProductOffer = {
+  enabled: boolean;
+  discount: number;
+  startsAt: string;
+  endsAt: string;
 };
 export type Product = {
   id: number;
@@ -27,6 +35,7 @@ export type Product = {
   specs: string[];
   published?: boolean;
   updatedAt?: string;
+  createdAt?: string;
   details?: ProductDetails;
 };
 export const detailFields = [

@@ -1,8 +1,19 @@
 import { getConfig, saveConfig } from '@/lib/catalog-repository';
-import { authorizeMutation, readJson } from '@/lib/editor-access';
-export async function GET() {
+import {
+  authorizeMutation,
+  getEditorUser,
+  readJson,
+} from '@/lib/editor-access';
+import { publishedBrands } from '@/lib/catalog-brands';
+export async function GET(request: Request) {
+  const editor = new URL(request.url).searchParams.get('editor') === '1';
+  if (editor && !(await getEditorUser()))
+    return Response.json({ error: 'Acesso restrito.' }, { status: 403 });
   try {
-    return Response.json(await getConfig(), {
+    const settings = await getConfig();
+    if (!editor)
+      settings.config.brands = publishedBrands(settings.config.brands);
+    return Response.json(settings, {
       headers: { 'cache-control': 'no-store' },
     });
   } catch {

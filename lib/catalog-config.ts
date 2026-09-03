@@ -1,11 +1,31 @@
 import sourceTaxonomy from './catalog-taxonomy.json';
+import {
+  defaultLayout,
+  validateLayout,
+  type CatalogLayout,
+} from './catalog-layout';
+import {
+  defaultColors,
+  validateColors,
+  type CatalogColors,
+} from './catalog-colors';
+import {
+  campaignThemes,
+  defaultCampaign,
+  type CatalogCampaign,
+} from './catalog-campaign';
 
 export type TaxonomyPath = {
   department: string;
   section: string;
   category: string;
 };
-export type Brand = { name: string; logo: string };
+export type Brand = {
+  name: string;
+  logo: string;
+  published: boolean;
+  featured: boolean;
+};
 export type SegmentRule = { name: string; note: string; keywords: string[] };
 export type Banner = {
   id: string;
@@ -17,12 +37,31 @@ export type Banner = {
 };
 export type Block = {
   id: string;
-  type: 'banners' | 'catalog' | 'segments' | 'brands' | 'text';
+  type:
+    | 'banners'
+    | 'catalog'
+    | 'offers'
+    | 'new-products'
+    | 'segments'
+    | 'brands'
+    | 'text';
   title: string;
   body: string;
   visible: boolean;
 };
+export type ProductShowcase = {
+  published: boolean;
+  title: string;
+  eyebrow: string;
+  layout: 'banner' | 'carousel';
+  autoplay: boolean;
+  interval: number;
+  limit: number;
+  days?: number;
+};
 export type CatalogConfig = {
+  layout: CatalogLayout;
+  colors: CatalogColors;
   name: string;
   tagline: string;
   logo: string;
@@ -40,9 +79,37 @@ export type CatalogConfig = {
   segments: SegmentRule[];
   banners: Banner[];
   blocks: Block[];
+  campaign: CatalogCampaign;
+  offers: ProductShowcase;
+  newProducts: ProductShowcase;
+};
+
+export const defaultOffers: ProductShowcase = {
+  published: true,
+  title: 'Ofertas por tempo limitado',
+  eyebrow: 'Economize agora',
+  layout: 'banner',
+  autoplay: true,
+  interval: 5,
+  limit: 12,
+};
+export const defaultNewProducts: ProductShowcase = {
+  published: true,
+  title: 'Acabaram de chegar',
+  eyebrow: 'Novidades no catálogo',
+  layout: 'carousel',
+  autoplay: true,
+  interval: 5,
+  limit: 12,
+  days: 30,
 };
 
 export const defaultConfig: CatalogConfig = {
+  layout: { ...defaultLayout },
+  colors: { ...defaultColors },
+  campaign: defaultCampaign,
+  offers: defaultOffers,
+  newProducts: defaultNewProducts,
   name: 'NEXO',
   tagline: 'Seu mix completo de atacado e distribuição.',
   logo: '',
@@ -57,7 +124,11 @@ export const defaultConfig: CatalogConfig = {
   interval: 6,
   demo: false,
   taxonomy: sourceTaxonomy.taxonomy,
-  brands: sourceTaxonomy.brands,
+  brands: sourceTaxonomy.brands.map((brand) => ({
+    ...brand,
+    published: true,
+    featured: false,
+  })),
   segments: [
     {
       name: 'Supermercados e mercearias',
@@ -207,6 +278,20 @@ export const defaultConfig: CatalogConfig = {
       visible: true,
     },
     {
+      id: 'offers',
+      type: 'offers',
+      title: 'Ofertas por tempo limitado',
+      body: 'Condições válidas durante o período informado em cada produto.',
+      visible: true,
+    },
+    {
+      id: 'new-products',
+      type: 'new-products',
+      title: 'Acabaram de chegar',
+      body: 'Os produtos mais novos do nosso catálogo.',
+      visible: true,
+    },
+    {
       id: 'segments',
       type: 'segments',
       title: 'Produtos por segmento.',
@@ -231,6 +316,8 @@ export function normalize(value: string) {
     .trim();
 }
 export function imageUrl(value: unknown): string {
+  if (campaignThemes.some((theme) => theme.image === value))
+    return String(value);
   if (value === '') return '';
   if (value === '/og-wholesale.png') return value;
   if (typeof value !== 'string' || value.length > 2048)
@@ -287,6 +374,33 @@ function list(value: unknown, max: number): any[] {
     throw new Error('Quantidade de registros inválida.');
   return value;
 }
+function validateShowcase(
+  value: unknown,
+  fallback: ProductShowcase,
+  withDays = false,
+): ProductShowcase {
+  const v = (value ?? fallback) as ProductShowcase;
+  if (!v || typeof v !== 'object' || Array.isArray(v))
+    throw new Error('Revise a vitrine de produtos.');
+  if (!['banner', 'carousel'].includes(v.layout))
+    throw new Error('Escolha banner ou carrossel para a vitrine.');
+  if (!Number.isInteger(v.interval) || v.interval < 3 || v.interval > 30)
+    throw new Error('A animação deve avançar entre 3 e 30 segundos.');
+  if (!Number.isInteger(v.limit) || v.limit < 1 || v.limit > 30)
+    throw new Error('Exiba entre 1 e 30 produtos na vitrine.');
+  if (withDays && (!Number.isInteger(v.days) || v.days! < 1 || v.days! > 365))
+    throw new Error('Considere novidades entre 1 e 365 dias.');
+  return {
+    published: v.published === true,
+    title: field(v.title, 'título da vitrine', 180),
+    eyebrow: field(v.eyebrow, 'chamada da vitrine', 100, true),
+    layout: v.layout,
+    autoplay: v.autoplay === true,
+    interval: v.interval,
+    limit: v.limit,
+    ...(withDays ? { days: v.days } : {}),
+  };
+}
 export function validateConfig(value: unknown): CatalogConfig {
   if (!value || typeof value !== 'object')
     throw new Error('Configuração inválida.');
@@ -298,6 +412,11 @@ export function validateConfig(value: unknown): CatalogConfig {
   if (v.font !== 'sans' && v.font !== 'serif')
     throw new Error('Fonte inválida.');
   const config: CatalogConfig = {
+    layout: validateLayout(v.layout),
+    colors: validateColors(v.colors),
+    campaign: validateCampaign(v.campaign ?? defaultCampaign),
+    offers: validateShowcase(v.offers, defaultOffers),
+    newProducts: validateShowcase(v.newProducts, defaultNewProducts, true),
     name: field(v.name, 'nome', 80),
     tagline: field(v.tagline, 'slogan', 250),
     logo: imageUrl(v.logo),
@@ -313,6 +432,8 @@ export function validateConfig(value: unknown): CatalogConfig {
     brands: list(v.brands, 1000).map((b) => ({
       name: field(b.name, 'marca', 80),
       logo: imageUrl(b.logo),
+      published: b.published === true,
+      featured: b.featured === true,
     })),
     taxonomy: list(v.taxonomy, 500).map((t) => ({
       department: field(t.department, 'departamento', 80),
@@ -340,7 +461,15 @@ export function validateConfig(value: unknown): CatalogConfig {
     })),
     blocks: list(v.blocks, 30).map((b) => {
       if (
-        !['banners', 'catalog', 'segments', 'brands', 'text'].includes(b.type)
+        ![
+          'banners',
+          'catalog',
+          'offers',
+          'new-products',
+          'segments',
+          'brands',
+          'text',
+        ].includes(b.type)
       )
         throw new Error('Bloco inválido.');
       return {
@@ -372,8 +501,86 @@ export function validateConfig(value: unknown): CatalogConfig {
     throw new Error(
       '“Sem classificação” é reservado aos itens que precisam de revisão.',
     );
-  for (const type of ['banners', 'segments', 'brands'])
+  for (const type of [
+    'banners',
+    'offers',
+    'new-products',
+    'segments',
+    'brands',
+  ])
     if (config.blocks.filter((b) => b.type === type).length > 1)
       throw new Error('Use apenas um bloco de cada tipo.');
   return config;
+}
+
+export function validateCampaign(value: unknown): CatalogCampaign {
+  if (!value || typeof value !== 'object' || Array.isArray(value))
+    throw new Error('Configuração de campanha inválida.');
+  const v = value as CatalogCampaign;
+  if (!campaignThemes.some((theme) => theme.id === v.theme))
+    throw new Error('Escolha um tema de campanha válido.');
+  if (
+    !['theme', 'image', 'carousel'].includes(v.mode) ||
+    !['hero', 'catalog'].includes(v.scope) ||
+    !['center', 'top', 'bottom'].includes(v.position)
+  )
+    throw new Error('Revise o formato e a posição do fundo.');
+  if (!Number.isInteger(v.interval) || v.interval < 3 || v.interval > 30)
+    throw new Error('O carrossel deve avançar a cada 3 a 30 segundos.');
+  if (!Number.isFinite(v.overlay) || v.overlay < 0 || v.overlay > 70)
+    throw new Error('A camada de clareamento deve ficar entre 0 e 70%.');
+  if (!Array.isArray(v.slides) || v.slides.length > 12)
+    throw new Error('Use até 12 imagens no carrossel de fundo.');
+  const slides = v.slides.map((s) => {
+    if (!s || typeof s !== 'object')
+      throw new Error('Banner de campanha inválido.');
+    return {
+      id: field(s.id, 'identificador do banner', 80),
+      image: imageUrl(s.image),
+      title: field(s.title, 'título do banner', 180),
+      description: field(s.description, 'texto do banner', 1000, true),
+      link: safeLink(s.link),
+      button: field(s.button, 'texto do botão', 45),
+      visible: s.visible === true,
+    };
+  });
+  if (new Set(slides.map((slide) => slide.id)).size !== slides.length)
+    throw new Error('Existem banners de campanha duplicados.');
+  const result: CatalogCampaign = {
+    enabled: v.enabled === true,
+    theme: v.theme,
+    mode: v.mode,
+    scope: v.scope,
+    image: imageUrl(v.image),
+    eyebrow: field(v.eyebrow, 'chamada da campanha', 100, true),
+    title: field(v.title, 'título da campanha', 180),
+    description: field(v.description, 'texto da campanha', 1000, true),
+    button: field(v.button, 'texto do botão', 45),
+    link: safeLink(v.link),
+    showStats: v.showStats === true,
+    autoplay: v.autoplay === true,
+    interval: v.interval,
+    overlay: v.overlay,
+    position: v.position,
+    slides,
+  };
+  if (result.enabled && result.mode === 'image' && !result.image)
+    throw new Error('Envie uma imagem para o fundo da campanha.');
+  if (
+    result.enabled &&
+    result.mode === 'carousel' &&
+    !result.slides.some((slide) => slide.visible && slide.image)
+  )
+    throw new Error(
+      'Adicione ao menos um banner visível com imagem ao carrossel.',
+    );
+  if (
+    result.enabled &&
+    result.mode === 'carousel' &&
+    result.slides.some((slide) => slide.visible && !slide.image)
+  )
+    throw new Error(
+      'Envie a imagem dos banners visíveis ou oculte os banners incompletos.',
+    );
+  return result;
 }

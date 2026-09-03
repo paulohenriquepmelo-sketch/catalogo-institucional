@@ -1,13 +1,22 @@
 'use client';
+/* oxlint-disable next/no-img-element -- Product thumbnails use the existing optimized WebP upload pipeline. */
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Field, Choice, Toggle, Panel, UploadField } from './editor-controls';
 import { ArrowDown, ArrowUp, Plus, Trash2 } from 'lucide-react';
+import { BrandLogoPicker } from './brand-logo-picker';
+import { LayoutEditor } from './layout-editor';
 import type { Block, CatalogConfig } from '@/lib/catalog-config';
+import { ColorEditor } from './color-editor';
+import { resolveColors } from '@/lib/catalog-colors';
+import type { Product } from '@/lib/catalog-data';
 
 export type EditorView =
   | 'overview'
   | 'products'
+  | 'imports'
+  | 'promotions'
+  | 'campaigns'
   | 'taxonomy'
   | 'brands'
   | 'segments'
@@ -18,14 +27,24 @@ export function ConfigEditor({
   config,
   onChange,
   onBusy,
+  products = [],
+  onProductToggle,
 }: {
   view: EditorView;
   config: CatalogConfig;
   onChange: (config: CatalogConfig) => void;
   onBusy: (busy: boolean) => void;
+  products?: Product[];
+  onProductToggle?: (
+    product: Product,
+    kind: 'offers' | 'new-products',
+    enabled: boolean,
+  ) => Promise<void>;
 }) {
   const [brandQuery, setBrandQuery] = useState('');
   const [brandLimit, setBrandLimit] = useState(20);
+  const [promotionQuery, setPromotionQuery] = useState('');
+  const [promotionLimit, setPromotionLimit] = useState(30);
   const selectedBrands = config.brands
     .map((brand, i) => ({ brand, i }))
     .filter(({ brand }) =>
@@ -132,12 +151,225 @@ export function ConfigEditor({
         </Button>
       </Panel>
     );
+  if (view === 'promotions') {
+    const showcase = (
+      key: 'offers' | 'newProducts',
+      label: string,
+      note: string,
+    ) => {
+      const settings = config[key];
+      const blockType = key === 'offers' ? 'offers' : 'new-products';
+      const block = config.blocks.find((item) => item.type === blockType);
+      const resolved = resolveColors(config);
+      const backgroundKey =
+        key === 'offers'
+          ? ('offerSectionBackground' as const)
+          : ('newSectionBackground' as const);
+      const textKey =
+        key === 'offers'
+          ? ('offerSectionText' as const)
+          : ('newSectionText' as const);
+      const update = (patch: Partial<typeof settings>) =>
+        change(key, { ...settings, ...patch });
+      return (
+        <article className="settings-card promotion-settings" key={key}>
+          <div>
+            <h2>{label}</h2>
+            <p>{note}</p>
+          </div>
+          <Toggle
+            label="Publicar esta vitrine"
+            value={settings.published}
+            onChange={(published) => update({ published })}
+          />
+          <div className="settings-row">
+            <Field
+              label="Cor de fundo desta vitrine"
+              type="color"
+              value={resolved[backgroundKey]}
+              onChange={(value) =>
+                onChange({
+                  ...config,
+                  colors: { ...config.colors, [backgroundKey]: value },
+                })
+              }
+            />
+            <Field
+              label="Cor dos títulos desta vitrine"
+              type="color"
+              value={resolved[textKey]}
+              onChange={(value) =>
+                onChange({
+                  ...config,
+                  colors: { ...config.colors, [textKey]: value },
+                })
+              }
+            />
+          </div>
+          <Field
+            label="Título da vitrine"
+            value={block?.title ?? settings.title}
+            onChange={(title) =>
+              onChange({
+                ...config,
+                [key]: { ...settings, title },
+                blocks: config.blocks.map((item) =>
+                  item.type === blockType ? { ...item, title } : item,
+                ),
+              })
+            }
+          />
+          <Field
+            label="Chamada acima do título"
+            value={settings.eyebrow}
+            onChange={(eyebrow) => update({ eyebrow })}
+          />
+          <Choice
+            label="Formato de exibição"
+            value={settings.layout}
+            options={['banner', 'carousel']}
+            onChange={(layout) =>
+              update({ layout: layout as 'banner' | 'carousel' })
+            }
+          />
+          <Toggle
+            label="Animação automática"
+            value={settings.autoplay}
+            onChange={(autoplay) => update({ autoplay })}
+          />
+          <Field
+            label="Intervalo da animação (segundos)"
+            type="number"
+            value={String(settings.interval)}
+            onChange={(interval) => update({ interval: Number(interval) })}
+          />
+          <Field
+            label="Quantidade máxima de produtos"
+            type="number"
+            value={String(settings.limit)}
+            onChange={(limit) => update({ limit: Number(limit) })}
+          />
+          {key === 'newProducts' && (
+            <Field
+              label="Considerar novo durante quantos dias"
+              type="number"
+              value={String(settings.days ?? 30)}
+              onChange={(days) => update({ days: Number(days) })}
+            />
+          )}
+        </article>
+      );
+    };
+    return (
+      <Panel
+        title="Ofertas e produtos novos"
+        note="A oferta é marcada no cadastro de cada produto. As novidades entram automaticamente pela data em que o produto foi criado ou importado."
+      >
+        <div className="settings-grid">
+          {showcase(
+            'offers',
+            'Ofertas e promoções',
+            'Cards escuros com percentual, imagem, validade e acesso ao produto.',
+          )}
+          {showcase(
+            'newProducts',
+            'Produtos novos',
+            'Seleciona automaticamente os cadastros recentes publicados.',
+          )}
+        </div>
+        <section className="promotion-product-picker">
+          <div>
+            <h2>Escolher produtos das vitrines</h2>
+            <p>
+              Marque Oferta ou Novo. Produtos em rascunho só aparecerão quando
+              também forem publicados no cadastro principal.
+            </p>
+          </div>
+          <Field
+            label={`Buscar entre ${products.length} produtos`}
+            value={promotionQuery}
+            onChange={(value) => {
+              setPromotionQuery(value);
+              setPromotionLimit(30);
+            }}
+          />
+          <div className="promotion-product-list">
+            {products
+              .filter((product) =>
+                `${product.name} ${product.code} ${product.brand}`
+                  .toLowerCase()
+                  .includes(promotionQuery.toLowerCase()),
+              )
+              .slice(0, promotionLimit)
+              .map((product) => {
+                const isNew = product.details?.showAsNew !== false;
+                return (
+                  <article key={product.id}>
+                    <div className="promotion-product-identity">
+                      {product.image ? (
+                        <img src={product.image} alt="" loading="lazy" />
+                      ) : (
+                        <span aria-hidden="true">—</span>
+                      )}
+                      <span>
+                        <strong>{product.name}</strong>
+                        <small>
+                          {product.code} · {product.brand} ·{' '}
+                          {product.published ? 'Publicado' : 'Rascunho'}
+                        </small>
+                      </span>
+                    </div>
+                    <Toggle
+                      label="Oferta"
+                      value={product.details?.offer?.enabled === true}
+                      onChange={(enabled) =>
+                        void onProductToggle?.(product, 'offers', enabled)
+                      }
+                    />
+                    <Toggle
+                      label="Novo"
+                      value={isNew}
+                      onChange={(enabled) =>
+                        void onProductToggle?.(product, 'new-products', enabled)
+                      }
+                    />
+                  </article>
+                );
+              })}
+          </div>
+          {products.filter((product) =>
+            `${product.name} ${product.code} ${product.brand}`
+              .toLowerCase()
+              .includes(promotionQuery.toLowerCase()),
+          ).length > promotionLimit && (
+            <Button
+              variant="outline"
+              onClick={() => setPromotionLimit((limit) => limit + 30)}
+            >
+              Mostrar mais produtos
+            </Button>
+          )}
+        </section>
+      </Panel>
+    );
+  }
   if (view === 'brands')
     return (
       <Panel
         title="Marcas"
-        note="O nome vincula os produtos à marca. O logo enviado aparece automaticamente no catálogo público."
+        note="Marque Publicar para mostrar a marca no site. Destaque coloca a marca antes das demais. Isso não altera a publicação dos produtos vinculados."
       >
+        <Field
+          label="Cor de fundo do carrossel de marcas"
+          type="color"
+          value={resolveColors(config).brandSectionBackground}
+          onChange={(brandSectionBackground) =>
+            onChange({
+              ...config,
+              colors: { ...config.colors, brandSectionBackground },
+            })
+          }
+        />
         <Field
           label={`Buscar entre ${config.brands.length} marcas`}
           value={brandQuery}
@@ -149,6 +381,16 @@ export function ConfigEditor({
         <div className="settings-grid">
           {selectedBrands.slice(0, brandLimit).map(({ brand, i }) => (
             <article className="settings-card" key={i}>
+              <BrandLogoPicker
+                name={brand.name}
+                onBusy={onBusy}
+                onChange={(logo) =>
+                  change(
+                    'brands',
+                    config.brands.map((b, n) => (n === i ? { ...b, logo } : b)),
+                  )
+                }
+              />
               <Field
                 label="Nome da marca"
                 value={brand.name}
@@ -170,6 +412,40 @@ export function ConfigEditor({
                   )
                 }
               />
+              <p className="source-note">
+                A lupa mostra resultados dentro do editor. Clique na imagem para
+                selecionar e preencher esta marca. Você também pode colar uma
+                imagem no popup com Ctrl+V.
+              </p>
+              <Toggle
+                label="Publicar marca"
+                value={brand.published === true}
+                onChange={(published) =>
+                  change(
+                    'brands',
+                    config.brands.map((b, n) =>
+                      n === i ? { ...b, published } : b,
+                    ),
+                  )
+                }
+              />
+              <Toggle
+                label="Marca em destaque"
+                value={brand.featured === true}
+                onChange={(featured) =>
+                  change(
+                    'brands',
+                    config.brands.map((b, n) =>
+                      n === i ? { ...b, featured } : b,
+                    ),
+                  )
+                }
+              />
+              <small>
+                {brand.published
+                  ? 'Será exibida na área de marcas.'
+                  : 'Rascunho: não será exibida na área de marcas, mesmo com destaque.'}
+              </small>
               <Button variant="destructive" onClick={() => remove('brands', i)}>
                 <Trash2 /> Remover marca
               </Button>
@@ -187,7 +463,10 @@ export function ConfigEditor({
         <Button
           variant="outline"
           onClick={() => {
-            change('brands', [{ name: '', logo: '' }, ...config.brands]);
+            change('brands', [
+              { name: '', logo: '', published: false, featured: false },
+              ...config.brands,
+            ]);
             setBrandQuery('');
             setBrandLimit(20);
           }}
@@ -202,6 +481,30 @@ export function ConfigEditor({
         title="Segmentos automáticos"
         note="A análise usa palavras-chave do cadastro: categoria tem peso 3, nome e descrição peso 2, outros campos peso 1. Empates ou falta de sinais ficam como “Sem classificação”. São sugestões de segmento para revisão, não uma IA generativa."
       >
+        <div className="settings-row">
+          <Field
+            label="Cor de fundo do carrossel de segmentos"
+            type="color"
+            value={resolveColors(config).segmentSectionBackground}
+            onChange={(segmentSectionBackground) =>
+              onChange({
+                ...config,
+                colors: { ...config.colors, segmentSectionBackground },
+              })
+            }
+          />
+          <Field
+            label="Cor do contorno dos segmentos"
+            type="color"
+            value={resolveColors(config).segmentBorder}
+            onChange={(segmentBorder) =>
+              onChange({
+                ...config,
+                colors: { ...config.colors, segmentBorder },
+              })
+            }
+          />
+        </div>
         <div className="settings-grid">
           {config.segments.map((segment, i) => (
             <article className="settings-card" key={i}>
@@ -389,12 +692,6 @@ export function ConfigEditor({
           value={config.tagline}
           onChange={(v) => change('tagline', v)}
         />
-        <Field
-          label="E-mail para solicitar informações"
-          value={config.email}
-          type="email"
-          onChange={(v) => change('email', v)}
-        />
         <Choice
           label="Tipografia"
           value={config.font}
@@ -402,6 +699,29 @@ export function ConfigEditor({
           onChange={(v) => change('font', v as 'sans' | 'serif')}
         />
       </div>
+      <section
+        className="contact-settings"
+        aria-labelledby="contact-settings-title"
+      >
+        <div>
+          <h2 id="contact-settings-title">Contato comercial</h2>
+          <p>
+            Este e-mail cria o botão “Solicitar informações” dentro do popup de
+            cada produto.
+          </p>
+        </div>
+        <Field
+          label="E-mail do contato comercial"
+          value={config.email}
+          type="email"
+          onChange={(v) => change('email', v)}
+        />
+        <output>
+          {config.email
+            ? `Os pedidos de informação serão enviados para ${config.email}.`
+            : 'Sem e-mail, o catálogo informa que o contato comercial ainda não foi cadastrado.'}
+        </output>
+      </section>
       <UploadField
         label="Logo institucional"
         value={config.logo}
@@ -428,6 +748,8 @@ export function ConfigEditor({
           onChange={(v) => change('background', v)}
         />
       </div>
+      <ColorEditor config={config} onChange={onChange} />
+      <LayoutEditor config={config} onChange={onChange} />
       <Field
         label="Texto do rodapé"
         multiline
@@ -448,6 +770,8 @@ export function ConfigEditor({
                 {
                   catalog: 'Catálogo',
                   banners: 'Carrossel',
+                  offers: 'Ofertas e promoções',
+                  'new-products': 'Produtos novos',
                   segments: 'Segmentos',
                   brands: 'Marcas',
                   text: 'Texto institucional',
@@ -513,7 +837,15 @@ export function ConfigEditor({
         >
           <Plus /> Seção institucional
         </Button>
-        {(['banners', 'segments', 'brands'] as Block['type'][])
+        {(
+          [
+            'banners',
+            'offers',
+            'new-products',
+            'segments',
+            'brands',
+          ] as Block['type'][]
+        )
           .filter((type) => !config.blocks.some((b) => b.type === type))
           .map((type) => (
             <Button

@@ -5,9 +5,12 @@ import {
   Blocks,
   CircleUserRound,
   Eye,
+  FileSpreadsheet,
+  Image,
   LayoutDashboard,
   Loader2,
   Megaphone,
+  BadgePercent,
   Package,
   Palette,
   Plus,
@@ -25,14 +28,19 @@ import { api } from '@/lib/client-api';
 import { Field, Choice, Toggle, UploadField, Panel } from './editor-controls';
 import { ConfigEditor, type EditorView } from './config-editor';
 import { useCatalogTools } from '@/hooks/use-catalog-tools';
+import { ImportEditor } from './import-editor';
+import { CampaignEditor } from './campaign-editor';
 
 const navigation: { key: EditorView; label: string; icon: typeof Package }[] = [
   { key: 'overview', label: 'Visão geral', icon: LayoutDashboard },
   { key: 'products', label: 'Produtos', icon: Package },
+  { key: 'imports', label: 'Importações', icon: FileSpreadsheet },
+  { key: 'promotions', label: 'Ofertas e novidades', icon: BadgePercent },
   { key: 'taxonomy', label: 'Hierarquia', icon: Blocks },
   { key: 'brands', label: 'Marcas e logos', icon: Tags },
   { key: 'segments', label: 'Segmentos', icon: Sparkles },
   { key: 'banners', label: 'Banners e carrossel', icon: Megaphone },
+  { key: 'campaigns', label: 'Temas e fundo', icon: Image },
   { key: 'appearance', label: 'Aparência e página', icon: Palette },
 ];
 const blank: Product = {
@@ -51,6 +59,10 @@ const blank: Product = {
   featured: false,
 };
 const unique = (values: string[]) => [...new Set(values)];
+const dateKey = (date: Date) => {
+  const offset = date.getTimezoneOffset() * 60_000;
+  return new Date(date.getTime() - offset).toISOString().slice(0, 10);
+};
 export function EditorApp({ userName }: { userName: string }) {
   const [items, setItems] = useState<Product[]>([]);
   const [draft, setDraft] = useState<Product>(blank);
@@ -80,7 +92,9 @@ export function EditorApp({ userName }: { userName: string }) {
     try {
       const [data, settings] = await Promise.all([
         api<Product[]>('/api/products?editor=1'),
-        api<{ config: CatalogConfig; revision: number }>('/api/config'),
+        api<{ config: CatalogConfig; revision: number }>(
+          '/api/config?editor=1',
+        ),
       ]);
       setItems(data);
       setDraft(data[0] ?? blank);
@@ -94,19 +108,34 @@ export function EditorApp({ userName }: { userName: string }) {
       setLoading(false);
     }
   }
+  async function refreshAfterImport() {
+    const [products, settings] = await Promise.all([
+      api<Product[]>('/api/products?editor=1'),
+      api<{ config: CatalogConfig; revision: number }>('/api/config?editor=1'),
+    ]);
+    setItems(products);
+    const selected =
+      products.find((p) => p.id === draft.id) ?? products[0] ?? blank;
+    setDraft(selected);
+    setBaseline(selected);
+    setConfig(settings.config);
+    setSavedConfig(settings.config);
+    setRevision(settings.revision);
+    return { products, config: settings.config };
+  }
   useEffect(() => {
     void load();
   }, []);
   useEffect(() => {
     const guard = (event: BeforeUnloadEvent) => {
-      if (dirty) {
+      if (dirty || busy || uploads > 0) {
         event.preventDefault();
         event.returnValue = '';
       }
     };
     window.addEventListener('beforeunload', guard);
     return () => window.removeEventListener('beforeunload', guard);
-  }, [dirty]);
+  }, [dirty, busy, uploads]);
   function choose(p: Product) {
     if (
       productDirty &&
@@ -188,6 +217,60 @@ export function EditorApp({ userName }: { userName: string }) {
       setItems(data);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Falha ao salvar.');
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function toggleShowcaseProduct(
+    product: Product,
+    kind: 'offers' | 'new-products',
+    enabled: boolean,
+  ) {
+    if (busy || uploads || loading) return;
+    setBusy(true);
+    setError('');
+    setMessage('');
+    try {
+      const start = new Date();
+      const end = new Date(start);
+      end.setDate(end.getDate() + 7);
+      const next: Product = {
+        ...product,
+        details: {
+          ...product.details,
+          ...(kind === 'offers'
+            ? {
+                offer: {
+                  enabled,
+                  discount: product.details?.offer?.discount ?? 40,
+                  startsAt: product.details?.offer?.startsAt ?? dateKey(start),
+                  endsAt: product.details?.offer?.endsAt ?? dateKey(end),
+                },
+              }
+            : { showAsNew: enabled }),
+        },
+      };
+      const saved = await api<Product>('/api/products', next);
+      setItems((current) =>
+        current.map((item) => (item.id === saved.id ? saved : item)),
+      );
+      if (draft.id === saved.id) {
+        setDraft(saved);
+        setBaseline(saved);
+      }
+      setMessage(
+        kind === 'offers'
+          ? enabled
+            ? 'Produto incluído na vitrine de ofertas. Ajuste o desconto e a validade no cadastro do produto, se necessário.'
+            : 'Produto removido da vitrine de ofertas.'
+          : enabled
+            ? 'Produto incluído na vitrine de novidades.'
+            : 'Produto removido da vitrine de novidades.',
+      );
+    } catch (e) {
+      setError(
+        e instanceof Error ? e.message : 'Falha ao atualizar a vitrine.',
+      );
     } finally {
       setBusy(false);
     }
@@ -382,6 +465,87 @@ export function EditorApp({ userName }: { userName: string }) {
                   value={draft.featured === true}
                   onChange={(featured) => setDraft({ ...draft, featured })}
                 />
+                <section className="offer-editor wide">
+                  <div>
+                    <h3>Oferta e promoção</h3>
+                    <p>
+                      Quando ativa e dentro do prazo, aparece automaticamente na
+                      vitrine de ofertas do catálogo.
+                    </p>
+                  </div>
+                  <Toggle
+                    label="Produto em oferta"
+                    value={draft.details?.offer?.enabled === true}
+                    onChange={(enabled) => {
+                      const start = new Date();
+                      const end = new Date(start);
+                      end.setDate(end.getDate() + 7);
+                      setDraft({
+                        ...draft,
+                        details: {
+                          ...draft.details,
+                          offer: {
+                            enabled,
+                            discount: draft.details?.offer?.discount ?? 40,
+                            startsAt:
+                              draft.details?.offer?.startsAt ?? dateKey(start),
+                            endsAt:
+                              draft.details?.offer?.endsAt ?? dateKey(end),
+                          },
+                        },
+                      });
+                    }}
+                  />
+                  {draft.details?.offer && (
+                    <div className="settings-row">
+                      <Field
+                        label="Desconto (%)"
+                        type="number"
+                        value={String(draft.details.offer.discount)}
+                        onChange={(discount) =>
+                          setDraft({
+                            ...draft,
+                            details: {
+                              ...draft.details,
+                              offer: {
+                                ...draft.details!.offer!,
+                                discount: Number(discount),
+                              },
+                            },
+                          })
+                        }
+                      />
+                      <Field
+                        label="Início da oferta"
+                        type="date"
+                        value={draft.details.offer.startsAt}
+                        onChange={(startsAt) =>
+                          setDraft({
+                            ...draft,
+                            details: {
+                              ...draft.details,
+                              offer: { ...draft.details!.offer!, startsAt },
+                            },
+                          })
+                        }
+                      />
+                      <Field
+                        label="Fim da oferta"
+                        type="date"
+                        value={draft.details.offer.endsAt}
+                        onChange={(endsAt) =>
+                          setDraft({
+                            ...draft,
+                            details: {
+                              ...draft.details,
+                              offer: { ...draft.details!.offer!, endsAt },
+                            },
+                          })
+                        }
+                      />
+                    </div>
+                  )}
+                </section>
                 <div className="wide">
                   <Field
                     label="Descrição e aplicação"
@@ -512,6 +676,12 @@ export function EditorApp({ userName }: { userName: string }) {
               </div>
             </section>
           </div>
+        ) : view === 'imports' ? (
+          <ImportEditor
+            dirty={dirty}
+            onBusy={onBusy}
+            onRefresh={refreshAfterImport}
+          />
         ) : view === 'overview' ? (
           <Panel
             title="Seu catálogo em um só lugar"
@@ -550,12 +720,22 @@ export function EditorApp({ userName }: { userName: string }) {
               disabled={busy || uploads > 0}
               className="config-container"
             >
-              <ConfigEditor
-                view={view}
-                config={config}
-                onChange={setConfig}
-                onBusy={onBusy}
-              />
+              {view === 'campaigns' ? (
+                <CampaignEditor
+                  config={config}
+                  onChange={setConfig}
+                  onBusy={onBusy}
+                />
+              ) : (
+                <ConfigEditor
+                  view={view}
+                  config={config}
+                  onChange={setConfig}
+                  onBusy={onBusy}
+                  products={items}
+                  onProductToggle={toggleShowcaseProduct}
+                />
+              )}
             </fieldset>
             <div className="settings-save">
               <span>

@@ -1,62 +1,84 @@
 'use client';
-import { useState } from 'react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { normalize, type Brand } from '@/lib/catalog-config';
+import { useState, type CSSProperties } from 'react';
+import { Dialog } from '@/components/ui/dialog';
+import { CarouselItem } from '@/components/ui/carousel';
+import { DiscoveryCarousel } from './discovery-carousel';
+import type { Brand } from '@/lib/catalog-config';
+import { publishedBrands } from '@/lib/catalog-brands';
 import type { Product } from '@/lib/catalog-data';
+import { CollectionProducts } from './collection-products';
+import { BrandChoice } from './brand-choice';
+import { AllBrandsDialog } from './all-brands-dialog';
+
 export function CatalogBrands({
   brands,
   items,
-  onSelect,
+  email,
+  style,
 }: {
   brands: Brand[];
   items: Product[];
-  onSelect: (name: string) => void;
+  email: string;
+  style?: CSSProperties;
 }) {
-  const [query, setQuery] = useState('');
-  const [limit, setLimit] = useState(24);
+  const [brand, setBrand] = useState<Brand | null>(null);
+  const visibleBrands = publishedBrands(brands);
   const counts = items.reduce<Record<string, number>>((a, p) => {
     a[p.brand] = (a[p.brand] ?? 0) + 1;
     return a;
   }, {});
-  const filtered = brands.filter((b) =>
-    normalize(b.name).includes(normalize(query)),
-  );
+  const featured = visibleBrands.filter((b) => b.featured);
   return (
     <>
-      <label className="brand-search">
-        <span>Buscar entre {brands.length} marcas</span>
-        <Input
-          placeholder="Digite o nome da marca"
-          value={query}
-          onChange={(e) => {
-            setQuery(e.target.value);
-            setLimit(24);
-          }}
-        />
-      </label>
-      <div className="brand-row">
-        {filtered.slice(0, limit).map((b) => (
-          <button key={b.name} onClick={() => onSelect(b.name)}>
-            {b.logo ? (
-              <img src={b.logo} alt={b.name} loading="lazy" />
-            ) : (
-              <strong>{b.name}</strong>
-            )}
-            <small>{counts[b.name] ?? 0} produtos</small>
-          </button>
-        ))}
-      </div>
-      {!filtered.length && <p>Nenhuma marca encontrada.</p>}
-      {filtered.length > limit && (
-        <Button
-          className="brands-more"
-          variant="outline"
-          onClick={() => setLimit((n) => n + 24)}
-        >
-          Mostrar mais marcas
-        </Button>
-      )}
+      <Dialog
+        open={!!brand}
+        onOpenChange={(open) => {
+          if (!open) {
+            setBrand(null);
+          }
+        }}
+      >
+        {!!featured.length && (
+          <DiscoveryCarousel kind="brand" count={featured.length}>
+            {featured.map((b, i) => (
+              <CarouselItem
+                key={b.name}
+                aria-label={`${i + 1} de ${featured.length}`}
+                aria-roledescription="item"
+              >
+                <BrandChoice
+                  brand={b}
+                  count={counts[b.name] ?? 0}
+                  onSelect={setBrand}
+                />
+              </CarouselItem>
+            ))}
+          </DiscoveryCarousel>
+        )}
+        {!featured.length && (
+          <p>
+            Nenhuma marca em destaque no momento. Veja todas as marcas abaixo.
+          </p>
+        )}
+        {brand && (
+          <CollectionProducts
+            key={brand.name}
+            kind="brand"
+            name={brand.name}
+            logo={brand.logo}
+            items={items}
+            email={email}
+            style={style}
+          />
+        )}
+      </Dialog>
+      <AllBrandsDialog
+        brands={visibleBrands}
+        items={items}
+        counts={counts}
+        email={email}
+        style={style}
+      />
     </>
   );
 }

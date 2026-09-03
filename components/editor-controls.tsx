@@ -1,10 +1,12 @@
 'use client';
+/* oxlint-disable next/no-img-element -- Preview the exact URL produced by the WebP upload pipeline. */
 import { useState, type ReactNode } from 'react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { NativeSelect } from '@/components/ui/native-select';
 import { Switch } from '@/components/ui/switch';
 import { Upload } from 'lucide-react';
+import { optimizeImage, optimizationSummary } from '@/lib/optimize-image';
 
 export function Field({
   label,
@@ -90,19 +92,23 @@ export function UploadField({
 }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [summary, setSummary] = useState('');
   async function upload(file?: File) {
     if (!file) return;
     setError('');
+    setSummary('');
     setBusy(true);
     onBusy?.(true);
     try {
+      const optimized = await optimizeImage(file);
       const form = new FormData();
-      form.append('file', file);
+      form.append('file', optimized.file);
       const res = await fetch('/api/uploads', { method: 'POST', body: form });
       const data = (await res.json()) as { error?: string; url?: string };
       if (!res.ok || !data.url)
         throw new Error(data.error ?? 'Falha no envio.');
       onChange(data.url);
+      setSummary(optimizationSummary(optimized));
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Falha no envio.');
     } finally {
@@ -121,7 +127,7 @@ export function UploadField({
         {value && <img src={value} alt={label} />}
         <label className="upload-button">
           <Upload />
-          {busy ? 'Enviando…' : 'Enviar imagem'}
+          {busy ? 'Convertendo e enviando…' : 'Enviar imagem'}
           <input
             type="file"
             accept="image/png,image/jpeg,image/webp,image/gif"
@@ -133,8 +139,12 @@ export function UploadField({
             }}
           />
         </label>
-        <small>Até 5 MB · PNG, JPEG, WebP ou GIF</small>
+        <small>
+          Até 5 MB · PNG, JPEG, WebP ou GIF estático. Conversão automática para
+          WebP, até 1.920 px, preservando transparência.
+        </small>
       </div>
+      {summary && <output className="source-note">{summary}</output>}
       {error && (
         <p role="alert" className="error-message">
           {error} A imagem anterior foi mantida.

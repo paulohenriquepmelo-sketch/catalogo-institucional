@@ -1,22 +1,6 @@
 import { env } from 'cloudflare:workers';
 import { authorizeMutation, boundedBody } from '@/lib/editor-access';
-function detect(bytes: Uint8Array) {
-  if (
-    bytes[0] === 0x89 &&
-    bytes[1] === 0x50 &&
-    bytes[2] === 0x4e &&
-    bytes[3] === 0x47
-  )
-    return ['png', 'image/png'];
-  if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff)
-    return ['jpg', 'image/jpeg'];
-  const head = new TextDecoder().decode(bytes.slice(0, 16));
-  if (head.startsWith('RIFF') && head.slice(8, 12) === 'WEBP')
-    return ['webp', 'image/webp'];
-  if (head.startsWith('GIF87a') || head.startsWith('GIF89a'))
-    return ['gif', 'image/gif'];
-  return null;
-}
+import { storeImage } from '@/lib/image-storage';
 export async function POST(request: Request) {
   const denied = await authorizeMutation(request);
   if (denied) return denied;
@@ -26,22 +10,11 @@ export async function POST(request: Request) {
       headers: { 'content-type': request.headers.get('content-type') ?? '' },
     }).formData();
     const file = form.get('file');
-    if (
-      !(file instanceof File) ||
-      file.size > 5 * 1024 * 1024 ||
-      file.size < 12
-    )
-      throw new Error('Envie uma imagem de até 5 MB.');
-    const data = await file.arrayBuffer();
-    const format = detect(new Uint8Array(data));
-    if (!format)
-      throw new Error('Formato inválido. Use PNG, JPEG, WebP ou GIF.');
-    const key = `images/${crypto.randomUUID()}.${format[0]}`;
-    await env.FILES.put(key, data, {
-      httpMetadata: { contentType: format[1] },
-    });
+    if (!(file instanceof File)) throw new Error('Selecione uma imagem.');
+    const image = await storeImage(file);
     return Response.json({
-      url: `/api/uploads?key=${encodeURIComponent(key)}`,
+      url: image.url,
+      bytes: image.bytes,
     });
   } catch (error) {
     return Response.json(

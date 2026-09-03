@@ -1,10 +1,15 @@
-export async function api<T>(url: string, body?: unknown): Promise<T> {
+export async function api<T>(
+  url: string,
+  body?: unknown,
+  signal?: AbortSignal,
+): Promise<T> {
   const response = await fetch(
     url,
     body === undefined
-      ? { cache: 'no-store' }
+      ? { cache: 'no-store', signal }
       : {
           method: 'POST',
+          signal,
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify(body),
         },

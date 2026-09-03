@@ -11,6 +11,9 @@ import {
   imageUrl,
 } from './catalog-config';
 import { classifySegment } from './segment-classifier';
+import { defaultCampaign } from './catalog-campaign';
+import { defaultColors } from './catalog-colors';
+import { defaultLayout } from './catalog-layout';
 
 // Migrations own both the schema and the one-time spreadsheet import.
 async function initializeData() {
@@ -31,18 +34,52 @@ export async function getConfig() {
     ).first<{ body: string; revision: number }>();
   }
   if (!row) throw new Error('Configuração indisponível.');
+  const stored = JSON.parse(row.body) as CatalogConfig;
+  const storedBlocks = Array.isArray(stored.blocks) ? stored.blocks : [];
+  const addedBlocks = defaultConfig.blocks.filter(
+    (block) =>
+      ['offers', 'new-products'].includes(block.type) &&
+      !storedBlocks.some((storedBlock) => storedBlock.type === block.type),
+  );
+  const catalogIndex = storedBlocks.findIndex(
+    (block) => block.type === 'catalog',
+  );
+  const blocks = [...storedBlocks];
+  blocks.splice(catalogIndex < 0 ? 0 : catalogIndex + 1, 0, ...addedBlocks);
   return {
-    config: JSON.parse(row.body) as CatalogConfig,
+    config: {
+      ...stored,
+      layout: { ...defaultLayout, ...stored.layout },
+      brands: stored.brands.map((brand) => ({
+        ...brand,
+        published: brand.published ?? true,
+        featured: brand.featured === true,
+      })),
+      colors: { ...defaultColors, ...stored.colors },
+      campaign: stored.campaign ?? structuredClone(defaultCampaign),
+      offers: stored.offers ?? structuredClone(defaultConfig.offers),
+      newProducts:
+        stored.newProducts ?? structuredClone(defaultConfig.newProducts),
+      blocks,
+    },
     revision: row.revision,
   };
 }
 export async function listCatalogProducts(
   includeDrafts = false,
+  codes?: string[],
 ): Promise<Product[]> {
   const { config } = await getConfig();
+  if (codes?.length === 0) return [];
+  const conditions = [
+    includeDrafts ? '' : 'published=1',
+    codes ? `code IN (${codes.map(() => '?').join(',')})` : '',
+  ].filter(Boolean);
   const result = await env.DB.prepare(
-    `SELECT * FROM products ${includeDrafts ? '' : 'WHERE published=1'} ORDER BY featured DESC, name COLLATE NOCASE`,
-  ).all<Record<string, unknown>>();
+    `SELECT * FROM products ${conditions.length ? `WHERE ${conditions.join(' AND ')}` : ''} ORDER BY featured DESC, name COLLATE NOCASE`,
+  )
+    .bind(...(codes ?? []))
+    .all<Record<string, unknown>>();
   return result.results.map((r) => {
     const details = JSON.parse(String(r.details ?? '{}')) as ProductDetails;
     if (!includeDrafts) {
@@ -66,6 +103,7 @@ export async function listCatalogProducts(
       featured: Boolean(r.featured),
       published: Boolean(r.published),
       updatedAt: String(r.updated_at),
+      createdAt: String(r.created_at),
     };
     return { ...p, segment: classifySegment(p, config.segments).segment };
   });
@@ -122,6 +160,31 @@ export function validateProduct(
     details.sourceFile = String(v.details.sourceFile).slice(0, 120);
   if (Number.isInteger(v.details?.sourceRow))
     details.sourceRow = v.details?.sourceRow;
+  if (v.details?.showAsNew !== undefined) {
+    if (typeof v.details.showAsNew !== 'boolean')
+      throw new Error('Revise a publicação na vitrine de novidades.');
+    details.showAsNew = v.details.showAsNew;
+  }
+  if (v.details?.offer !== undefined) {
+    const offer = v.details.offer;
+    if (
+      !offer ||
+      typeof offer !== 'object' ||
+      !Number.isInteger(offer.discount) ||
+      offer.discount < 1 ||
+      offer.discount > 99 ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(offer.startsAt) ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(offer.endsAt) ||
+      offer.startsAt > offer.endsAt
+    )
+      throw new Error('Revise o desconto e o período da oferta.');
+    details.offer = {
+      enabled: offer.enabled === true,
+      discount: offer.discount,
+      startsAt: offer.startsAt,
+      endsAt: offer.endsAt,
+    };
+  }
   return {
     id: v.id,
     name: v.name.trim(),
@@ -137,11 +200,15 @@ export function validateProduct(
     featured: v.featured === true,
     published: v.published === true,
     updatedAt: v.updatedAt,
+    createdAt: v.createdAt,
     details,
   };
 }
-export async function saveCatalogProduct(value: unknown) {
-  const { config, revision } = await getConfig();
+export async function saveCatalogProduct(
+  value: unknown,
+  context?: { config: CatalogConfig; revision: number },
+) {
+  const { config, revision } = context ?? (await getConfig());
   const p = validateProduct(value, config);
   const previous = Date.parse(p.updatedAt ?? '');
   const now = new Date(
@@ -190,7 +257,7 @@ export async function saveCatalogProduct(value: unknown) {
       throw new Error('Já existe um produto com este código.');
     throw error;
   }
-  return { ...p, id, updatedAt: now };
+  return { ...p, id, updatedAt: now, createdAt: p.createdAt ?? now };
 }
 export async function saveConfig(value: unknown, revision: number) {
   const config = validateConfig(value);

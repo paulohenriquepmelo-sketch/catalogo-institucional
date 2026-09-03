@@ -68,6 +68,9 @@ export const env = {
     },
   },
   FILES: {
+    async delete(key: string) {
+      files.delete(key);
+    },
     async put(
       key: string,
       data: ArrayBuffer,
