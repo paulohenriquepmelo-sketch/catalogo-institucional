@@ -1,71 +1,236 @@
 import { env } from 'cloudflare:workers';
-import { products as starterProducts, type Product } from '@/lib/catalog-data';
+import {
+  detailFields,
+  type Product,
+  type ProductDetails,
+} from './catalog-data';
+import {
+  defaultConfig,
+  type CatalogConfig,
+  validateConfig,
+  imageUrl,
+} from './catalog-config';
+import { classifySegment } from './segment-classifier';
 
-type ProductRecord = Product & { published: boolean };
-
-export async function ensureCatalogSchema() {
-  const db = env.DB;
-  await db.batch([
-    db.prepare(`CREATE TABLE IF NOT EXISTS products (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      code TEXT NOT NULL UNIQUE,
-      name TEXT NOT NULL,
-      description TEXT NOT NULL,
-      department TEXT NOT NULL,
-      section TEXT NOT NULL,
-      category TEXT NOT NULL,
-      segment TEXT NOT NULL,
-      brand TEXT NOT NULL,
-      image TEXT NOT NULL,
-      specs TEXT NOT NULL DEFAULT '[]',
-      featured INTEGER NOT NULL DEFAULT 0,
-      published INTEGER NOT NULL DEFAULT 1,
-      created_at TEXT NOT NULL,
-      updated_at TEXT NOT NULL
-    )`),
-    db.prepare('CREATE UNIQUE INDEX IF NOT EXISTS idx_products_code ON products(code)'),
-    db.prepare('CREATE INDEX IF NOT EXISTS idx_products_taxonomy ON products(department, section, category)'),
-    db.prepare('CREATE INDEX IF NOT EXISTS idx_products_segment ON products(segment)'),
-    db.prepare('CREATE INDEX IF NOT EXISTS idx_products_brand ON products(brand)'),
-  ]);
-
-  const count = await db.prepare('SELECT COUNT(*) AS total FROM products').first<{ total: number }>();
-  if ((count?.total ?? 0) === 0) {
-    const now = new Date().toISOString();
-    await db.batch(starterProducts.map((product) => db.prepare(`INSERT INTO products
-      (code, name, description, department, section, category, segment, brand, image, specs, featured, published, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)`)
-      .bind(product.code, product.name, product.description, product.department, product.section, product.category, product.segment, product.brand, product.image, JSON.stringify(product.specs), product.featured ? 1 : 0, now, now)));
+// Migrations own both the schema and the one-time spreadsheet import.
+async function initializeData() {
+  await env.DB.prepare(
+    'INSERT OR IGNORE INTO catalog_config (id,body,revision) VALUES (1,?,1)',
+  )
+    .bind(JSON.stringify(defaultConfig))
+    .run();
+}
+export async function getConfig() {
+  let row = await env.DB.prepare(
+    'SELECT body,revision FROM catalog_config WHERE id=1',
+  ).first<{ body: string; revision: number }>();
+  if (!row) {
+    await initializeData();
+    row = await env.DB.prepare(
+      'SELECT body,revision FROM catalog_config WHERE id=1',
+    ).first<{ body: string; revision: number }>();
   }
+  if (!row) throw new Error('Configuração indisponível.');
+  return {
+    config: JSON.parse(row.body) as CatalogConfig,
+    revision: row.revision,
+  };
 }
-
-export async function listCatalogProducts(): Promise<ProductRecord[]> {
-  await ensureCatalogSchema();
-  const result = await env.DB.prepare('SELECT * FROM products ORDER BY featured DESC, updated_at DESC').all<Record<string, unknown>>();
-  return result.results.map((row) => ({
-    id: Number(row.id), code: String(row.code), name: String(row.name), description: String(row.description),
-    department: String(row.department), section: String(row.section), category: String(row.category), segment: String(row.segment),
-    brand: String(row.brand), image: String(row.image), specs: JSON.parse(String(row.specs || '[]')),
-    featured: Boolean(row.featured), published: Boolean(row.published),
-  }));
+export async function listCatalogProducts(
+  includeDrafts = false,
+): Promise<Product[]> {
+  const { config } = await getConfig();
+  const result = await env.DB.prepare(
+    `SELECT * FROM products ${includeDrafts ? '' : 'WHERE published=1'} ORDER BY featured DESC, name COLLATE NOCASE`,
+  ).all<Record<string, unknown>>();
+  return result.results.map((r) => {
+    const details = JSON.parse(String(r.details ?? '{}')) as ProductDetails;
+    if (!includeDrafts) {
+      delete details.supplier;
+      delete details.sourceFile;
+      delete details.sourceRow;
+    }
+    const p = {
+      id: Number(r.id),
+      code: String(r.code),
+      name: String(r.name),
+      description: String(r.description),
+      department: String(r.department),
+      section: String(r.section),
+      category: String(r.category),
+      segment: String(r.segment),
+      brand: String(r.brand),
+      image: String(r.image),
+      specs: JSON.parse(String(r.specs)),
+      details,
+      featured: Boolean(r.featured),
+      published: Boolean(r.published),
+      updatedAt: String(r.updated_at),
+    };
+    return { ...p, segment: classifySegment(p, config.segments).segment };
+  });
 }
-
-export async function saveCatalogProduct(product: Omit<ProductRecord, 'id'> & { id?: number }) {
-  await ensureCatalogSchema();
-  const now = new Date().toISOString();
-  if (product.id) {
-    await env.DB.prepare(`UPDATE products SET code=?, name=?, description=?, department=?, section=?, category=?, segment=?, brand=?, image=?, specs=?, featured=?, published=?, updated_at=? WHERE id=?`)
-      .bind(product.code, product.name, product.description, product.department, product.section, product.category, product.segment, product.brand, product.image, JSON.stringify(product.specs), product.featured ? 1 : 0, product.published ? 1 : 0, now, product.id).run();
-    return product.id;
+export function validateProduct(
+  value: unknown,
+  config: CatalogConfig,
+): Product {
+  if (!value || typeof value !== 'object') throw new Error('Produto inválido.');
+  const v = value as Product;
+  for (const key of [
+    'name',
+    'code',
+    'description',
+    'department',
+    'section',
+    'category',
+    'brand',
+  ] as const) {
+    if (
+      typeof v[key] !== 'string' ||
+      (key !== 'description' && !v[key].trim()) ||
+      v[key].length > (key === 'description' ? 4000 : 180)
+    )
+      throw new Error(`Revise o campo ${key}.`);
   }
-  const result = await env.DB.prepare(`INSERT INTO products
-    (code, name, description, department, section, category, segment, brand, image, specs, featured, published, created_at, updated_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
-    .bind(product.code, product.name, product.description, product.department, product.section, product.category, product.segment, product.brand, product.image, JSON.stringify(product.specs), product.featured ? 1 : 0, product.published ? 1 : 0, now, now).run();
-  return Number(result.meta.last_row_id);
+  if (
+    !Number.isInteger(v.id) ||
+    v.id < 0 ||
+    !Array.isArray(v.specs) ||
+    v.specs.length > 50 ||
+    v.specs.some((s) => typeof s !== 'string' || s.length > 250)
+  )
+    throw new Error('Produto inválido.');
+  if (!config.brands.some((b) => b.name === v.brand))
+    throw new Error('Cadastre a marca antes de vincular o produto.');
+  if (
+    !config.taxonomy.some(
+      (t) =>
+        t.department === v.department &&
+        t.section === v.section &&
+        t.category === v.category,
+    )
+  )
+    throw new Error('Escolha uma hierarquia cadastrada.');
+  const details: ProductDetails = {};
+  for (const [key] of detailFields) {
+    const value = v.details?.[key] ?? '';
+    if (typeof value !== 'string' || value.length > 250)
+      throw new Error('Revise os dados de embalagem e identificação.');
+    details[key] = value.trim();
+  }
+  if (v.details?.sourceFile)
+    details.sourceFile = String(v.details.sourceFile).slice(0, 120);
+  if (Number.isInteger(v.details?.sourceRow))
+    details.sourceRow = v.details?.sourceRow;
+  return {
+    id: v.id,
+    name: v.name.trim(),
+    code: v.code.trim(),
+    description: v.description.trim(),
+    department: v.department,
+    section: v.section,
+    category: v.category,
+    brand: v.brand,
+    image: imageUrl(v.image),
+    specs: v.specs.map((s) => s.trim()).filter(Boolean),
+    segment: classifySegment(v, config.segments).segment,
+    featured: v.featured === true,
+    published: v.published === true,
+    updatedAt: v.updatedAt,
+    details,
+  };
 }
-
-export async function removeCatalogProduct(id: number) {
-  await ensureCatalogSchema();
-  await env.DB.prepare('DELETE FROM products WHERE id = ?').bind(id).run();
+export async function saveCatalogProduct(value: unknown) {
+  const { config, revision } = await getConfig();
+  const p = validateProduct(value, config);
+  const previous = Date.parse(p.updatedAt ?? '');
+  const now = new Date(
+    Math.max(Date.now(), Number.isFinite(previous) ? previous + 1 : 0),
+  ).toISOString();
+  const args = [
+    p.code,
+    p.name,
+    p.description,
+    p.department,
+    p.section,
+    p.category,
+    p.segment,
+    p.brand,
+    p.image,
+    JSON.stringify(p.specs),
+    JSON.stringify(p.details ?? {}),
+    p.featured ? 1 : 0,
+    p.published ? 1 : 0,
+    now,
+  ];
+  let id = p.id;
+  try {
+    if (id) {
+      const r = await env.DB.prepare(
+        'UPDATE products SET code=?,name=?,description=?,department=?,section=?,category=?,segment=?,brand=?,image=?,specs=?,details=?,featured=?,published=?,updated_at=? WHERE id=? AND updated_at=? AND (SELECT revision FROM catalog_config WHERE id=1)=?',
+      )
+        .bind(...args, id, p.updatedAt ?? '', revision)
+        .run();
+      if (!r.meta.changes)
+        throw new Error(
+          'Cadastro alterado em outra sessão. Recarregue antes de salvar.',
+        );
+    } else {
+      const r = await env.DB.prepare(
+        'INSERT INTO products (code,name,description,department,section,category,segment,brand,image,specs,details,featured,published,updated_at,created_at) SELECT ?,?,?,?,?,?,?,?,?,?,?,?,?,?,? WHERE (SELECT revision FROM catalog_config WHERE id=1)=?',
+      )
+        .bind(...args, now, revision)
+        .run();
+      if (!r.meta.changes)
+        throw new Error('Configuração alterada. Recarregue antes de salvar.');
+      id = Number(r.meta.last_row_id);
+    }
+  } catch (error) {
+    if (String(error).includes('UNIQUE'))
+      throw new Error('Já existe um produto com este código.');
+    throw error;
+  }
+  return { ...p, id, updatedAt: now };
+}
+export async function saveConfig(value: unknown, revision: number) {
+  const config = validateConfig(value);
+  const products = await listCatalogProducts(true);
+  for (const p of products) {
+    if (!config.brands.some((b) => b.name === p.brand))
+      throw new Error(
+        `A marca ${p.brand} está em uso. Altere os produtos antes de removê-la.`,
+      );
+    if (
+      !config.taxonomy.some(
+        (t) =>
+          t.department === p.department &&
+          t.section === p.section &&
+          t.category === p.category,
+      )
+    )
+      throw new Error(
+        `A categoria de ${p.name} está em uso. Mova o produto antes de removê-la.`,
+      );
+  }
+  // The CAS revision and product timestamp guards prevent silent overwrites.
+  const r = await env.DB.prepare(
+    `UPDATE catalog_config SET body=?,revision=revision+1 WHERE id=1 AND revision=?
+      AND NOT EXISTS (SELECT 1 FROM products p WHERE
+        NOT EXISTS (SELECT 1 FROM json_each(?) b WHERE json_extract(b.value,'$.name')=p.brand)
+        OR NOT EXISTS (SELECT 1 FROM json_each(?) t WHERE json_extract(t.value,'$.department')=p.department
+          AND json_extract(t.value,'$.section')=p.section AND json_extract(t.value,'$.category')=p.category))`,
+  )
+    .bind(
+      JSON.stringify(config),
+      revision,
+      JSON.stringify(config.brands),
+      JSON.stringify(config.taxonomy),
+    )
+    .run();
+  if (!r.meta.changes)
+    throw new Error(
+      'A página ou seus vínculos mudaram em outra sessão. Recarregue antes de salvar.',
+    );
+  // Segments are derived from the current configuration at read time as well.
+  return { config, revision: revision + 1 };
 }

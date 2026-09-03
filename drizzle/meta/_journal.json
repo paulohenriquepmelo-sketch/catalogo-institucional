@@ -8,6 +8,27 @@
       "when": 1788375680654,
       "tag": "0000_tricky_madelyne_pryor",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1788432672733,
+      "tag": "0001_mysterious_violations",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1788433384866,
+      "tag": "0002_flawless_redwing",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1788433385709,
+      "tag": "0003_import_produtos",
+      "breakpoints": true
     }
   ]
 }

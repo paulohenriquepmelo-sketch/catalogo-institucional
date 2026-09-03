@@ -1,28 +1,39 @@
-import { getChatGPTUser } from '@/app/chatgpt-auth';
-import { classifySegment } from '@/lib/segment-classifier';
-import { listCatalogProducts, removeCatalogProduct, saveCatalogProduct } from '@/lib/catalog-repository';
-
-export async function GET() {
-  try { return Response.json(await listCatalogProducts()); }
-  catch { return Response.json({ error: 'Não foi possível carregar o catálogo.' }, { status: 500 }); }
-}
-
-export async function POST(request: Request) {
-  if (!(await getChatGPTUser())) return Response.json({ error: 'Acesso restrito ao editor.' }, { status: 401 });
+import {
+  authorizeMutation,
+  getEditorUser,
+  readJson,
+} from '@/lib/editor-access';
+import {
+  listCatalogProducts,
+  saveCatalogProduct,
+} from '@/lib/catalog-repository';
+export async function GET(request: Request) {
+  const editor = new URL(request.url).searchParams.get('editor') === '1';
+  if (editor && !(await getEditorUser()))
+    return Response.json({ error: 'Acesso restrito.' }, { status: 403 });
   try {
-    const body = await request.json();
-    const analysis = classifySegment({ ...body, specs: body.specs ?? [] });
-    const id = await saveCatalogProduct({ ...body, segment: analysis.segment, published: body.published ?? true });
-    return Response.json({ id, analysis });
+    return Response.json(await listCatalogProducts(editor), {
+      headers: { 'cache-control': 'no-store' },
+    });
   } catch {
-    return Response.json({ error: 'Revise os campos do produto e tente novamente.' }, { status: 400 });
+    return Response.json(
+      { error: 'Não foi possível carregar os produtos. Tente novamente.' },
+      { status: 503 },
+    );
   }
 }
-
-export async function DELETE(request: Request) {
-  if (!(await getChatGPTUser())) return Response.json({ error: 'Acesso restrito ao editor.' }, { status: 401 });
-  const id = Number(new URL(request.url).searchParams.get('id'));
-  if (!id) return Response.json({ error: 'Produto inválido.' }, { status: 400 });
-  await removeCatalogProduct(id);
-  return Response.json({ ok: true });
+export async function POST(request: Request) {
+  const denied = await authorizeMutation(request);
+  if (denied) return denied;
+  try {
+    return Response.json(await saveCatalogProduct(await readJson(request)));
+  } catch (error) {
+    return Response.json(
+      {
+        error:
+          error instanceof Error ? error.message : 'Não foi possível salvar.',
+      },
+      { status: 400 },
+    );
+  }
 }

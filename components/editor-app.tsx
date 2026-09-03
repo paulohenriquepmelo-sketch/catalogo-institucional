@@ -1,161 +1,583 @@
 'use client';
-
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  ArrowLeft, Blocks, Check, ChevronRight, CircleUserRound, Eye, GripVertical, Image as ImageIcon,
-  LayoutDashboard, Loader2, Megaphone, Package, Palette, Plus, Save, Search, Sparkles, Tags, Upload,
+  ArrowLeft,
+  Blocks,
+  CircleUserRound,
+  Eye,
+  LayoutDashboard,
+  Loader2,
+  Megaphone,
+  Package,
+  Palette,
+  Plus,
+  Save,
+  Search,
+  Sparkles,
+  Tags,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Switch } from '@/components/ui/switch';
-import { Textarea } from '@/components/ui/textarea';
 import { classifySegment } from '@/lib/segment-classifier';
-import { products as starterProducts, type Product } from '@/lib/catalog-data';
+import { defaultConfig, type CatalogConfig } from '@/lib/catalog-config';
+import { detailFields, productIssues, type Product } from '@/lib/catalog-data';
+import { api } from '@/lib/client-api';
+import { Field, Choice, Toggle, UploadField, Panel } from './editor-controls';
+import { ConfigEditor, type EditorView } from './config-editor';
+import { useCatalogTools } from '@/hooks/use-catalog-tools';
 
-type EditableProduct = Product & { published: boolean };
-
-const navGroups = [
-  { label: 'Visão geral', icon: LayoutDashboard },
-  { label: 'Produtos', icon: Package, active: true },
-  { label: 'Departamentos', icon: Blocks },
-  { label: 'Marcas', icon: Tags },
-  { label: 'Banners e carrosséis', icon: Megaphone },
-  { label: 'Aparência do site', icon: Palette },
+const navigation: { key: EditorView; label: string; icon: typeof Package }[] = [
+  { key: 'overview', label: 'Visão geral', icon: LayoutDashboard },
+  { key: 'products', label: 'Produtos', icon: Package },
+  { key: 'taxonomy', label: 'Hierarquia', icon: Blocks },
+  { key: 'brands', label: 'Marcas e logos', icon: Tags },
+  { key: 'segments', label: 'Segmentos', icon: Sparkles },
+  { key: 'banners', label: 'Banners e carrossel', icon: Megaphone },
+  { key: 'appearance', label: 'Aparência e página', icon: Palette },
 ];
-
-const emptyProduct: EditableProduct = {
-  id: 0, code: '', name: '', description: '', department: 'Mobiliário', section: 'Estar', category: 'Poltronas',
-  segment: 'Residencial', brand: 'Forma', image: '', specs: [], published: true,
+const blank: Product = {
+  id: 0,
+  code: '',
+  name: '',
+  description: '',
+  department: '',
+  section: '',
+  category: '',
+  segment: 'Sem classificação',
+  brand: '',
+  image: '',
+  specs: [],
+  published: false,
+  featured: false,
 };
-
+const unique = (values: string[]) => [...new Set(values)];
 export function EditorApp({ userName }: { userName: string }) {
-  const [items, setItems] = useState<EditableProduct[]>(starterProducts.map((item) => ({ ...item, published: true })));
-  const [selectedId, setSelectedId] = useState<number>(1);
-  const [draft, setDraft] = useState<EditableProduct>({ ...items[0] });
+  const [items, setItems] = useState<Product[]>([]);
+  const [draft, setDraft] = useState<Product>(blank);
+  const [baseline, setBaseline] = useState(blank);
+  const [config, setConfig] = useState<CatalogConfig>(defaultConfig);
+  const [savedConfig, setSavedConfig] = useState(defaultConfig);
+  const [revision, setRevision] = useState(0);
+  const [view, setView] = useState<EditorView>('products');
   const [query, setQuery] = useState('');
-  const [saving, setSaving] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [saved, setSaved] = useState(false);
-  const [view, setView] = useState<'products' | 'layout'>('products');
-  const [blocks, setBlocks] = useState([
-    { name: 'Banner principal', detail: 'Carrossel com produtos em destaque', visible: true },
-    { name: 'Catálogo', detail: 'Busca, filtros e grade de produtos', visible: true },
-    { name: 'Segmentos', detail: 'Classificação automática por aplicação', visible: true },
-    { name: 'Marcas parceiras', detail: 'Logos e links para produtos da marca', visible: true },
-  ]);
-
+  const [productLimit, setProductLimit] = useState(40);
+  const [reviewOnly, setReviewOnly] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const [uploads, setUploads] = useState(0);
+  const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
+  const productDirty = JSON.stringify(draft) !== JSON.stringify(baseline);
+  const configDirty = JSON.stringify(config) !== JSON.stringify(savedConfig);
+  const dirty = productDirty || configDirty;
+  const onBusy = useCallback(
+    (start: boolean) => setUploads((n) => Math.max(0, n + (start ? 1 : -1))),
+    [],
+  );
+  async function load() {
+    setLoading(true);
+    setError('');
+    try {
+      const [data, settings] = await Promise.all([
+        api<Product[]>('/api/products?editor=1'),
+        api<{ config: CatalogConfig; revision: number }>('/api/config'),
+      ]);
+      setItems(data);
+      setDraft(data[0] ?? blank);
+      setBaseline(data[0] ?? blank);
+      setConfig(settings.config);
+      setSavedConfig(settings.config);
+      setRevision(settings.revision);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Falha ao carregar.');
+    } finally {
+      setLoading(false);
+    }
+  }
   useEffect(() => {
-    fetch('/api/products').then((response) => response.ok ? response.json() : Promise.reject()).then((data: EditableProduct[]) => {
-      if (data.length) { setItems(data); setSelectedId(data[0].id); setDraft(data[0]); }
-    }).catch(() => undefined);
+    void load();
   }, []);
-
-  const filtered = useMemo(() => items.filter((item) => `${item.name} ${item.code} ${item.brand}`.toLowerCase().includes(query.toLowerCase())), [items, query]);
-  const analysis = useMemo(() => classifySegment(draft), [draft]);
-
-  const selectProduct = (product: EditableProduct) => { setSelectedId(product.id); setDraft({ ...product }); setSaved(false); };
-  const newProduct = () => { setSelectedId(0); setDraft({ ...emptyProduct }); setSaved(false); };
-
-  const saveProduct = async () => {
-    setSaving(true); setSaved(false);
-    const payload = { ...draft, segment: analysis.segment };
+  useEffect(() => {
+    const guard = (event: BeforeUnloadEvent) => {
+      if (dirty) {
+        event.preventDefault();
+        event.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', guard);
+    return () => window.removeEventListener('beforeunload', guard);
+  }, [dirty]);
+  function choose(p: Product) {
+    if (
+      productDirty &&
+      !window.confirm('Descartar as alterações não salvas deste produto?')
+    )
+      return;
+    setDraft(p);
+    setBaseline(p);
+    setError('');
+    setMessage('');
+  }
+  function addProduct() {
+    const path = savedConfig.taxonomy[0];
+    choose({ ...blank, ...path, brand: savedConfig.brands[0]?.name ?? '' });
+  }
+  function changePath(key: 'department' | 'section', value: string) {
+    const path = savedConfig.taxonomy.find((p) =>
+      key === 'department'
+        ? p.department === value
+        : p.department === draft.department && p.section === value,
+    );
+    if (path) setDraft({ ...draft, ...path });
+  }
+  const filtered = items.filter(
+    (p) =>
+      `${p.name} ${p.code} ${p.brand} ${p.details?.ean ?? ''}`
+        .toLowerCase()
+        .includes(query.toLowerCase()) &&
+      (!reviewOnly ||
+        productIssues(p).length > 0 ||
+        p.segment === 'Sem classificação'),
+  );
+  const analysis = useMemo(
+    () => classifySegment(draft, savedConfig.segments),
+    [draft, savedConfig],
+  );
+  async function saveProduct() {
+    if (busy || uploads || loading)
+      throw new Error('Aguarde a operação atual.');
+    setBusy(true);
+    setError('');
+    setMessage('');
     try {
-      const response = await fetch('/api/products', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload) });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error);
-      const savedProduct = { ...payload, id: result.id ?? draft.id };
-      setDraft(savedProduct); setSelectedId(savedProduct.id);
-      setItems((current) => current.some((item) => item.id === savedProduct.id) ? current.map((item) => item.id === savedProduct.id ? savedProduct : item) : [savedProduct, ...current]);
-      setSaved(true);
-    } catch {
-      const localId = draft.id || Math.max(0, ...items.map((item) => item.id)) + 1;
-      const savedProduct = { ...payload, id: localId };
-      setDraft(savedProduct); setSelectedId(localId);
-      setItems((current) => current.some((item) => item.id === localId) ? current.map((item) => item.id === localId ? savedProduct : item) : [savedProduct, ...current]);
-      setSaved(true);
-    } finally { setSaving(false); }
-  };
-
-  const uploadImage = async (file?: File) => {
-    if (!file) return;
-    setUploading(true);
-    const preview = URL.createObjectURL(file);
-    setDraft((current) => ({ ...current, image: preview }));
+      const p = await api<Product>('/api/products', draft);
+      setDraft(p);
+      setBaseline(p);
+      setItems((current) =>
+        current.some((x) => x.id === p.id)
+          ? current.map((x) => (x.id === p.id ? p : x))
+          : [p, ...current],
+      );
+      setMessage(
+        p.published
+          ? 'Produto salvo e publicado.'
+          : 'Rascunho salvo. Ele não aparece na área pública.',
+      );
+      return { id: p.id, published: p.published, segment: p.segment };
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Falha ao salvar.');
+      throw e;
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function savePage() {
+    setBusy(true);
+    setError('');
+    setMessage('');
     try {
-      const form = new FormData(); form.append('file', file);
-      const response = await fetch('/api/uploads', { method: 'POST', body: form });
-      if (response.ok) { const result = await response.json(); setDraft((current) => ({ ...current, image: result.url })); }
-    } finally { setUploading(false); }
-  };
-
+      const result = await api<{ config: CatalogConfig; revision: number }>(
+        '/api/config',
+        { config, revision },
+      );
+      setConfig(result.config);
+      setSavedConfig(result.config);
+      setRevision(result.revision);
+      setMessage('Página e configurações publicadas.');
+      const data = await api<Product[]>('/api/products?editor=1');
+      setItems(data);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Falha ao salvar.');
+    } finally {
+      setBusy(false);
+    }
+  }
+  useCatalogTools([
+    {
+      name: 'save_current_product',
+      title: 'Salvar produto atual',
+      description:
+        'Salva no servidor o produto que está aberto no editor, incluindo o estado publicado ou rascunho. Requer administrador autorizado.',
+      inputSchema: {
+        type: 'object',
+        properties: { confirm: { type: 'boolean', const: true } },
+        required: ['confirm'],
+        additionalProperties: false,
+      },
+      annotations: { readOnlyHint: false, untrustedContentHint: true },
+      execute: async (input) => {
+        if (
+          !input ||
+          typeof input !== 'object' ||
+          (input as { confirm?: boolean }).confirm !== true ||
+          Object.keys(input).length !== 1
+        )
+          throw new Error('Confirmação explícita necessária.');
+        if (view !== 'products')
+          throw new Error('Abra um produto antes de salvar.');
+        return saveProduct();
+      },
+    },
+  ]);
   return (
     <main className="editor-shell">
       <aside className="editor-sidebar">
-        <a href="/" className="brand-lockup"><span className="brand-mark">N</span><span>NEXO <small>EDITOR</small></span></a>
+        <a href="/" className="brand-lockup">
+          <span className="brand-mark">N</span>
+          <span>
+            {savedConfig.name}
+            <small>EDITOR</small>
+          </span>
+        </a>
         <nav>
-          <span className="editor-nav-title">Conteúdo</span>
-          {navGroups.map(({ label, icon: Icon, active }) => (
-            <button key={label} className={(active && view === 'products') || (label === 'Banners e carrosséis' && view === 'layout') ? 'active' : ''} onClick={() => setView(label === 'Banners e carrosséis' || label === 'Aparência do site' ? 'layout' : 'products')}>
-              <Icon /> {label} {active && <span>{items.length}</span>}
+          <span className="editor-nav-title">Administrar catálogo</span>
+          {navigation.map(({ key, label, icon: Icon }) => (
+            <button
+              key={key}
+              className={view === key ? 'active' : ''}
+              onClick={() => setView(key)}
+              disabled={busy || uploads > 0}
+            >
+              <Icon />
+              <span className="nav-label">{label}</span>
             </button>
           ))}
         </nav>
-        <div className="editor-user"><CircleUserRound /><span><strong>{userName.split('@')[0]}</strong><small>Administrador</small></span></div>
+        <div className="editor-user">
+          <CircleUserRound />
+          <span>
+            <strong>{userName}</strong>
+            <small>Administrador autorizado</small>
+          </span>
+        </div>
       </aside>
-
       <section className="editor-workspace">
         <header className="editor-topbar">
-          <div><a href="/"><ArrowLeft /> Ver site</a><span>/</span><strong>{view === 'products' ? 'Produtos' : 'Página inicial'}</strong></div>
-          <div><span className="online-dot" /> Alterações sincronizadas <Button variant="outline" onClick={() => window.open('/', '_blank')}><Eye /> Pré-visualizar</Button><Button onClick={saveProduct}><Save /> Publicar</Button></div>
+          <div>
+            <a href="/">
+              <ArrowLeft /> Ver catálogo
+            </a>
+            <strong>{navigation.find((n) => n.key === view)?.label}</strong>
+          </div>
+          <div>
+            <span>
+              {dirty ? 'Alterações não salvas' : 'Sem alterações pendentes'}
+            </span>
+            <a href="/" target="_blank" rel="noreferrer">
+              <Eye /> Ver versão publicada
+            </a>
+          </div>
         </header>
-
-        {view === 'products' ? (
+        <div className="editor-feedback" aria-live="polite">
+          {error && (
+            <p role="alert" className="error-message">
+              {error}
+            </p>
+          )}
+          {message && <p className="success-message">{message}</p>}
+        </div>
+        {loading ? (
+          <div className="access-message">
+            <Loader2 className="animate-spin" /> Carregando o catálogo…
+          </div>
+        ) : revision === 0 ? (
+          <div className="access-message">
+            <Button onClick={() => void load()}>Tentar novamente</Button>
+          </div>
+        ) : view === 'products' ? (
           <div className="editor-columns">
             <section className="product-list-panel">
-              <div className="panel-heading"><div><span className="eyebrow">Catálogo</span><h1>Produtos</h1></div><Button onClick={newProduct}><Plus /> Novo produto</Button></div>
-              <label className="editor-search"><Search /><Input placeholder="Buscar por nome, código ou marca" value={query} onChange={(event) => setQuery(event.target.value)} /></label>
-              <div className="product-list-head"><span>{filtered.length} produtos</span><span>Status</span></div>
+              <div className="panel-heading">
+                <h1>Produtos</h1>
+                <Button onClick={addProduct} disabled={busy || uploads > 0}>
+                  <Plus /> Novo
+                </Button>
+              </div>
+              <label className="editor-search">
+                <Search />
+                <Input
+                  aria-label="Buscar produto no editor"
+                  placeholder="Nome, código ou marca"
+                  value={query}
+                  onChange={(e) => {
+                    setQuery(e.target.value);
+                    setProductLimit(40);
+                  }}
+                />
+              </label>
+              <div className="product-list-head">
+                {filtered.length} produtos
+              </div>
+              <Toggle
+                label="Somente pendências"
+                value={reviewOnly}
+                onChange={(value) => {
+                  setReviewOnly(value);
+                  setProductLimit(40);
+                }}
+              />
               <div className="editor-product-list">
-                {filtered.map((product) => (
-                  <button key={product.id} className={selectedId === product.id ? 'active' : ''} onClick={() => selectProduct(product)}>
-                    <img src={product.image} alt="" /><span><strong>{product.name}</strong><small>{product.code} · {product.brand}</small></span>
-                    <em className={product.published ? 'published' : ''}>{product.published ? 'Publicado' : 'Rascunho'}</em><ChevronRight />
+                {filtered.slice(0, productLimit).map((p) => (
+                  <button
+                    key={p.id}
+                    className={p.id === draft.id ? 'active' : ''}
+                    disabled={busy || uploads > 0}
+                    onClick={() => choose(p)}
+                  >
+                    {p.image ? <img src={p.image} alt="" /> : <Package />}
+                    <span>
+                      <strong>{p.name}</strong>
+                      <small>
+                        {p.code} · {p.brand}
+                      </small>
+                    </span>
+                    <em className={p.published ? 'published' : ''}>
+                      {p.published ? 'Publicado' : 'Rascunho'}
+                    </em>
                   </button>
                 ))}
+                {!filtered.length && <p>Nenhum produto encontrado.</p>}
               </div>
+              {filtered.length > productLimit && (
+                <Button
+                  variant="outline"
+                  onClick={() => setProductLimit((n) => n + 40)}
+                >
+                  Carregar mais produtos
+                </Button>
+              )}
             </section>
-
             <section className="product-form-panel">
-              <div className="form-title"><div><span className="eyebrow">{draft.id ? 'Editar item' : 'Novo item'}</span><h2>{draft.name || 'Produto sem título'}</h2></div><label className="publish-toggle"><span>Publicado</span><Switch checked={draft.published} onCheckedChange={(checked) => setDraft({ ...draft, published: checked })} /></label></div>
-              <div className="editor-form-grid">
-                <label className="wide"><span>Nome do produto</span><Input value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} /></label>
-                <label><span>Código</span><Input value={draft.code} onChange={(event) => setDraft({ ...draft, code: event.target.value })} /></label>
-                <label><span>Marca</span><Input value={draft.brand} onChange={(event) => setDraft({ ...draft, brand: event.target.value })} /></label>
-                <label className="wide"><span>Descrição</span><Textarea value={draft.description} onChange={(event) => setDraft({ ...draft, description: event.target.value })} /></label>
-                <label><span>Departamento</span><Input value={draft.department} onChange={(event) => setDraft({ ...draft, department: event.target.value })} /></label>
-                <label><span>Seção</span><Input value={draft.section} onChange={(event) => setDraft({ ...draft, section: event.target.value })} /></label>
-                <label><span>Categoria</span><Input value={draft.category} onChange={(event) => setDraft({ ...draft, category: event.target.value })} /></label>
-                <div className="ai-segment-card">
-                  <span><Sparkles /> Segmento automático</span><strong>{analysis.segment}</strong><small>{analysis.confidence}% de confiança · {analysis.signals.length ? analysis.signals.join(', ') : 'análise inicial'}</small>
+              <div className="form-title">
+                <h2>{draft.id ? 'Editar produto' : 'Novo produto'}</h2>
+                <Toggle
+                  label="Publicar"
+                  disabled={busy || uploads > 0}
+                  value={draft.published === true}
+                  onChange={(published) => setDraft({ ...draft, published })}
+                />
+              </div>
+              <fieldset
+                disabled={busy || uploads > 0}
+                className="editor-form-grid"
+              >
+                <Field
+                  label="Nome"
+                  value={draft.name}
+                  onChange={(name) => setDraft({ ...draft, name })}
+                />
+                <Field
+                  label="Código único"
+                  value={draft.code}
+                  onChange={(code) => setDraft({ ...draft, code })}
+                />
+                <Choice
+                  label="Marca"
+                  value={draft.brand}
+                  options={savedConfig.brands.map((b) => b.name)}
+                  onChange={(brand) => setDraft({ ...draft, brand })}
+                />
+                <Toggle
+                  label="Produto em destaque"
+                  value={draft.featured === true}
+                  onChange={(featured) => setDraft({ ...draft, featured })}
+                />
+                <div className="wide">
+                  <Field
+                    label="Descrição e aplicação"
+                    multiline
+                    value={draft.description}
+                    onChange={(description) =>
+                      setDraft({ ...draft, description })
+                    }
+                  />
                 </div>
-                <label className="wide"><span>Características técnicas</span><Input value={draft.specs.join(', ')} onChange={(event) => setDraft({ ...draft, specs: event.target.value.split(',').map((item) => item.trim()).filter(Boolean) })} placeholder="Separe as características por vírgula" /></label>
+                <Choice
+                  label="Departamento"
+                  value={draft.department}
+                  options={unique(
+                    savedConfig.taxonomy.map((t) => t.department),
+                  )}
+                  onChange={(v) => changePath('department', v)}
+                />
+                <Choice
+                  label="Seção"
+                  value={draft.section}
+                  options={unique(
+                    savedConfig.taxonomy
+                      .filter((t) => t.department === draft.department)
+                      .map((t) => t.section),
+                  )}
+                  onChange={(v) => changePath('section', v)}
+                />
+                <Choice
+                  label="Categoria"
+                  value={draft.category}
+                  options={unique(
+                    savedConfig.taxonomy
+                      .filter(
+                        (t) =>
+                          t.department === draft.department &&
+                          t.section === draft.section,
+                      )
+                      .map((t) => t.category),
+                  )}
+                  onChange={(category) => setDraft({ ...draft, category })}
+                />
+                <div className="ai-segment-card">
+                  <span>
+                    <Sparkles /> Classificação por regras
+                  </span>
+                  <strong>{analysis.segment}</strong>
+                  <small>
+                    {analysis.review
+                      ? 'Revisar: faltam sinais ou há empate.'
+                      : `Sinais: ${analysis.signals.join(', ')}`}
+                  </small>
+                </div>
+                <div className="wide">
+                  <Field
+                    label="Características técnicas (uma por linha)"
+                    multiline
+                    value={draft.specs.join('\n')}
+                    onChange={(value) =>
+                      setDraft({ ...draft, specs: value.split('\n') })
+                    }
+                  />
+                </div>
+                <div className="wide">
+                  <h3>Embalagem e identificação</h3>
+                  <p className="source-note">
+                    {draft.details?.sourceFile
+                      ? `Importado de ${draft.details.sourceFile}, linha ${draft.details.sourceRow}. Fornecedor é um campo interno.`
+                      : 'Complete os dados de cadastro. Fornecedor não aparece na área pública.'}
+                  </p>
+                </div>
+                {detailFields.map(([key, label]) => (
+                  <Field
+                    key={key}
+                    label={label}
+                    value={draft.details?.[key] ?? ''}
+                    onChange={(value) =>
+                      setDraft({
+                        ...draft,
+                        details: { ...draft.details, [key]: value },
+                      })
+                    }
+                  />
+                ))}
+                {productIssues(draft).length > 0 && (
+                  <div className="data-warning wide">
+                    <strong>Conferir cadastro</strong>
+                    <ul>
+                      {productIssues(draft).map((issue) => (
+                        <li key={issue}>{issue}</li>
+                      ))}
+                    </ul>
+                    <small>
+                      Os valores originais foram preservados. A conferência de
+                      formato não valida o dígito verificador do EAN.
+                    </small>
+                  </div>
+                )}
+              </fieldset>
+              <fieldset disabled={busy || uploads > 0}>
+                <UploadField
+                  label="Imagem do produto"
+                  value={draft.image}
+                  onChange={(image) =>
+                    setDraft((current) => ({ ...current, image }))
+                  }
+                  onBusy={onBusy}
+                />
+              </fieldset>
+              <div className="form-actions">
+                <Button
+                  variant="outline"
+                  disabled={busy || uploads > 0}
+                  onClick={() => {
+                    setDraft(baseline);
+                    setError('');
+                  }}
+                >
+                  Desfazer
+                </Button>
+                <Button
+                  disabled={busy || uploads > 0 || !draft.name || !draft.code}
+                  onClick={() => void saveProduct().catch(() => {})}
+                >
+                  {busy ? <Loader2 className="animate-spin" /> : <Save />}{' '}
+                  Salvar produto
+                </Button>
               </div>
-              <div className="image-editor">
-                <div>{draft.image ? <img src={draft.image} alt="Prévia" /> : <ImageIcon />}</div>
-                <span><strong>Imagem principal</strong><small>JPG, PNG ou WebP. Recomendado: 1200 × 1200 px.</small><label className="upload-button"><Upload /> {uploading ? 'Enviando...' : 'Substituir imagem'}<input type="file" accept="image/*" hidden onChange={(event) => uploadImage(event.target.files?.[0])} /></label></span>
-              </div>
-              <div className="form-actions"><span>{saved && <><Check /> Produto salvo e segmento atualizado.</>}</span><Button variant="outline" onClick={() => selectedId && selectProduct(items.find((item) => item.id === selectedId) ?? draft)}>Cancelar</Button><Button onClick={saveProduct} disabled={saving || !draft.name || !draft.code}>{saving ? <Loader2 className="animate-spin" /> : <Save />} Salvar produto</Button></div>
             </section>
           </div>
+        ) : view === 'overview' ? (
+          <Panel
+            title="Seu catálogo em um só lugar"
+            note="O site público mostra apenas os itens publicados. Todas as edições precisam ser salvas."
+          >
+            <div className="summary-grid">
+              <article>
+                <strong>{items.length}</strong>
+                <span>Produtos cadastrados</span>
+              </article>
+              <article>
+                <strong>{items.filter((p) => p.published).length}</strong>
+                <span>Publicados</span>
+              </article>
+              <article>
+                <strong>
+                  {
+                    items.filter((p) => p.segment === 'Sem classificação')
+                      .length
+                  }
+                </strong>
+                <span>Para classificar</span>
+              </article>
+              <article>
+                <strong>{savedConfig.brands.length}</strong>
+                <span>Marcas</span>
+              </article>
+            </div>
+            <Button onClick={() => setView('products')}>
+              Gerenciar produtos
+            </Button>
+          </Panel>
         ) : (
-          <div className="layout-editor">
-            <section>
-              <span className="eyebrow">Editor visual</span><h1>Estrutura da página</h1><p>Reordene, oculte ou edite os blocos que formam a página pública do catálogo.</p>
-              <div className="block-list">{blocks.map((block, index) => <div key={block.name}><GripVertical /><span><strong>{block.name}</strong><small>{block.detail}</small></span><Switch checked={block.visible} onCheckedChange={(checked) => setBlocks((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, visible: checked } : item))} /><Button variant="ghost">Editar</Button></div>)}</div>
-              <Button variant="outline" className="add-block"><Plus /> Adicionar banner, carrossel ou seção</Button>
-            </section>
-            <aside className="live-preview"><div className="preview-toolbar"><span /><span /><span /><em>nexocatalogo.sites.app</em></div><div className="preview-canvas"><div className="mini-header">NEXO <span>Catálogo · Segmentos · Marcas</span></div><div className="mini-hero"><strong>Escolhas que<br />transformam espaços.</strong><img src={starterProducts[0].image} alt="" /></div><div className="mini-grid">{starterProducts.slice(0, 3).map((item) => <img key={item.id} src={item.image} alt="" />)}</div></div></aside>
-          </div>
+          <>
+            <fieldset
+              disabled={busy || uploads > 0}
+              className="config-container"
+            >
+              <ConfigEditor
+                view={view}
+                config={config}
+                onChange={setConfig}
+                onBusy={onBusy}
+              />
+            </fieldset>
+            <div className="settings-save">
+              <span>
+                {configDirty
+                  ? 'Alterações da página ainda não publicadas.'
+                  : 'Configurações salvas.'}
+              </span>
+              <Button
+                variant="outline"
+                disabled={busy || uploads > 0}
+                onClick={() => setConfig(savedConfig)}
+              >
+                Desfazer
+              </Button>
+              <Button
+                disabled={busy || uploads > 0 || !configDirty}
+                onClick={() => void savePage()}
+              >
+                <Save /> Salvar e publicar página
+              </Button>
+            </div>
+          </>
         )}
       </section>
     </main>

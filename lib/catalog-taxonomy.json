@@ -1,0 +1,1233 @@
+{
+  "taxonomy": [
+    {
+      "department": "1-ATACADO",
+      "section": "2-BOMBONIERI",
+      "category": "2.1-BALAS & DROPS"
+    },
+    {
+      "department": "1-ATACADO",
+      "section": "1-ALIMENTOS",
+      "category": "1.2-MERCEARIA"
+    },
+    {
+      "department": "1-ATACADO",
+      "section": "1-ALIMENTOS",
+      "category": "1.1-FOOD SERVICE"
+    },
+    {
+      "department": "1-ATACADO",
+      "section": "2-BOMBONIERI",
+      "category": "2.2-CHICLETES"
+    },
+    {
+      "department": "1-ATACADO",
+      "section": "2-BOMBONIERI",
+      "category": "2.4-CHOCOLATES"
+    },
+    {
+      "department": "1-ATACADO",
+      "section": "1-ALIMENTOS",
+      "category": "1.5-CONDIMENTOS GUARANA"
+    },
+    {
+      "department": "1-ATACADO",
+      "section": "2-BOMBONIERI",
+      "category": "2.5-DOCES / BRINQUEDOS"
+    },
+    {
+      "department": "1-ATACADO",
+      "section": "2-BOMBONIERI",
+      "category": "2.7-GULOZITOS"
+    },
+    {
+      "department": "1-ATACADO",
+      "section": "2-BOMBONIERI",
+      "category": "2.3-PIRULITOS"
+    },
+    {
+      "department": "1-ATACADO",
+      "section": "4-BEBIDAS ALCOOLICAS",
+      "category": "4.2-DESTILADOS"
+    },
+    {
+      "department": "1-ATACADO",
+      "section": "3-BEBIDAS NÃO ALCOLICAS",
+      "category": "3.1-SUCOS"
+    },
+    {
+      "department": "1-ATACADO",
+      "section": "4-BEBIDAS ALCOOLICAS",
+      "category": "4.3-VINHOS & ESPUMANTES"
+    },
+    {
+      "department": "1-ATACADO",
+      "section": "7-UTILIDADES",
+      "category": "FOGOS"
+    },
+    {
+      "department": "1-ATACADO",
+      "section": "8-EMBALAGENS & EPS",
+      "category": "SACOLAS/ BOBINAS/ SACOS PP"
+    },
+    {
+      "department": "1-ATACADO",
+      "section": "6-LIMPEZA",
+      "category": "LIMPEZA"
+    },
+    {
+      "department": "1-ATACADO",
+      "section": "7-UTILIDADES",
+      "category": "UTILIDADES"
+    },
+    {
+      "department": "1-ATACADO",
+      "section": "8-EMBALAGENS & EPS",
+      "category": "DESCARTAVEIS"
+    },
+    {
+      "department": "1-ATACADO",
+      "section": "5-HIGIENE & PERFUMARIA",
+      "category": "HIGIENE PESSOAL"
+    },
+    {
+      "department": "1-ATACADO",
+      "section": "8-EMBALAGENS & EPS",
+      "category": "EPS (ISOPOR)/BANDEJAS ALUMINIO"
+    },
+    {
+      "department": "1-ATACADO",
+      "section": "7-UTILIDADES",
+      "category": "FILME PVC/ PAPEL ALUMINIO"
+    },
+    {
+      "department": "1-ATACADO",
+      "section": "8-EMBALAGENS & EPS",
+      "category": "POTES REDONDO /  RETANGULAR"
+    },
+    {
+      "department": "2-DISTRIBUICAO",
+      "section": "4-YOKI & KITANO",
+      "category": "PIPOCAS MICROONDAS"
+    },
+    {
+      "department": "2-DISTRIBUICAO",
+      "section": "4-YOKI & KITANO",
+      "category": "TEMPEROS"
+    },
+    {
+      "department": "2-DISTRIBUICAO",
+      "section": "4-YOKI & KITANO",
+      "category": "ALIMENTOS"
+    },
+    {
+      "department": "1-ATACADO",
+      "section": "1-ALIMENTOS",
+      "category": "1.3-BISCOITOS"
+    },
+    {
+      "department": "1-ATACADO",
+      "section": "3-BEBIDAS NÃO ALCOLICAS",
+      "category": "3.3-ENERGETICOS"
+    },
+    {
+      "department": "2-DISTRIBUICAO",
+      "section": "4-YOKI & KITANO",
+      "category": "FARINHAS & FAROFAS"
+    },
+    {
+      "department": "2-DISTRIBUICAO",
+      "section": "1-HERSHEYS",
+      "category": "HERSHEYS MIX"
+    },
+    {
+      "department": "2-DISTRIBUICAO",
+      "section": "1-HERSHEYS",
+      "category": "LINHA FOODS SERVICE"
+    },
+    {
+      "department": "1-ATACADO",
+      "section": "2-BOMBONIERI",
+      "category": "2.6-SALGADINHOS /  PIPOCAS / CHIPS"
+    },
+    {
+      "department": "1-ATACADO",
+      "section": "1-ALIMENTOS",
+      "category": "1.4-MASSAS"
+    },
+    {
+      "department": "2-DISTRIBUICAO",
+      "section": "4-YOKI & KITANO",
+      "category": "SALGADINHOS"
+    },
+    {
+      "department": "2-DISTRIBUICAO",
+      "section": "5-DONA BENTA PANIFICAÇÃO",
+      "category": "DONA BENTA"
+    },
+    {
+      "department": "1-ATACADO",
+      "section": "3-BEBIDAS NÃO ALCOLICAS",
+      "category": "3.4-AGUA MINERAL"
+    },
+    {
+      "department": "2-DISTRIBUICAO",
+      "section": "2-ART FRITAS",
+      "category": "PALHA ART FRITAS"
+    },
+    {
+      "department": "2-DISTRIBUICAO",
+      "section": "1-HERSHEYS",
+      "category": "BARRA REGULAR"
+    },
+    {
+      "department": "2-DISTRIBUICAO",
+      "section": "1-HERSHEYS",
+      "category": "BARRA DARK"
+    },
+    {
+      "department": "1-ATACADO",
+      "section": "1-ALIMENTOS",
+      "category": "1.6-SANTA AMALIA"
+    },
+    {
+      "department": "2-DISTRIBUICAO",
+      "section": "3-PRODUTOS SPERANDIO",
+      "category": "BANHAS"
+    },
+    {
+      "department": "2-DISTRIBUICAO",
+      "section": "3-PRODUTOS SPERANDIO",
+      "category": "TORRESMOS"
+    },
+    {
+      "department": "2-DISTRIBUICAO",
+      "section": "2-ART FRITAS",
+      "category": "BATATA CHIPS ART FRITAS"
+    },
+    {
+      "department": "1-ATACADO",
+      "section": "3-BEBIDAS NÃO ALCOLICAS",
+      "category": "3.2-REFRIGERANTES"
+    },
+    {
+      "department": "1-ATACADO",
+      "section": "4-BEBIDAS ALCOOLICAS",
+      "category": "4.1-CERVEJAS"
+    }
+  ],
+  "brands": [
+    {
+      "name": "88 GDC",
+      "logo": ""
+    },
+    {
+      "name": "ADAMS",
+      "logo": ""
+    },
+    {
+      "name": "AIDAR",
+      "logo": ""
+    },
+    {
+      "name": "ALISPEC",
+      "logo": ""
+    },
+    {
+      "name": "ALKIN",
+      "logo": ""
+    },
+    {
+      "name": "AMAFIL",
+      "logo": ""
+    },
+    {
+      "name": "AMBEV",
+      "logo": ""
+    },
+    {
+      "name": "AMIDOTEC",
+      "logo": ""
+    },
+    {
+      "name": "APONETE",
+      "logo": ""
+    },
+    {
+      "name": "ARCOR",
+      "logo": ""
+    },
+    {
+      "name": "ARGOS",
+      "logo": ""
+    },
+    {
+      "name": "ARISCO",
+      "logo": ""
+    },
+    {
+      "name": "ART FRITAS",
+      "logo": ""
+    },
+    {
+      "name": "AURORA",
+      "logo": ""
+    },
+    {
+      "name": "AVANT",
+      "logo": ""
+    },
+    {
+      "name": "AZULIM",
+      "logo": ""
+    },
+    {
+      "name": "BACARDI-MARTINI",
+      "logo": ""
+    },
+    {
+      "name": "BALSAMO",
+      "logo": ""
+    },
+    {
+      "name": "BANANAFRUITI",
+      "logo": ""
+    },
+    {
+      "name": "BAND-AID",
+      "logo": ""
+    },
+    {
+      "name": "BATATA OURO DE MINAS",
+      "logo": ""
+    },
+    {
+      "name": "BAYGON",
+      "logo": ""
+    },
+    {
+      "name": "BEBIDAS DIVERSAS",
+      "logo": ""
+    },
+    {
+      "name": "BELLA PALHA",
+      "logo": ""
+    },
+    {
+      "name": "BERBAU",
+      "logo": ""
+    },
+    {
+      "name": "BIC",
+      "logo": ""
+    },
+    {
+      "name": "BLACK FIRE",
+      "logo": ""
+    },
+    {
+      "name": "BMR EMBALAGENS",
+      "logo": ""
+    },
+    {
+      "name": "BOM BISCOITO",
+      "logo": ""
+    },
+    {
+      "name": "BOM PANO",
+      "logo": ""
+    },
+    {
+      "name": "BOM SABOR",
+      "logo": ""
+    },
+    {
+      "name": "BOMBRIL",
+      "logo": ""
+    },
+    {
+      "name": "BORGES",
+      "logo": ""
+    },
+    {
+      "name": "BRILHANTE",
+      "logo": ""
+    },
+    {
+      "name": "BUNGE (PREDILETA)",
+      "logo": ""
+    },
+    {
+      "name": "CAMPARI",
+      "logo": ""
+    },
+    {
+      "name": "CAMPOMESA (AZEITONA)",
+      "logo": ""
+    },
+    {
+      "name": "CAMPONESA",
+      "logo": ""
+    },
+    {
+      "name": "CANADA",
+      "logo": ""
+    },
+    {
+      "name": "CANTINA DA SERRA",
+      "logo": ""
+    },
+    {
+      "name": "CAPITAL",
+      "logo": ""
+    },
+    {
+      "name": "CARDOZANO",
+      "logo": ""
+    },
+    {
+      "name": "CARINHO",
+      "logo": ""
+    },
+    {
+      "name": "CASA D'ORO",
+      "logo": ""
+    },
+    {
+      "name": "CASA PERINI",
+      "logo": ""
+    },
+    {
+      "name": "CEMIL",
+      "logo": ""
+    },
+    {
+      "name": "CERESER",
+      "logo": ""
+    },
+    {
+      "name": "COAMO",
+      "logo": ""
+    },
+    {
+      "name": "COCA COLA",
+      "logo": ""
+    },
+    {
+      "name": "COCINERO",
+      "logo": ""
+    },
+    {
+      "name": "COLGATE - SORRIZO - PALMOLIVE",
+      "logo": ""
+    },
+    {
+      "name": "COMPAPEL",
+      "logo": ""
+    },
+    {
+      "name": "CONCHA Y TORO",
+      "logo": ""
+    },
+    {
+      "name": "COPAG",
+      "logo": ""
+    },
+    {
+      "name": "COPOBRAS",
+      "logo": ""
+    },
+    {
+      "name": "COPOPLAST",
+      "logo": ""
+    },
+    {
+      "name": "CRISTAL",
+      "logo": ""
+    },
+    {
+      "name": "D BENTA PANIFICA¿AO",
+      "logo": ""
+    },
+    {
+      "name": "DAJUDA",
+      "logo": ""
+    },
+    {
+      "name": "DALCIN",
+      "logo": ""
+    },
+    {
+      "name": "DEL GRANO",
+      "logo": ""
+    },
+    {
+      "name": "DELICIAS FAMOSO",
+      "logo": ""
+    },
+    {
+      "name": "DIGUINHO",
+      "logo": ""
+    },
+    {
+      "name": "DIPLOKO",
+      "logo": ""
+    },
+    {
+      "name": "DISTRIPACK",
+      "logo": ""
+    },
+    {
+      "name": "DIVERSAS",
+      "logo": ""
+    },
+    {
+      "name": "DOM BOSCO",
+      "logo": ""
+    },
+    {
+      "name": "DOMUS",
+      "logo": ""
+    },
+    {
+      "name": "DORI",
+      "logo": ""
+    },
+    {
+      "name": "DUAS RODAS (MIX)",
+      "logo": ""
+    },
+    {
+      "name": "DUCHEF",
+      "logo": ""
+    },
+    {
+      "name": "DURA MAIS JP INDUSTRIA",
+      "logo": ""
+    },
+    {
+      "name": "ECO ROLL",
+      "logo": ""
+    },
+    {
+      "name": "ECOPLAST",
+      "logo": ""
+    },
+    {
+      "name": "EDY PAN",
+      "logo": ""
+    },
+    {
+      "name": "ELDORADO",
+      "logo": ""
+    },
+    {
+      "name": "EMBALAFLEX",
+      "logo": ""
+    },
+    {
+      "name": "EMBALEBEM",
+      "logo": ""
+    },
+    {
+      "name": "ESCORPIAO",
+      "logo": ""
+    },
+    {
+      "name": "ETHEL",
+      "logo": ""
+    },
+    {
+      "name": "FAISAO",
+      "logo": ""
+    },
+    {
+      "name": "FAMPAR TOYS",
+      "logo": ""
+    },
+    {
+      "name": "FARDIN",
+      "logo": ""
+    },
+    {
+      "name": "FARMAX",
+      "logo": ""
+    },
+    {
+      "name": "FARNESE",
+      "logo": ""
+    },
+    {
+      "name": "FIBRAFORM",
+      "logo": ""
+    },
+    {
+      "name": "FLEISCHMANN",
+      "logo": ""
+    },
+    {
+      "name": "FLORESTAL",
+      "logo": ""
+    },
+    {
+      "name": "FORT FLEX",
+      "logo": ""
+    },
+    {
+      "name": "FRANCIS",
+      "logo": ""
+    },
+    {
+      "name": "FRESH",
+      "logo": ""
+    },
+    {
+      "name": "FRINENSE",
+      "logo": ""
+    },
+    {
+      "name": "FRISA",
+      "logo": ""
+    },
+    {
+      "name": "FRITEI",
+      "logo": ""
+    },
+    {
+      "name": "FUGINI",
+      "logo": ""
+    },
+    {
+      "name": "GALIOTTO",
+      "logo": ""
+    },
+    {
+      "name": "GALVANOTEK",
+      "logo": ""
+    },
+    {
+      "name": "GAROTO",
+      "logo": ""
+    },
+    {
+      "name": "GIGANTE",
+      "logo": ""
+    },
+    {
+      "name": "GILETE",
+      "logo": ""
+    },
+    {
+      "name": "GLOBO",
+      "logo": ""
+    },
+    {
+      "name": "GOLD",
+      "logo": ""
+    },
+    {
+      "name": "GUARANA",
+      "logo": ""
+    },
+    {
+      "name": "GULOZITOS",
+      "logo": ""
+    },
+    {
+      "name": "GURY",
+      "logo": ""
+    },
+    {
+      "name": "HEINEKEN",
+      "logo": ""
+    },
+    {
+      "name": "HERSHEY`S",
+      "logo": ""
+    },
+    {
+      "name": "HIPER ROLL",
+      "logo": ""
+    },
+    {
+      "name": "IBITURUNA",
+      "logo": ""
+    },
+    {
+      "name": "ICE PACK",
+      "logo": ""
+    },
+    {
+      "name": "ICOFORT",
+      "logo": ""
+    },
+    {
+      "name": "INGA",
+      "logo": ""
+    },
+    {
+      "name": "INOVA",
+      "logo": ""
+    },
+    {
+      "name": "INVICTO",
+      "logo": ""
+    },
+    {
+      "name": "ISOCAMP",
+      "logo": ""
+    },
+    {
+      "name": "ISOFORT",
+      "logo": ""
+    },
+    {
+      "name": "ITABIRA",
+      "logo": ""
+    },
+    {
+      "name": "J WALKER",
+      "logo": ""
+    },
+    {
+      "name": "J.MACEDO",
+      "logo": ""
+    },
+    {
+      "name": "JEITOSA",
+      "logo": ""
+    },
+    {
+      "name": "JURERE",
+      "logo": ""
+    },
+    {
+      "name": "JUVIS",
+      "logo": ""
+    },
+    {
+      "name": "KI CASEIRO",
+      "logo": ""
+    },
+    {
+      "name": "KI-KAKAU",
+      "logo": ""
+    },
+    {
+      "name": "LACFORT",
+      "logo": ""
+    },
+    {
+      "name": "LAGOA NOVA",
+      "logo": ""
+    },
+    {
+      "name": "LANCHERO",
+      "logo": ""
+    },
+    {
+      "name": "LAURENCINI",
+      "logo": ""
+    },
+    {
+      "name": "LEAO DO NORTE",
+      "logo": ""
+    },
+    {
+      "name": "LIMPADUA",
+      "logo": ""
+    },
+    {
+      "name": "LUC",
+      "logo": ""
+    },
+    {
+      "name": "LUCKY",
+      "logo": ""
+    },
+    {
+      "name": "LUKINHA DELICIAS DE MINAS",
+      "logo": ""
+    },
+    {
+      "name": "M. DIAS BRANCO",
+      "logo": ""
+    },
+    {
+      "name": "MACHADO",
+      "logo": ""
+    },
+    {
+      "name": "MACROPLASTIC",
+      "logo": ""
+    },
+    {
+      "name": "MAGEST",
+      "logo": ""
+    },
+    {
+      "name": "MAGGI",
+      "logo": ""
+    },
+    {
+      "name": "MAIFREDO",
+      "logo": ""
+    },
+    {
+      "name": "MARATA",
+      "logo": ""
+    },
+    {
+      "name": "MARIZA FOODS",
+      "logo": ""
+    },
+    {
+      "name": "MAT INSET",
+      "logo": ""
+    },
+    {
+      "name": "MELLO",
+      "logo": ""
+    },
+    {
+      "name": "MILEVA",
+      "logo": ""
+    },
+    {
+      "name": "MINAS MAIS",
+      "logo": ""
+    },
+    {
+      "name": "MINASGOLD",
+      "logo": ""
+    },
+    {
+      "name": "MINDY",
+      "logo": ""
+    },
+    {
+      "name": "MM",
+      "logo": ""
+    },
+    {
+      "name": "MUCHO GUSTO",
+      "logo": ""
+    },
+    {
+      "name": "MULA PRETA",
+      "logo": ""
+    },
+    {
+      "name": "MULTIPLAX",
+      "logo": ""
+    },
+    {
+      "name": "NADIR FIGUEREDO",
+      "logo": ""
+    },
+    {
+      "name": "NATIVO",
+      "logo": ""
+    },
+    {
+      "name": "NESTLE",
+      "logo": ""
+    },
+    {
+      "name": "NOBRE",
+      "logo": ""
+    },
+    {
+      "name": "NUCETE",
+      "logo": ""
+    },
+    {
+      "name": "NUCITA",
+      "logo": ""
+    },
+    {
+      "name": "NUTELLA",
+      "logo": ""
+    },
+    {
+      "name": "NUTRY",
+      "logo": ""
+    },
+    {
+      "name": "OLE",
+      "logo": ""
+    },
+    {
+      "name": "OLIVIANA",
+      "logo": ""
+    },
+    {
+      "name": "ORAL-B",
+      "logo": ""
+    },
+    {
+      "name": "ORLEPLAST",
+      "logo": ""
+    },
+    {
+      "name": "ORLOFF",
+      "logo": ""
+    },
+    {
+      "name": "OURO DE MINAS",
+      "logo": ""
+    },
+    {
+      "name": "PALMOLIVE",
+      "logo": ""
+    },
+    {
+      "name": "PALOMA",
+      "logo": ""
+    },
+    {
+      "name": "PANASONIC",
+      "logo": ""
+    },
+    {
+      "name": "PANELAAS",
+      "logo": ""
+    },
+    {
+      "name": "PANOSUL",
+      "logo": ""
+    },
+    {
+      "name": "PANTENE",
+      "logo": ""
+    },
+    {
+      "name": "PARAISO",
+      "logo": ""
+    },
+    {
+      "name": "PARANA",
+      "logo": ""
+    },
+    {
+      "name": "PARATUDO",
+      "logo": ""
+    },
+    {
+      "name": "PECCIN",
+      "logo": ""
+    },
+    {
+      "name": "PEDRA AZUL",
+      "logo": ""
+    },
+    {
+      "name": "PEG LIXO",
+      "logo": ""
+    },
+    {
+      "name": "PERFETTI",
+      "logo": ""
+    },
+    {
+      "name": "PETYAN",
+      "logo": ""
+    },
+    {
+      "name": "PHILIPPI",
+      "logo": ""
+    },
+    {
+      "name": "PINHEIRENSE",
+      "logo": ""
+    },
+    {
+      "name": "PIRACANJUBA",
+      "logo": ""
+    },
+    {
+      "name": "POLO FORTE",
+      "logo": ""
+    },
+    {
+      "name": "POWERDENT",
+      "logo": ""
+    },
+    {
+      "name": "PREDILECTA",
+      "logo": ""
+    },
+    {
+      "name": "PRENDE MAIS",
+      "logo": ""
+    },
+    {
+      "name": "PRODASA",
+      "logo": ""
+    },
+    {
+      "name": "QBOA",
+      "logo": ""
+    },
+    {
+      "name": "QUINTA (AZEITE)",
+      "logo": ""
+    },
+    {
+      "name": "RADIANTE",
+      "logo": ""
+    },
+    {
+      "name": "RAINHA",
+      "logo": ""
+    },
+    {
+      "name": "RAZZO",
+      "logo": ""
+    },
+    {
+      "name": "REDBULL",
+      "logo": ""
+    },
+    {
+      "name": "REGGIANI",
+      "logo": ""
+    },
+    {
+      "name": "REGISPEL",
+      "logo": ""
+    },
+    {
+      "name": "RELUZ",
+      "logo": ""
+    },
+    {
+      "name": "REPORT",
+      "logo": ""
+    },
+    {
+      "name": "RESINITE",
+      "logo": ""
+    },
+    {
+      "name": "REXONA",
+      "logo": ""
+    },
+    {
+      "name": "RICCO",
+      "logo": ""
+    },
+    {
+      "name": "RICLAN",
+      "logo": ""
+    },
+    {
+      "name": "RIOPLASTIC",
+      "logo": ""
+    },
+    {
+      "name": "ROMANATO",
+      "logo": ""
+    },
+    {
+      "name": "SABIA",
+      "logo": ""
+    },
+    {
+      "name": "SABOR NORDESTE",
+      "logo": ""
+    },
+    {
+      "name": "SADIA",
+      "logo": ""
+    },
+    {
+      "name": "SAFRA",
+      "logo": ""
+    },
+    {
+      "name": "SALVIOLI",
+      "logo": ""
+    },
+    {
+      "name": "SAMS",
+      "logo": ""
+    },
+    {
+      "name": "SANPACK",
+      "logo": ""
+    },
+    {
+      "name": "SANTA AMALIA",
+      "logo": ""
+    },
+    {
+      "name": "SANTA RITA",
+      "logo": ""
+    },
+    {
+      "name": "SANTHER",
+      "logo": ""
+    },
+    {
+      "name": "SAO GERALDO",
+      "logo": ""
+    },
+    {
+      "name": "SARLONI",
+      "logo": ""
+    },
+    {
+      "name": "SAUDADE GRANDE",
+      "logo": ""
+    },
+    {
+      "name": "SEARA",
+      "logo": ""
+    },
+    {
+      "name": "SEGPLAST",
+      "logo": ""
+    },
+    {
+      "name": "SOTIKERO",
+      "logo": ""
+    },
+    {
+      "name": "SPERANDIO",
+      "logo": ""
+    },
+    {
+      "name": "STRAWPLAST",
+      "logo": ""
+    },
+    {
+      "name": "SUKEST",
+      "logo": ""
+    },
+    {
+      "name": "SULAMERICANA",
+      "logo": ""
+    },
+    {
+      "name": "SUPRAFORM",
+      "logo": ""
+    },
+    {
+      "name": "SURF",
+      "logo": ""
+    },
+    {
+      "name": "SUVALAN",
+      "logo": ""
+    },
+    {
+      "name": "TAKENTE",
+      "logo": ""
+    },
+    {
+      "name": "TALGE",
+      "logo": ""
+    },
+    {
+      "name": "TAMPICO",
+      "logo": ""
+    },
+    {
+      "name": "TANG",
+      "logo": ""
+    },
+    {
+      "name": "TEIU",
+      "logo": ""
+    },
+    {
+      "name": "TEK BOND",
+      "logo": ""
+    },
+    {
+      "name": "THOQUINO",
+      "logo": ""
+    },
+    {
+      "name": "TIA OFELIA",
+      "logo": ""
+    },
+    {
+      "name": "TODDYNHO",
+      "logo": ""
+    },
+    {
+      "name": "TOK",
+      "logo": ""
+    },
+    {
+      "name": "TOSCANO",
+      "logo": ""
+    },
+    {
+      "name": "TOTALPLAST",
+      "logo": ""
+    },
+    {
+      "name": "TOTE",
+      "logo": ""
+    },
+    {
+      "name": "TRISANTI",
+      "logo": ""
+    },
+    {
+      "name": "TURIM",
+      "logo": ""
+    },
+    {
+      "name": "ULTRATHERM",
+      "logo": ""
+    },
+    {
+      "name": "UNIAO",
+      "logo": ""
+    },
+    {
+      "name": "UNIÃO AÇUCAR",
+      "logo": ""
+    },
+    {
+      "name": "VABENE",
+      "logo": ""
+    },
+    {
+      "name": "VEJA",
+      "logo": ""
+    },
+    {
+      "name": "VERDEORO",
+      "logo": ""
+    },
+    {
+      "name": "VILMA",
+      "logo": ""
+    },
+    {
+      "name": "WE MIX",
+      "logo": ""
+    },
+    {
+      "name": "WR",
+      "logo": ""
+    },
+    {
+      "name": "XAMEGO BOM",
+      "logo": ""
+    },
+    {
+      "name": "YASMIN",
+      "logo": ""
+    },
+    {
+      "name": "YOKI",
+      "logo": ""
+    }
+  ]
+}

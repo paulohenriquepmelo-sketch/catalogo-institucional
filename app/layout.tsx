@@ -1,27 +1,59 @@
 import type { Metadata } from 'next';
 import { DM_Sans, Manrope } from 'next/font/google';
+import { env } from 'cloudflare:workers';
+import { getConfig } from '@/lib/catalog-repository';
+import { defaultConfig } from '@/lib/catalog-config';
 import './globals.css';
 
 const dmSans = DM_Sans({ variable: '--font-dm-sans', subsets: ['latin'] });
 const manrope = Manrope({ variable: '--font-manrope', subsets: ['latin'] });
 
-export const metadata: Metadata = {
-  title: 'Nexo Catálogo — Curadoria para projetos',
-  description: 'Catálogo institucional de mobiliário, iluminação e soluções para projetos corporativos, residenciais e de hospitalidade.',
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'),
-  openGraph: {
-    title: 'Nexo Catálogo — Curadoria para projetos',
-    description: 'Escolhas que transformam espaços.',
-    images: [{ url: '/og.png', width: 1536, height: 1024, alt: 'Nexo Catálogo — Escolhas que transformam espaços.' }],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Nexo Catálogo — Curadoria para projetos',
-    description: 'Escolhas que transformam espaços.',
-    images: ['/og.png'],
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { config } = await getConfig().catch(() => ({ config: defaultConfig }));
+  const title = `${config.name} — Catálogo institucional`;
+  const origin = env.SITE_ORIGIN ? new URL(env.SITE_ORIGIN) : undefined;
+  const preview = origin
+    ? new URL('/og-wholesale.png', origin).href
+    : undefined;
+  return {
+    title,
+    description: config.tagline,
+    metadataBase: origin,
+    openGraph: {
+      title,
+      description: config.tagline,
+      type: 'website',
+      locale: 'pt_BR',
+      ...(preview
+        ? {
+            images: [
+              {
+                url: preview,
+                width: 1731,
+                height: 909,
+                alt: `${config.name} — Catálogo institucional`,
+              },
+            ],
+          }
+        : {}),
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description: config.tagline,
+      ...(preview ? { images: [preview] } : {}),
+    },
+  };
+}
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="pt-BR"><body className={`${dmSans.variable} ${manrope.variable}`}>{children}</body></html>;
+export default function RootLayout({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
+  return (
+    <html lang="pt-BR">
+      <body className={`${dmSans.variable} ${manrope.variable}`}>
+        {children}
+      </body>
+    </html>
+  );
 }
