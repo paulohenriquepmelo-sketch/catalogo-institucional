@@ -343,7 +343,9 @@ export function EditorApp({ userName }: { userName: string }) {
           </span>
         </div>
       </aside>
-      <section className="editor-workspace">
+      <section
+        className={`editor-workspace${view === 'products' ? ' editor-workspace-products' : ''}`}
+      >
         <header className="editor-topbar">
           <div>
             <a href="/">
@@ -431,12 +433,14 @@ export function EditorApp({ userName }: { userName: string }) {
                 {!filtered.length && <p>Nenhum produto encontrado.</p>}
               </div>
               {filtered.length > productLimit && (
-                <Button
-                  variant="outline"
-                  onClick={() => setProductLimit((n) => n + 40)}
-                >
-                  Carregar mais produtos
-                </Button>
+                <div className="product-list-actions">
+                  <Button
+                    variant="outline"
+                    onClick={() => setProductLimit((n) => n + 40)}
+                  >
+                    Carregar mais produtos
+                  </Button>
+                </div>
               )}
             </section>
             <section className="product-form-panel">
@@ -449,230 +453,233 @@ export function EditorApp({ userName }: { userName: string }) {
                   onChange={(published) => setDraft({ ...draft, published })}
                 />
               </div>
-              <fieldset
-                disabled={busy || uploads > 0}
-                className="editor-form-grid"
-              >
-                <Field
-                  label="Nome"
-                  value={draft.name}
-                  onChange={(name) => setDraft({ ...draft, name })}
-                />
-                <Field
-                  label="Código único"
-                  value={draft.code}
-                  onChange={(code) => setDraft({ ...draft, code })}
-                />
-                <Choice
-                  label="Marca"
-                  value={draft.brand}
-                  options={savedConfig.brands.map((b) => b.name)}
-                  onChange={(brand) => setDraft({ ...draft, brand })}
-                />
-                <Toggle
-                  label="Produto em destaque"
-                  value={draft.featured === true}
-                  onChange={(featured) => setDraft({ ...draft, featured })}
-                />
-                <section className="offer-editor wide">
-                  <div>
-                    <h3>Oferta e promoção</h3>
-                    <p>
-                      Quando ativa e dentro do prazo, aparece automaticamente na
-                      vitrine de ofertas do catálogo.
-                    </p>
-                  </div>
+              <div className="product-form-scroll">
+                <fieldset
+                  disabled={busy || uploads > 0}
+                  className="editor-form-grid"
+                >
+                  <Field
+                    label="Nome"
+                    value={draft.name}
+                    onChange={(name) => setDraft({ ...draft, name })}
+                  />
+                  <Field
+                    label="Código único"
+                    value={draft.code}
+                    onChange={(code) => setDraft({ ...draft, code })}
+                  />
+                  <Choice
+                    label="Marca"
+                    value={draft.brand}
+                    options={savedConfig.brands.map((b) => b.name)}
+                    onChange={(brand) => setDraft({ ...draft, brand })}
+                  />
                   <Toggle
-                    label="Produto em oferta"
-                    value={draft.details?.offer?.enabled === true}
-                    onChange={(enabled) => {
-                      const start = new Date();
-                      const end = new Date(start);
-                      end.setDate(end.getDate() + 7);
-                      setDraft({
-                        ...draft,
-                        details: {
-                          ...draft.details,
-                          offer: {
-                            enabled,
-                            discount: draft.details?.offer?.discount ?? 40,
-                            startsAt:
-                              draft.details?.offer?.startsAt ?? dateKey(start),
-                            endsAt:
-                              draft.details?.offer?.endsAt ?? dateKey(end),
-                          },
-                        },
-                      });
-                    }}
+                    label="Produto em destaque"
+                    value={draft.featured === true}
+                    onChange={(featured) => setDraft({ ...draft, featured })}
                   />
-                  {draft.details?.offer && (
-                    <div className="settings-row">
-                      <Field
-                        label="Desconto (%)"
-                        type="number"
-                        value={String(draft.details.offer.discount)}
-                        onChange={(discount) =>
-                          setDraft({
-                            ...draft,
-                            details: {
-                              ...draft.details,
-                              offer: {
-                                ...draft.details!.offer!,
-                                discount: Number(discount),
-                              },
-                            },
-                          })
-                        }
-                      />
-                      <Field
-                        label="Início da oferta"
-                        type="date"
-                        value={draft.details.offer.startsAt}
-                        onChange={(startsAt) =>
-                          setDraft({
-                            ...draft,
-                            details: {
-                              ...draft.details,
-                              offer: { ...draft.details!.offer!, startsAt },
-                            },
-                          })
-                        }
-                      />
-                      <Field
-                        label="Fim da oferta"
-                        type="date"
-                        value={draft.details.offer.endsAt}
-                        onChange={(endsAt) =>
-                          setDraft({
-                            ...draft,
-                            details: {
-                              ...draft.details,
-                              offer: { ...draft.details!.offer!, endsAt },
-                            },
-                          })
-                        }
-                      />
+                  <section className="offer-editor wide">
+                    <div>
+                      <h3>Oferta e promoção</h3>
+                      <p>
+                        Quando ativa e dentro do prazo, aparece automaticamente
+                        na vitrine de ofertas do catálogo.
+                      </p>
                     </div>
-                  )}
-                </section>
-                <div className="wide">
-                  <Field
-                    label="Descrição e aplicação"
-                    multiline
-                    value={draft.description}
-                    onChange={(description) =>
-                      setDraft({ ...draft, description })
-                    }
+                    <Toggle
+                      label="Produto em oferta"
+                      value={draft.details?.offer?.enabled === true}
+                      onChange={(enabled) => {
+                        const start = new Date();
+                        const end = new Date(start);
+                        end.setDate(end.getDate() + 7);
+                        setDraft({
+                          ...draft,
+                          details: {
+                            ...draft.details,
+                            offer: {
+                              enabled,
+                              discount: draft.details?.offer?.discount ?? 40,
+                              startsAt:
+                                draft.details?.offer?.startsAt ??
+                                dateKey(start),
+                              endsAt:
+                                draft.details?.offer?.endsAt ?? dateKey(end),
+                            },
+                          },
+                        });
+                      }}
+                    />
+                    {draft.details?.offer && (
+                      <div className="settings-row">
+                        <Field
+                          label="Desconto (%)"
+                          type="number"
+                          value={String(draft.details.offer.discount)}
+                          onChange={(discount) =>
+                            setDraft({
+                              ...draft,
+                              details: {
+                                ...draft.details,
+                                offer: {
+                                  ...draft.details!.offer!,
+                                  discount: Number(discount),
+                                },
+                              },
+                            })
+                          }
+                        />
+                        <Field
+                          label="Início da oferta"
+                          type="date"
+                          value={draft.details.offer.startsAt}
+                          onChange={(startsAt) =>
+                            setDraft({
+                              ...draft,
+                              details: {
+                                ...draft.details,
+                                offer: { ...draft.details!.offer!, startsAt },
+                              },
+                            })
+                          }
+                        />
+                        <Field
+                          label="Fim da oferta"
+                          type="date"
+                          value={draft.details.offer.endsAt}
+                          onChange={(endsAt) =>
+                            setDraft({
+                              ...draft,
+                              details: {
+                                ...draft.details,
+                                offer: { ...draft.details!.offer!, endsAt },
+                              },
+                            })
+                          }
+                        />
+                      </div>
+                    )}
+                  </section>
+                  <div className="wide">
+                    <Field
+                      label="Descrição e aplicação"
+                      multiline
+                      value={draft.description}
+                      onChange={(description) =>
+                        setDraft({ ...draft, description })
+                      }
+                    />
+                  </div>
+                  <Choice
+                    label="Departamento"
+                    value={draft.department}
+                    options={unique(
+                      savedConfig.taxonomy.map((t) => t.department),
+                    )}
+                    onChange={(v) => changePath('department', v)}
                   />
-                </div>
-                <Choice
-                  label="Departamento"
-                  value={draft.department}
-                  options={unique(
-                    savedConfig.taxonomy.map((t) => t.department),
-                  )}
-                  onChange={(v) => changePath('department', v)}
-                />
-                <Choice
-                  label="Seção"
-                  value={draft.section}
-                  options={unique(
-                    savedConfig.taxonomy
-                      .filter((t) => t.department === draft.department)
-                      .map((t) => t.section),
-                  )}
-                  onChange={(v) => changePath('section', v)}
-                />
-                <Choice
-                  label="Categoria"
-                  value={draft.category}
-                  options={unique(
-                    savedConfig.taxonomy
-                      .filter(
-                        (t) =>
-                          t.department === draft.department &&
-                          t.section === draft.section,
-                      )
-                      .map((t) => t.category),
-                  )}
-                  onChange={(category) => setDraft({ ...draft, category })}
-                />
-                <div className="ai-segment-card">
-                  <span>
-                    <Sparkles /> Classificação por regras
-                  </span>
-                  <strong>{analysis.segment}</strong>
-                  <small>
-                    {analysis.review
-                      ? 'Revisar: faltam sinais ou há empate.'
-                      : `Sinais: ${analysis.signals.join(', ')}`}
-                  </small>
-                </div>
-                <div className="wide">
-                  <Field
-                    label="Características técnicas (uma por linha)"
-                    multiline
-                    value={draft.specs.join('\n')}
-                    onChange={(value) =>
-                      setDraft({ ...draft, specs: value.split('\n') })
-                    }
+                  <Choice
+                    label="Seção"
+                    value={draft.section}
+                    options={unique(
+                      savedConfig.taxonomy
+                        .filter((t) => t.department === draft.department)
+                        .map((t) => t.section),
+                    )}
+                    onChange={(v) => changePath('section', v)}
                   />
-                </div>
-                <div className="wide">
-                  <h3>Embalagem e identificação</h3>
-                  <p className="source-note">
-                    {draft.details?.sourceFile
-                      ? `Importado de ${draft.details.sourceFile}, linha ${draft.details.sourceRow}. Fornecedor é um campo interno.`
-                      : 'Complete os dados de cadastro. Fornecedor não aparece na área pública.'}
-                  </p>
-                </div>
-                {detailFields.map(([key, label]) => (
-                  <Field
-                    key={key}
-                    label={label}
-                    value={draft.details?.[key] ?? ''}
-                    onChange={(value) =>
-                      setDraft({
-                        ...draft,
-                        details: { ...draft.details, [key]: value },
-                      })
-                    }
+                  <Choice
+                    label="Categoria"
+                    value={draft.category}
+                    options={unique(
+                      savedConfig.taxonomy
+                        .filter(
+                          (t) =>
+                            t.department === draft.department &&
+                            t.section === draft.section,
+                        )
+                        .map((t) => t.category),
+                    )}
+                    onChange={(category) => setDraft({ ...draft, category })}
                   />
-                ))}
-                {productIssues(draft).length > 0 && (
-                  <div className="data-warning wide">
-                    <strong>Conferir cadastro</strong>
-                    <ul>
-                      {productIssues(draft).map((issue) => (
-                        <li key={issue}>{issue}</li>
-                      ))}
-                    </ul>
+                  <div className="ai-segment-card">
+                    <span>
+                      <Sparkles /> Classificação por regras
+                    </span>
+                    <strong>{analysis.segment}</strong>
                     <small>
-                      Os valores originais foram preservados. A conferência de
-                      formato não valida o dígito verificador do EAN.
+                      {analysis.review
+                        ? 'Revisar: faltam sinais ou há empate.'
+                        : `Sinais: ${analysis.signals.join(', ')}`}
                     </small>
                   </div>
-                )}
-              </fieldset>
-              <fieldset disabled={busy || uploads > 0}>
-                <ProductImagePicker
-                  name={draft.name}
-                  brand={draft.brand}
-                  code={draft.code}
-                  onChange={(image) =>
-                    setDraft((current) => ({ ...current, image }))
-                  }
-                  onBusy={onBusy}
-                />
-                <UploadField
-                  label="Imagem do produto"
-                  value={draft.image}
-                  onChange={(image) =>
-                    setDraft((current) => ({ ...current, image }))
-                  }
-                  onBusy={onBusy}
-                />
-              </fieldset>
+                  <div className="wide">
+                    <Field
+                      label="Características técnicas (uma por linha)"
+                      multiline
+                      value={draft.specs.join('\n')}
+                      onChange={(value) =>
+                        setDraft({ ...draft, specs: value.split('\n') })
+                      }
+                    />
+                  </div>
+                  <div className="wide">
+                    <h3>Embalagem e identificação</h3>
+                    <p className="source-note">
+                      {draft.details?.sourceFile
+                        ? `Importado de ${draft.details.sourceFile}, linha ${draft.details.sourceRow}. Fornecedor é um campo interno.`
+                        : 'Complete os dados de cadastro. Fornecedor não aparece na área pública.'}
+                    </p>
+                  </div>
+                  {detailFields.map(([key, label]) => (
+                    <Field
+                      key={key}
+                      label={label}
+                      value={draft.details?.[key] ?? ''}
+                      onChange={(value) =>
+                        setDraft({
+                          ...draft,
+                          details: { ...draft.details, [key]: value },
+                        })
+                      }
+                    />
+                  ))}
+                  {productIssues(draft).length > 0 && (
+                    <div className="data-warning wide">
+                      <strong>Conferir cadastro</strong>
+                      <ul>
+                        {productIssues(draft).map((issue) => (
+                          <li key={issue}>{issue}</li>
+                        ))}
+                      </ul>
+                      <small>
+                        Os valores originais foram preservados. A conferência de
+                        formato não valida o dígito verificador do EAN.
+                      </small>
+                    </div>
+                  )}
+                </fieldset>
+                <fieldset disabled={busy || uploads > 0}>
+                  <ProductImagePicker
+                    name={draft.name}
+                    brand={draft.brand}
+                    code={draft.code}
+                    onChange={(image) =>
+                      setDraft((current) => ({ ...current, image }))
+                    }
+                    onBusy={onBusy}
+                  />
+                  <UploadField
+                    label="Imagem do produto"
+                    value={draft.image}
+                    onChange={(image) =>
+                      setDraft((current) => ({ ...current, image }))
+                    }
+                    onBusy={onBusy}
+                  />
+                </fieldset>
+              </div>
               <div className="form-actions">
                 <Button
                   variant="outline"

@@ -4470,7 +4470,14 @@ a:focus-visible {
 }
 
 .public-catalog .campaign-visual-spacer {
-  min-height: clamp(230px, 24vw, 330px);
+  width: 100%;
+  min-height: 0;
+  aspect-ratio: 3 / 1;
+}
+
+.public-catalog .campaign-image {
+  object-fit: contain;
+  object-position: center;
 }
 
 .public-catalog .catalog-filter-band {
@@ -4605,7 +4612,8 @@ a:focus-visible {
   border-right-color: var(--editor-navy-border);
 }
 
-.product-form-panel > fieldset {
+.product-form-panel > fieldset,
+.product-form-scroll > fieldset {
   min-width: 0;
   margin: 0;
   padding: 0;
@@ -4895,6 +4903,137 @@ a:focus-visible {
   }
 }
 
+/* Product editor panes keep their controls attached to the area they operate on. */
+@media (min-width: 1101px) {
+  .editor-workspace-products {
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .editor-topbar {
+    flex: 0 0 66px;
+  }
+
+  .editor-feedback {
+    flex: 0 0 auto;
+  }
+
+  .editor-columns {
+    min-height: 0;
+    flex: 1 1 auto;
+    overflow: hidden;
+  }
+
+  .product-list-panel,
+  .product-form-panel {
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .product-list-panel {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .editor-product-list {
+    min-height: 0;
+    flex: 1 1 auto;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .product-form-panel {
+    padding-bottom: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .product-form-scroll {
+    min-height: 0;
+    flex: 1 1 auto;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .form-actions {
+    margin-inline: -38px;
+    position: static;
+    flex: 0 0 auto;
+  }
+}
+
+.product-list-actions {
+  margin-top: 10px;
+  padding-top: 14px;
+  display: flex;
+  flex: 0 0 auto;
+  justify-content: center;
+  border-top: 1px solid var(--editor-navy-border);
+}
+
+.product-list-actions button {
+  width: 100%;
+}
+
+@media (max-width: 1100px) {
+  .product-form-scroll {
+    overflow: visible;
+  }
+
+  .form-actions {
+    position: sticky;
+    left: auto;
+    right: auto;
+    bottom: 0;
+    margin: 26px -38px -100px;
+  }
+}
+
+@media (max-width: 800px) {
+  .form-actions {
+    margin-right: -20px;
+    margin-left: -20px;
+    padding-inline: 20px;
+  }
+}
+
+/* Editor action buttons use one high-contrast treatment in every editor view. */
+.editor-shell button:not([data-slot='switch']):not([role='switch']) {
+  border-color: #050505 !important;
+  background: #050505 !important;
+  color: #fff !important;
+}
+
+.editor-shell button:not([data-slot='switch']):not([role='switch']):hover {
+  border-color: #262626 !important;
+  background: #262626 !important;
+  color: #fff !important;
+}
+
+.editor-shell button.active:not([data-slot='switch']):not([role='switch']),
+.editor-shell
+  button.active:not([data-slot='switch']):not([role='switch']):hover {
+  border-color: #e53935 !important;
+  background: #e53935 !important;
+  color: #fff !important;
+}
+
+.editor-shell button:not([data-slot='switch']):not([role='switch']) svg {
+  color: currentColor !important;
+}
+
+.editor-shell button:not([data-slot='switch']):not([role='switch']):disabled {
+  border-color: #050505 !important;
+  background: #050505 !important;
+  color: #fff !important;
+  opacity: 0.48;
+}
+
 /* Search results open in a roomy, scrollable popup. */
 .catalog-search-dialog {
   display: flex !important;
@@ -5023,10 +5162,6 @@ a:focus-visible {
 }
 
 @media (max-width: 520px) {
-  .public-catalog .campaign-visual-spacer {
-    min-height: 190px;
-  }
-
   .public-catalog .catalog-filter-band {
     padding: 14px 16px;
   }
@@ -5036,5 +5171,4 @@ a:focus-visible {
     max-height: 92dvh;
     padding: 16px !important;
   }
-
 }
