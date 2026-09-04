@@ -15,10 +15,16 @@ export async function generateMetadata(): Promise<Metadata> {
   const preview = origin
     ? new URL('/og-wholesale.png', origin).href
     : undefined;
+  const icon = config.logo || '/favicon.svg';
   return {
     title,
     description: config.tagline,
     metadataBase: origin,
+    icons: {
+      icon: [{ url: icon }],
+      shortcut: [{ url: icon }],
+      apple: [{ url: icon }],
+    },
     openGraph: {
       title,
       description: config.tagline,
