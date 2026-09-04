@@ -27,10 +27,13 @@ export async function POST(request: Request) {
       throw new Error('Dados de vínculo inválidos.');
     if (!/\.(png|jpe?g|webp|gif)$/i.test(file.name))
       throw new Error('Use PNG, JPEG, WebP ou GIF.');
-    const rows = await env.DB.prepare(
-      'SELECT code,image,updated_at FROM products',
-    ).all<{ code: string; image: string; updated_at: string }>();
-    const product = matchImageFilename(file.name, rows.results);
+    const requestedCode = code.trim();
+    const row = await env.DB.prepare(
+      'SELECT code,image,updated_at FROM products WHERE code=? LIMIT 1',
+    )
+      .bind(requestedCode)
+      .first<{ code: string; image: string; updated_at: string }>();
+    const product = row ? matchImageFilename(file.name, [row]) : null;
     if (!product || product.code !== code)
       throw new Error('O nome da imagem não corresponde ao código do produto.');
     if (product.image && replace !== 'true')
