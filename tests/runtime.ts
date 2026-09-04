@@ -48,7 +48,11 @@ function prepare(sql: string) {
 }
 const files = new Map<
   string,
-  { data: ArrayBuffer; httpMetadata: { contentType: string } }
+  {
+    data: ArrayBuffer;
+    httpMetadata: { contentType: string };
+    customMetadata?: Record<string, string>;
+  }
 >();
 export const env = {
   ADMIN_EMAILS: 'admin@example.test',
@@ -73,14 +77,36 @@ export const env = {
     },
     async put(
       key: string,
-      data: ArrayBuffer,
-      options: { httpMetadata: { contentType: string } },
+      data: ArrayBuffer | string,
+      options: {
+        httpMetadata: { contentType: string };
+        customMetadata?: Record<string, string>;
+      },
     ) {
-      files.set(key, { data, httpMetadata: options.httpMetadata });
+      const bytes =
+        typeof data === 'string' ? new TextEncoder().encode(data).buffer : data;
+      files.set(key, {
+        data: bytes,
+        httpMetadata: options.httpMetadata,
+        customMetadata: options.customMetadata,
+      });
     },
     async get(key: string) {
       const file = files.get(key);
-      return file ? { body: file.data, httpMetadata: file.httpMetadata } : null;
+      return file
+        ? {
+            body: file.data,
+            size: file.data.byteLength,
+            httpMetadata: file.httpMetadata,
+            customMetadata: file.customMetadata,
+            async text() {
+              return new TextDecoder().decode(file.data);
+            },
+            async json<T>() {
+              return JSON.parse(new TextDecoder().decode(file.data)) as T;
+            },
+          }
+        : null;
     },
   },
 };

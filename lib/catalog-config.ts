@@ -323,7 +323,9 @@ export function imageUrl(value: unknown): string {
   if (typeof value !== 'string' || value.length > 2048)
     throw new Error('Endereço de imagem inválido.');
   if (
-    /^\/api\/uploads\?key=images%2F[a-f0-9-]+\.(png|jpg|webp|gif)$/i.test(value)
+    /^\/api\/uploads\?key=(?:images%2F[a-f0-9-]+\.(?:png|jpg|webp|gif)|pending%2Fproduct-images%2F[a-zA-Z0-9_-]+%2F[a-zA-Z0-9_-]+%2F[a-zA-Z0-9-]+\.webp)$/i.test(
+      value,
+    )
   )
     return value;
   try {

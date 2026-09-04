@@ -51,6 +51,22 @@ import {
 
 type Snapshot = { products: Product[]; config: CatalogConfig };
 type Report = { key: string; code: string; status: string; message: string };
+type PendingBatch = {
+  available: boolean;
+  batch?: string;
+  total?: number;
+  ready?: number;
+  duplicateCodes?: number;
+};
+type PendingResult = {
+  processed: number;
+  total: number;
+  linked: number;
+  skipped: number;
+  missing: number;
+  nextCursor: number;
+  done: boolean;
+};
 const labels: Record<string, string> = {
   new: 'Novo',
   update: 'Atualizar',
@@ -103,10 +119,29 @@ export function ImportEditor({
   const [report, setReport] = useState<Report[]>([]);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
+  const [pendingBatch, setPendingBatch] = useState<PendingBatch | null>(null);
+  const [pendingLinking, setPendingLinking] = useState(false);
+  const [pendingProgress, setPendingProgress] = useState({
+    value: 0,
+    total: 0,
+  });
   const [page, setPage] = useState(0);
   const cancel = useRef(false);
   const worker = useRef<Worker | null>(null);
   useEffect(() => () => worker.current?.terminate(), []);
+  useEffect(() => {
+    let active = true;
+    void api<PendingBatch>('/api/import/images/pending')
+      .then((batch) => {
+        if (active) setPendingBatch(batch);
+      })
+      .catch(() => {
+        if (active) setPendingBatch(null);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
   const sheet = sheets[sheetIndex];
   const headers = sheet?.data[header] ?? [];
   const readyProducts = (products ?? []).filter(
@@ -408,6 +443,52 @@ export function ImportEditor({
       lock(false);
     }
   }
+  async function linkPending() {
+    if (
+      busy ||
+      dirty ||
+      !pendingBatch?.available ||
+      !pendingBatch.ready ||
+      !window.confirm(
+        `Vincular ${pendingBatch.ready} imagens já armazenadas no R2 aos produtos? ${pendingBatch.duplicateCodes ?? 0} códigos com mais de uma imagem ficarão para revisão. O site público não será alterado até você publicar.`,
+      )
+    )
+      return;
+    lock(true);
+    setPendingLinking(true);
+    setError('');
+    setNotice('');
+    let cursor = 0;
+    let linked = 0;
+    let skipped = 0;
+    let missing = 0;
+    setPendingProgress({ value: 0, total: pendingBatch.ready });
+    try {
+      while (true) {
+        const result = await api<PendingResult>(
+          '/api/import/images/pending',
+          { cursor, replaceExisting: replaceImages },
+          AbortSignal.timeout(60000),
+        );
+        cursor = result.nextCursor;
+        linked += result.linked;
+        skipped += result.skipped;
+        missing += result.missing;
+        setPendingProgress({ value: result.processed, total: result.total });
+        if (result.done) break;
+      }
+      setPendingBatch({ available: false });
+      setNotice(
+        `${linked} imagens vinculadas ao rascunho. ${skipped} produtos com imagem foram mantidos e ${missing} códigos não foram encontrados. ${pendingBatch.duplicateCodes ?? 0} códigos duplicados continuam no R2 para revisão. Para enviar ao site público, use “Publicar alterações no site público”.`,
+      );
+      await onRefresh();
+    } catch (error) {
+      setError(messageOf(error));
+    } finally {
+      setPendingLinking(false);
+      lock(false);
+    }
+  }
   function downloadReport() {
     const cell = (value: string) =>
       `"${(/^[=+@\-\t\r]/.test(value) ? "'" + value : value).replace(/"/g, '""')}"`;
@@ -650,6 +731,42 @@ export function ImportEditor({
           </>
         ) : (
           <>
+            {pendingBatch?.available && (
+              <div className="import-help">
+                <Images />
+                <div>
+                  <strong>{pendingBatch.total} imagens protegidas no R2</strong>
+                  <p>
+                    {pendingBatch.ready} estão prontas para vínculo.{' '}
+                    {pendingBatch.duplicateCodes} códigos com mais de uma imagem
+                    ficarão para revisão. Esta ação altera somente o rascunho do
+                    editor.
+                  </p>
+                  <Button
+                    disabled={busy || dirty || !pendingBatch.ready}
+                    onClick={() => void linkPending()}
+                  >
+                    <Upload /> Vincular imagens pendentes
+                  </Button>
+                  {pendingLinking && (
+                    <Progress
+                      value={
+                        pendingProgress.total
+                          ? (pendingProgress.value / pendingProgress.total) *
+                            100
+                          : 0
+                      }
+                    >
+                      <ProgressLabel>
+                        {pendingProgress.value} de {pendingProgress.total}{' '}
+                        vinculadas ou conferidas
+                      </ProgressLabel>
+                      <ProgressValue />
+                    </Progress>
+                  )}
+                </div>
+              </div>
+            )}
             <label className="import-dropzone">
               <Images />
               <strong>

@@ -16,12 +16,18 @@ import { defaultConfig } from '../lib/catalog-config';
 import {
   getConfig,
   listCatalogProducts,
+  listPublishedProducts,
+  publishCatalog,
   saveCatalogProduct,
 } from '../lib/catalog-repository';
 import { POST as importProducts } from '../app/api/import/products/route';
 import { POST as importImages } from '../app/api/import/images/route';
+import {
+  GET as getPendingImages,
+  POST as linkPendingImages,
+} from '../app/api/import/images/pending/route';
 import { GET as getUpload } from '../app/api/uploads/route';
-import { database, setIdentity } from './runtime';
+import { database, env, setIdentity } from './runtime';
 import { webp } from './image-fixtures';
 
 const headers = [
@@ -468,6 +474,86 @@ void test('image previews reject duplicate links and uploads only replace with c
     ).status,
     200,
   );
+});
+
+void test('R2 manifest links pending images in bounded batches without publishing them', async () => {
+  setIdentity('admin@example.test');
+  const code = 'R2-PENDING-001';
+  const seed = (await listCatalogProducts(true))[0];
+  await saveCatalogProduct({
+    ...seed,
+    id: 0,
+    code,
+    image: '',
+    published: true,
+    createdAt: undefined,
+    updatedAt: undefined,
+  });
+  await publishCatalog();
+  const key = `pending/product-images/test-batch/${code}/${code}-abc123.webp`;
+  const manifestKey = 'pending/product-images/test-batch/manifest.json';
+  await env.FILES.put(key, webp.buffer.slice(0), {
+    httpMetadata: { contentType: 'image/webp' },
+  });
+  await env.FILES.put(
+    manifestKey,
+    JSON.stringify({
+      batch: 'test-batch',
+      total: 2,
+      duplicateCodes: 1,
+      files: [
+        { sourceName: `${code}.png`, code, r2Key: key, status: 'uploaded' },
+        {
+          sourceName: 'DUPLICATE.png',
+          code: 'DUPLICATE',
+          r2Key: 'pending/product-images/test-batch/DUPLICATE/DUPLICATE-a.webp',
+          status: 'uploaded',
+          duplicateCode: true,
+        },
+      ],
+    }),
+    { httpMetadata: { contentType: 'application/json' } },
+  );
+  await env.FILES.put(
+    'pending/product-images/latest.json',
+    JSON.stringify({ manifestKey }),
+    { httpMetadata: { contentType: 'application/json' } },
+  );
+  const status = await getPendingImages();
+  assert.equal(status.status, 200);
+  assert.deepEqual(await status.json(), {
+    available: true,
+    batch: 'test-batch',
+    total: 2,
+    ready: 1,
+    duplicateCodes: 1,
+  });
+  const response = await linkPendingImages(
+    new Request('https://catalog.test/api/import/images/pending', {
+      method: 'POST',
+      headers: {
+        origin: 'https://catalog.test',
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({ cursor: 0, replaceExisting: false }),
+    }),
+  );
+  assert.equal(response.status, 200);
+  const result = (await response.json()) as { linked: number; done: boolean };
+  assert.equal(result.linked, 1);
+  assert.equal(result.done, true);
+  const draft = (await listCatalogProducts(true, [code]))[0];
+  assert.equal(draft.image, `/api/uploads?key=${encodeURIComponent(key)}`);
+  const publicProduct = (await listPublishedProducts([code]))[0];
+  assert.equal(publicProduct.image, '');
+  const storedImage = await getUpload(
+    new Request(`https://catalog.test${draft.image}`),
+  );
+  assert.equal(storedImage.status, 200);
+  assert.deepEqual(new Uint8Array(await storedImage.arrayBuffer()), webp);
+  assert.deepEqual(await (await getPendingImages()).json(), {
+    available: false,
+  });
 });
 
 void test(

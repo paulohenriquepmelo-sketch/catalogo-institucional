@@ -30,7 +30,15 @@ export async function POST(request: Request) {
 }
 export async function GET(request: Request) {
   const key = new URL(request.url).searchParams.get('key');
-  if (!key || !/^images\/[a-f0-9-]+\.(png|jpg|webp|gif)$/.test(key))
+  if (
+    !key ||
+    !(
+      /^images\/[a-f0-9-]+\.(png|jpg|webp|gif)$/.test(key) ||
+      /^pending\/product-images\/[a-zA-Z0-9_-]+\/[a-zA-Z0-9_-]+\/[a-zA-Z0-9-]+\.webp$/.test(
+        key,
+      )
+    )
+  )
     return new Response('Imagem não encontrada.', { status: 404 });
   const object = await env.FILES.get(key);
   if (!object) return new Response('Imagem não encontrada.', { status: 404 });
