@@ -1,5 +1,6 @@
 import { getChatGPTUser } from '@/app/chatgpt-auth';
-import { redirect } from 'next/navigation';
+import { env } from 'cloudflare:workers';
+import { notFound, redirect } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,6 +13,7 @@ type LoginPageProps = {
 export default async function EditorLoginPage({
   searchParams,
 }: LoginPageProps) {
+  if (env.WORKER_ROLE === 'public') notFound();
   if (await getChatGPTUser()) redirect('/editor');
   const params = (await searchParams) ?? {};
   const error = Array.isArray(params.error) ? params.error[0] : params.error;

@@ -1,10 +1,13 @@
 import { requireChatGPTUser } from '@/app/chatgpt-auth';
 import { EditorApp } from '@/components/editor-app';
 import { getEditorUser } from '@/lib/editor-access';
+import { env } from 'cloudflare:workers';
+import { notFound } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
 
 export default async function EditorPage() {
+  if (env.WORKER_ROLE === 'public') notFound();
   const user = await requireChatGPTUser('/editor');
   if (!(await getEditorUser()))
     return (

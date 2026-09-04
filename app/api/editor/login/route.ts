@@ -5,6 +5,8 @@ import {
 } from '@/app/chatgpt-auth';
 
 export async function POST(request: Request) {
+  if (env.WORKER_ROLE === 'public')
+    return new Response('Não encontrado.', { status: 404 });
   const form = await request.formData();
   const password = String(form.get('password') ?? '');
   const returnTo = String(form.get('return_to') ?? '/editor');
