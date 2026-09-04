@@ -222,6 +222,35 @@ export function EditorApp({ userName }: { userName: string }) {
       setBusy(false);
     }
   }
+  async function clearProductAndLogoImages() {
+    if (busy || uploads > 0 || loading) return;
+    if (
+      !window.confirm(
+        'Remover todas as imagens da logo e dos produtos? Banners, textos, cadastros e demais informações serão preservados.',
+      )
+    )
+      return;
+    setBusy(true);
+    setError('');
+    setMessage('');
+    try {
+      const result = await api<{
+        productsCleared: number;
+        logosCleared: number;
+        filesDeleted: number;
+      }>('/api/editor/clear-images', { confirm: true });
+      await load();
+      setMessage(
+        `Limpeza concluída: ${result.productsCleared} produtos e ${result.logosCleared} logos sem imagem.`,
+      );
+    } catch (e) {
+      setError(
+        e instanceof Error ? e.message : 'Não foi possível limpar as imagens.',
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
   async function toggleShowcaseProduct(
     product: Product,
     kind: 'offers' | 'new-products',
@@ -738,6 +767,20 @@ export function EditorApp({ userName }: { userName: string }) {
             <Button onClick={() => setView('products')}>
               Gerenciar produtos
             </Button>
+            <section className="editor-maintenance" aria-labelledby="image-cleanup-title">
+              <h2 id="image-cleanup-title">Limpeza de imagens</h2>
+              <p>
+                Remove somente as imagens da logo e dos produtos. Banners,
+                textos, categorias e demais cadastros permanecem intactos.
+              </p>
+              <Button
+                variant="outline"
+                disabled={busy || uploads > 0}
+                onClick={() => void clearProductAndLogoImages()}
+              >
+                Limpar imagens de logos e produtos
+              </Button>
+            </section>
           </Panel>
         ) : (
           <>

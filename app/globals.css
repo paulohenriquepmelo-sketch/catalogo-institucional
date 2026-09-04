@@ -2255,6 +2255,30 @@ a:focus-visible {
   color: #fff !important;
   background: rgb(240 68 69 / 18%);
 }
+.editor-maintenance {
+  max-width: 720px;
+  margin-top: 28px;
+  padding: 22px;
+  display: grid;
+  gap: 10px;
+  border: 1px solid #b85b5b;
+  border-radius: 10px;
+  background: rgb(229 57 53 / 8%);
+}
+.editor-maintenance h2,
+.editor-maintenance p {
+  margin: 0;
+}
+.editor-maintenance h2 {
+  font-size: 18px;
+}
+.editor-maintenance p {
+  max-width: 620px;
+  color: var(--editor-text-muted);
+}
+.editor-maintenance button {
+  justify-self: start;
+}
 .editor-sidebar {
   height: 100vh;
   min-height: 0;
