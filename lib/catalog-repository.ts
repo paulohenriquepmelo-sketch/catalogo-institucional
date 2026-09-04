@@ -167,6 +167,34 @@ export async function listPublishedProducts(codes?: string[]) {
   return result.results.map((row) => mapProductRow(row, config, false));
 }
 
+export async function listCatalogProductsPage(
+  includeDrafts: boolean,
+  cursor: number,
+  limit: number,
+) {
+  const { config } = await getConfig();
+  const result = await env.DB.prepare(
+    `SELECT * FROM products
+     WHERE id > ?${includeDrafts ? '' : ' AND published=1'}
+     ORDER BY id
+     LIMIT ?`,
+  )
+    .bind(cursor, limit)
+    .all<Record<string, unknown>>();
+  return result.results.map((row) => mapProductRow(row, config, includeDrafts));
+}
+
+export async function listPublishedProductsPage(cursor: number, limit: number) {
+  await ensurePublishedCatalog();
+  const { config } = await getPublishedConfig();
+  const result = await env.DB.prepare(
+    'SELECT * FROM published_products WHERE id > ? ORDER BY id LIMIT ?',
+  )
+    .bind(cursor, limit)
+    .all<Record<string, unknown>>();
+  return result.results.map((row) => mapProductRow(row, config, false));
+}
+
 export async function getPublicationStatus() {
   await ensurePublishedCatalog();
   const row = await env.DB.prepare(

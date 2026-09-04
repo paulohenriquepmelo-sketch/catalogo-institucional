@@ -17,7 +17,7 @@ import {
   similarProducts,
   type Filters,
 } from '@/lib/catalog-discovery';
-import { api } from '@/lib/client-api';
+import { api, loadProducts } from '@/lib/client-api';
 import { useCatalogTools } from '@/hooks/use-catalog-tools';
 import { CatalogBanners } from './catalog-banners';
 import { CatalogBrands } from './catalog-brands';
@@ -85,7 +85,7 @@ export function CatalogApp({
     setError('');
     try {
       const [data, settings] = await Promise.all([
-        api<Product[]>(`/api/products${editorPreview ? '?editor=1' : ''}`),
+        loadProducts(editorPreview),
         api<{ config: CatalogConfig }>(
           `/api/config${editorPreview ? '?editor=1' : ''}`,
         ),

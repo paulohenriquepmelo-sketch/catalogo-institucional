@@ -24,7 +24,7 @@ import { Input } from '@/components/ui/input';
 import { classifySegment } from '@/lib/segment-classifier';
 import { defaultConfig, type CatalogConfig } from '@/lib/catalog-config';
 import { detailFields, productIssues, type Product } from '@/lib/catalog-data';
-import { api } from '@/lib/client-api';
+import { api, loadProducts } from '@/lib/client-api';
 import { Field, Choice, Toggle, UploadField, Panel } from './editor-controls';
 import { ConfigEditor, type EditorView } from './config-editor';
 import { useCatalogTools } from '@/hooks/use-catalog-tools';
@@ -93,7 +93,7 @@ export function EditorApp({ userName }: { userName: string }) {
     setError('');
     try {
       const [data, settings, publication] = await Promise.all([
-        api<Product[]>('/api/products?editor=1'),
+        loadProducts(true),
         api<{ config: CatalogConfig; revision: number }>(
           '/api/config?editor=1',
         ),
@@ -114,7 +114,7 @@ export function EditorApp({ userName }: { userName: string }) {
   }
   async function refreshAfterImport() {
     const [products, settings, publication] = await Promise.all([
-      api<Product[]>('/api/products?editor=1'),
+      loadProducts(true),
       api<{ config: CatalogConfig; revision: number }>('/api/config?editor=1'),
       api<{ hasChanges: boolean }>('/api/publication'),
     ]);
@@ -229,7 +229,7 @@ export function EditorApp({ userName }: { userName: string }) {
       setMessage(
         `Alterações publicadas no site público. ${publication.productCount} produtos enviados.`,
       );
-      const data = await api<Product[]>('/api/products?editor=1');
+      const data = await loadProducts(true);
       setItems(data);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Falha ao salvar.');

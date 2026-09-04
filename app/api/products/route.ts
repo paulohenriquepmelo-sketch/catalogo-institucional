@@ -5,14 +5,40 @@ import {
 } from '@/lib/editor-access';
 import {
   listCatalogProducts,
+  listCatalogProductsPage,
   listPublishedProducts,
+  listPublishedProductsPage,
   saveCatalogProduct,
 } from '@/lib/catalog-repository';
 export async function GET(request: Request) {
-  const editor = new URL(request.url).searchParams.get('editor') === '1';
+  const parameters = new URL(request.url).searchParams;
+  const editor = parameters.get('editor') === '1';
   if (editor && !(await getEditorUser()))
     return Response.json({ error: 'Acesso restrito.' }, { status: 403 });
   try {
+    if (parameters.get('paged') === '1') {
+      const cursor = Number(parameters.get('cursor') ?? 0);
+      const limit = Number(parameters.get('limit') ?? 200);
+      if (
+        !Number.isInteger(cursor) ||
+        cursor < 0 ||
+        !Number.isInteger(limit) ||
+        limit < 1 ||
+        limit > 250
+      )
+        return Response.json({ error: 'Página inválida.' }, { status: 400 });
+      const items = editor
+        ? await listCatalogProductsPage(true, cursor, limit)
+        : await listPublishedProductsPage(cursor, limit);
+      return Response.json(
+        {
+          items,
+          nextCursor: items.at(-1)?.id ?? cursor,
+          done: items.length < limit,
+        },
+        { headers: { 'cache-control': 'no-store' } },
+      );
+    }
     return Response.json(
       editor ? await listCatalogProducts(true) : await listPublishedProducts(),
       {
