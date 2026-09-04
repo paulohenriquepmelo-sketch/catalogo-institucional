@@ -32,6 +32,8 @@ import { ImportEditor } from './import-editor';
 import { CampaignEditor } from './campaign-editor';
 import { ProductImagePicker } from './product-image-picker';
 
+const PUBLIC_CATALOG_URL = 'https://sites-project.paulohenriquemelo.workers.dev/';
+
 const navigation: { key: EditorView; label: string; icon: typeof Package }[] = [
   { key: 'overview', label: 'Visão geral', icon: LayoutDashboard },
   { key: 'products', label: 'Produtos', icon: Package },
@@ -335,7 +337,7 @@ export function EditorApp({ userName }: { userName: string }) {
   return (
     <main className="editor-shell">
       <aside className="editor-sidebar">
-        <a href="/" className="brand-lockup">
+        <a href={PUBLIC_CATALOG_URL} className="brand-lockup">
           {savedConfig.logo ? (
             <img
               className="editor-site-logo"
@@ -377,7 +379,7 @@ export function EditorApp({ userName }: { userName: string }) {
       >
         <header className="editor-topbar">
           <div>
-            <a href="/">
+            <a href={PUBLIC_CATALOG_URL}>
               <ArrowLeft /> Ver catálogo
             </a>
             <strong>{navigation.find((n) => n.key === view)?.label}</strong>
@@ -386,7 +388,7 @@ export function EditorApp({ userName }: { userName: string }) {
             <span>
               {dirty ? 'Alterações não salvas' : 'Sem alterações pendentes'}
             </span>
-            <a href="/" target="_blank" rel="noreferrer">
+            <a href={PUBLIC_CATALOG_URL} target="_blank" rel="noreferrer">
               <Eye /> Ver versão publicada
             </a>
           </div>
@@ -725,7 +727,9 @@ export function EditorApp({ userName }: { userName: string }) {
                   onClick={() => void saveProduct().catch(() => {})}
                 >
                   {busy ? <Loader2 className="animate-spin" /> : <Save />}{' '}
-                  Salvar produto
+                  {draft.published
+                    ? 'Salvar e publicar produto'
+                    : 'Salvar produto como rascunho'}
                 </Button>
               </div>
             </section>
@@ -822,7 +826,7 @@ export function EditorApp({ userName }: { userName: string }) {
                 disabled={busy || uploads > 0 || !configDirty}
                 onClick={() => void savePage()}
               >
-                <Save /> Salvar e publicar página
+                <Save /> Publicar alterações no site público
               </Button>
             </div>
           </>
