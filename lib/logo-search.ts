@@ -161,15 +161,45 @@ export async function searchLogos(query: string, signal?: AbortSignal) {
     .slice(0, 24);
 }
 
-export async function retrieveLogo(id: string, signal?: AbortSignal) {
+export async function searchProductImages(
+  query: string,
+  signal?: AbortSignal,
+) {
+  const term = query.trim();
+  if (
+    term.length < 2 ||
+    term.length > 100 ||
+    Array.from(term).some((char) => char.charCodeAt(0) < 32)
+  )
+    throw new Error('Digite de 2 a 100 caracteres para buscar o produto.');
+  const pages = await commons(
+    {
+      generator: 'search',
+      gsrsearch: term,
+      gsrnamespace: '6',
+      gsrlimit: '30',
+    },
+    signal,
+  );
+  return pages
+    .map(logoResult)
+    .filter((item): item is LogoResult => !!item)
+    .slice(0, 24);
+}
+
+async function retrieveCommonsImage(
+  id: string,
+  kind: 'logo' | 'foto',
+  signal?: AbortSignal,
+) {
   if (!/^[1-9]\d{0,9}$/.test(id))
-    throw new Error('Selecione uma logo válida na busca.');
+    throw new Error(`Selecione uma ${kind} válida na busca.`);
   const pages = await commons({ pageids: id }, signal);
   const selected = pages.find((page) => String(page.pageid) === id);
   const result = selected ? logoResult(selected) : null;
   if (!result)
     throw new Error(
-      'Essa logo não está disponível para seleção. Busque novamente.',
+      `Essa ${kind} não está disponível para seleção. Busque novamente.`,
     );
   const response = await fetch(result.thumbnail, {
     headers: {
@@ -185,6 +215,14 @@ export async function retrieveLogo(id: string, signal?: AbortSignal) {
   const bytes = await boundedLogoResponse(response, MAX_IMAGE_BYTES);
   const info = inspectImage(bytes);
   imageDimensions(info.width, info.height);
-  if (info.animated) throw new Error('Escolha uma logo estática.');
+  if (info.animated) throw new Error(`Escolha uma ${kind} estática.`);
   return { bytes, contentType: `image/${info.format}` };
+}
+
+export function retrieveLogo(id: string, signal?: AbortSignal) {
+  return retrieveCommonsImage(id, 'logo', signal);
+}
+
+export function retrieveProductImage(id: string, signal?: AbortSignal) {
+  return retrieveCommonsImage(id, 'foto', signal);
 }
