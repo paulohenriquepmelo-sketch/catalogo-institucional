@@ -49,9 +49,7 @@ export default async function EditorLoginPage({
           />
           <button type="submit">Entrar no editor</button>
         </form>
-        <a href="https://sites-project.paulohenriquemelo.workers.dev/">
-          Voltar ao catálogo
-        </a>
+        <a href="/">Voltar ao catálogo</a>
       </section>
     </main>
   );
