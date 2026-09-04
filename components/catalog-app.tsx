@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useMemo, useState } from 'react';
 import { catalogColorStyle } from '@/lib/catalog-colors';
-import { Menu, Package, Search, X } from 'lucide-react';
+import { Menu, Package, Search, Settings2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { NativeSelect } from '@/components/ui/native-select';
@@ -63,7 +63,11 @@ function Filter({
 }
 const unique = (values: string[]) =>
   [...new Set(values)].sort((a, b) => a.localeCompare(b, 'pt-BR'));
-export function CatalogApp() {
+export function CatalogApp({
+  showEditorLink = true,
+}: {
+  showEditorLink?: boolean;
+}) {
   const [items, setItems] = useState<Product[]>([]);
   const [config, setConfig] = useState<CatalogConfig>(defaultConfig);
   const [filters, setFilters] = useState<Filters>(emptyFilters);
@@ -462,6 +466,11 @@ export function CatalogApp() {
           <a href="#catalogo">Catálogo</a>
           {has('segments') && <a href="#segmentos">Segmentos</a>}
           {has('brands') && <a href="#marcas">Marcas</a>}
+          {showEditorLink && (
+            <a href="/editor" className="editor-link">
+              <Settings2 className="size-4" /> Editor
+            </a>
+          )}
         </nav>
         <Button
           variant="ghost"
