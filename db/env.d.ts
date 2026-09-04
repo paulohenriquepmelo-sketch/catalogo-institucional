@@ -6,7 +6,6 @@ declare namespace Cloudflare {
     EDITOR_PASSWORD?: string;
     EDITOR_ADMIN_EMAIL?: string;
     EDITOR_ADMIN_NAME?: string;
-    EDITOR_HOSTNAME?: string;
     SITE_ORIGIN?: string;
   }
 }

@@ -5,14 +5,6 @@ import {
 } from '@/app/chatgpt-auth';
 
 export async function POST(request: Request) {
-  const host = new URL(request.url).hostname.toLowerCase();
-  const editorHost = (
-    env.EDITOR_HOSTNAME ??
-    'catalogo-institucional-editor.paulohenriquemelo.workers.dev'
-  ).toLowerCase();
-  const localHost = host === 'localhost' || host === '127.0.0.1';
-  if (!localHost && host !== editorHost)
-    return new Response('Não encontrado.', { status: 404 });
   const form = await request.formData();
   const password = String(form.get('password') ?? '');
   const returnTo = String(form.get('return_to') ?? '/editor');

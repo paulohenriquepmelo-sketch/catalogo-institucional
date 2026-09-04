@@ -1,7 +1,5 @@
 import { getChatGPTUser } from '@/app/chatgpt-auth';
-import { env } from 'cloudflare:workers';
-import { headers } from 'next/headers';
-import { notFound, redirect } from 'next/navigation';
+import { redirect } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,13 +12,6 @@ type LoginPageProps = {
 export default async function EditorLoginPage({
   searchParams,
 }: LoginPageProps) {
-  const host = (await headers()).get('host')?.split(':')[0].toLowerCase();
-  const editorHost = (
-    env.EDITOR_HOSTNAME ??
-    'catalogo-institucional-editor.paulohenriquemelo.workers.dev'
-  ).toLowerCase();
-  const localHost = host === 'localhost' || host === '127.0.0.1';
-  if (!localHost && host !== editorHost) notFound();
   if (await getChatGPTUser()) redirect('/editor');
   const params = (await searchParams) ?? {};
   const error = Array.isArray(params.error) ? params.error[0] : params.error;
