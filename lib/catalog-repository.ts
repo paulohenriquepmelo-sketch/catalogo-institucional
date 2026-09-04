@@ -71,11 +71,11 @@ export async function getConfig() {
 }
 
 export async function ensurePublishedCatalog() {
-  await initializeData();
   const existing = await env.DB.prepare(
     'SELECT id FROM published_catalog_config WHERE id=1',
   ).first<{ id: number }>();
   if (existing) return;
+  await initializeData();
   const publishedAt = new Date().toISOString();
   await env.DB.batch([
     env.DB.prepare(
@@ -153,7 +153,6 @@ export async function listCatalogProducts(
 }
 
 export async function listPublishedProducts(codes?: string[]) {
-  await ensurePublishedCatalog();
   const { config } = await getPublishedConfig();
   if (codes?.length === 0) return [];
   const condition = codes
@@ -185,7 +184,6 @@ export async function listCatalogProductsPage(
 }
 
 export async function listPublishedProductsPage(cursor: number, limit: number) {
-  await ensurePublishedCatalog();
   const { config } = await getPublishedConfig();
   const result = await env.DB.prepare(
     'SELECT * FROM published_products WHERE id > ? ORDER BY id LIMIT ?',
