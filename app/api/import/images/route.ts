@@ -2,11 +2,13 @@ import { env } from 'cloudflare:workers';
 import { authorizeMutation, boundedBody } from '@/lib/editor-access';
 import { matchImageFilename } from '@/lib/product-import';
 import { storeImage } from '@/lib/image-storage';
+import { ensurePublishedCatalog } from '@/lib/catalog-repository';
 
 export async function POST(request: Request) {
   const denied = await authorizeMutation(request);
   if (denied) return denied;
   try {
+    await ensurePublishedCatalog();
     const bytes = await boundedBody(request, 6 * 1024 * 1024);
     const form = await new Response(bytes, {
       headers: { 'content-type': request.headers.get('content-type') ?? '' },

@@ -83,3 +83,35 @@ export const catalogConfig = sqliteTable('catalog_config', {
   body: text('body').notNull(),
   revision: integer('revision').notNull().default(1),
 });
+
+export const publishedCatalogConfig = sqliteTable('published_catalog_config', {
+  id: integer('id').primaryKey(),
+  body: text('body').notNull(),
+  revision: integer('revision').notNull().default(1),
+  publishedAt: text('published_at').notNull(),
+});
+
+export const publishedProductsTable = sqliteTable(
+  'published_products',
+  {
+    id: integer('id').primaryKey(),
+    code: text('code').notNull(),
+    name: text('name').notNull(),
+    description: text('description').notNull(),
+    department: text('department').notNull(),
+    section: text('section').notNull(),
+    category: text('category').notNull(),
+    segment: text('segment').notNull(),
+    brand: text('brand').notNull(),
+    image: text('image').notNull(),
+    specs: text('specs').notNull().default('[]'),
+    details: text('details').notNull().default('{}'),
+    featured: integer('featured', { mode: 'boolean' }).notNull().default(false),
+    published: integer('published', { mode: 'boolean' })
+      .notNull()
+      .default(true),
+    createdAt: text('created_at').notNull(),
+    updatedAt: text('updated_at').notNull(),
+  },
+  (table) => [uniqueIndex('idx_published_products_code').on(table.code)],
+);

@@ -23,17 +23,7 @@ async function initializeData() {
     .bind(JSON.stringify(defaultConfig))
     .run();
 }
-export async function getConfig() {
-  let row = await env.DB.prepare(
-    'SELECT body,revision FROM catalog_config WHERE id=1',
-  ).first<{ body: string; revision: number }>();
-  if (!row) {
-    await initializeData();
-    row = await env.DB.prepare(
-      'SELECT body,revision FROM catalog_config WHERE id=1',
-    ).first<{ body: string; revision: number }>();
-  }
-  if (!row) throw new Error('Configuração indisponível.');
+function normalizeConfig(row: { body: string; revision: number }) {
   const stored = JSON.parse(row.body) as CatalogConfig;
   const storedBlocks = Array.isArray(stored.blocks) ? stored.blocks : [];
   const addedBlocks = defaultConfig.blocks.filter(
@@ -65,6 +55,85 @@ export async function getConfig() {
     revision: row.revision,
   };
 }
+
+export async function getConfig() {
+  let row = await env.DB.prepare(
+    'SELECT body,revision FROM catalog_config WHERE id=1',
+  ).first<{ body: string; revision: number }>();
+  if (!row) {
+    await initializeData();
+    row = await env.DB.prepare(
+      'SELECT body,revision FROM catalog_config WHERE id=1',
+    ).first<{ body: string; revision: number }>();
+  }
+  if (!row) throw new Error('Configuração indisponível.');
+  return normalizeConfig(row);
+}
+
+export async function ensurePublishedCatalog() {
+  await initializeData();
+  const existing = await env.DB.prepare(
+    'SELECT id FROM published_catalog_config WHERE id=1',
+  ).first<{ id: number }>();
+  if (existing) return;
+  const publishedAt = new Date().toISOString();
+  await env.DB.batch([
+    env.DB.prepare(
+      'INSERT OR IGNORE INTO published_catalog_config (id,body,revision,published_at) SELECT id,body,revision,? FROM catalog_config WHERE id=1',
+    ).bind(publishedAt),
+    env.DB.prepare(
+      `INSERT OR IGNORE INTO published_products
+        (id,code,name,description,department,section,category,segment,brand,image,specs,details,featured,published,created_at,updated_at)
+       SELECT id,code,name,description,department,section,category,segment,brand,image,specs,details,featured,published,created_at,updated_at
+       FROM products WHERE published=1`,
+    ),
+  ]);
+}
+
+export async function getPublishedConfig() {
+  await ensurePublishedCatalog();
+  const row = await env.DB.prepare(
+    'SELECT body,revision FROM published_catalog_config WHERE id=1',
+  ).first<{ body: string; revision: number }>();
+  if (!row) throw new Error('Versão publicada indisponível.');
+  return normalizeConfig(row);
+}
+
+function mapProductRow(
+  r: Record<string, unknown>,
+  config: CatalogConfig,
+  includePrivateDetails: boolean,
+): Product {
+  const details = JSON.parse(String(r.details ?? '{}')) as ProductDetails;
+  if (!includePrivateDetails) {
+    delete details.supplier;
+    delete details.sourceFile;
+    delete details.sourceRow;
+  }
+  const product = {
+    id: Number(r.id),
+    code: String(r.code),
+    name: String(r.name),
+    description: String(r.description),
+    department: String(r.department),
+    section: String(r.section),
+    category: String(r.category),
+    segment: String(r.segment),
+    brand: String(r.brand),
+    image: String(r.image),
+    specs: JSON.parse(String(r.specs)),
+    details,
+    featured: Boolean(r.featured),
+    published: Boolean(r.published),
+    updatedAt: String(r.updated_at),
+    createdAt: String(r.created_at),
+  };
+  return {
+    ...product,
+    segment: classifySegment(product, config.segments).segment,
+  };
+}
+
 export async function listCatalogProducts(
   includeDrafts = false,
   codes?: string[],
@@ -80,33 +149,74 @@ export async function listCatalogProducts(
   )
     .bind(...(codes ?? []))
     .all<Record<string, unknown>>();
-  return result.results.map((r) => {
-    const details = JSON.parse(String(r.details ?? '{}')) as ProductDetails;
-    if (!includeDrafts) {
-      delete details.supplier;
-      delete details.sourceFile;
-      delete details.sourceRow;
-    }
-    const p = {
-      id: Number(r.id),
-      code: String(r.code),
-      name: String(r.name),
-      description: String(r.description),
-      department: String(r.department),
-      section: String(r.section),
-      category: String(r.category),
-      segment: String(r.segment),
-      brand: String(r.brand),
-      image: String(r.image),
-      specs: JSON.parse(String(r.specs)),
-      details,
-      featured: Boolean(r.featured),
-      published: Boolean(r.published),
-      updatedAt: String(r.updated_at),
-      createdAt: String(r.created_at),
-    };
-    return { ...p, segment: classifySegment(p, config.segments).segment };
-  });
+  return result.results.map((row) => mapProductRow(row, config, includeDrafts));
+}
+
+export async function listPublishedProducts(codes?: string[]) {
+  await ensurePublishedCatalog();
+  const { config } = await getPublishedConfig();
+  if (codes?.length === 0) return [];
+  const condition = codes
+    ? `WHERE code IN (${codes.map(() => '?').join(',')})`
+    : '';
+  const result = await env.DB.prepare(
+    `SELECT * FROM published_products ${condition} ORDER BY featured DESC, name COLLATE NOCASE`,
+  )
+    .bind(...(codes ?? []))
+    .all<Record<string, unknown>>();
+  return result.results.map((row) => mapProductRow(row, config, false));
+}
+
+export async function getPublicationStatus() {
+  await ensurePublishedCatalog();
+  const row = await env.DB.prepare(
+    `SELECT
+      c.revision AS draft_revision,
+      pc.revision AS published_revision,
+      pc.published_at,
+      EXISTS(SELECT 1 FROM products WHERE updated_at > pc.published_at) AS changed_products
+     FROM catalog_config c
+     JOIN published_catalog_config pc ON pc.id=c.id
+     WHERE c.id=1`,
+  ).first<{
+    draft_revision: number;
+    published_revision: number;
+    published_at: string;
+    changed_products: number;
+  }>();
+  if (!row) throw new Error('Estado de publicação indisponível.');
+  return {
+    hasChanges:
+      row.draft_revision !== row.published_revision ||
+      Boolean(row.changed_products),
+    publishedAt: row.published_at,
+    draftRevision: row.draft_revision,
+    publishedRevision: row.published_revision,
+  };
+}
+
+export async function publishCatalog() {
+  await ensurePublishedCatalog();
+  const { config, revision } = await getConfig();
+  const publishedAt = new Date().toISOString();
+  await env.DB.batch([
+    env.DB.prepare('DELETE FROM published_products'),
+    env.DB.prepare(
+      `INSERT INTO published_products
+        (id,code,name,description,department,section,category,segment,brand,image,specs,details,featured,published,created_at,updated_at)
+       SELECT id,code,name,description,department,section,category,segment,brand,image,specs,details,featured,published,created_at,updated_at
+       FROM products WHERE published=1`,
+    ),
+    env.DB.prepare(
+      `INSERT INTO published_catalog_config (id,body,revision,published_at)
+       VALUES (1,?,?,?)
+       ON CONFLICT(id) DO UPDATE SET body=excluded.body,revision=excluded.revision,published_at=excluded.published_at`,
+    ).bind(JSON.stringify(config), revision, publishedAt),
+  ]);
+  const count = await env.DB.prepare(
+    'SELECT COUNT(*) AS total FROM published_products',
+  ).first<{ total: number }>();
+  return { hasChanges: false, publishedAt, productCount: count?.total ?? 0 };
 }
 export function validateProduct(
   value: unknown,
@@ -208,6 +318,7 @@ export async function saveCatalogProduct(
   value: unknown,
   context?: { config: CatalogConfig; revision: number },
 ) {
+  await ensurePublishedCatalog();
   const { config, revision } = context ?? (await getConfig());
   const p = validateProduct(value, config);
   const previous = Date.parse(p.updatedAt ?? '');
@@ -260,6 +371,7 @@ export async function saveCatalogProduct(
   return { ...p, id, updatedAt: now, createdAt: p.createdAt ?? now };
 }
 export async function saveConfig(value: unknown, revision: number) {
+  await ensurePublishedCatalog();
   const config = validateConfig(value);
   const products = await listCatalogProducts(true);
   for (const p of products) {

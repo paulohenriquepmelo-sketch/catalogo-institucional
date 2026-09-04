@@ -1,0 +1,58 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "catalogo-institucional",
+  "main": "dist/server/index.js",
+  "compatibility_date": "2026-05-15",
+  "compatibility_flags": ["nodejs_compat"],
+  "no_bundle": true,
+  "assets": {
+    "directory": "dist/client"
+  },
+  "observability": {
+    "enabled": true
+  },
+  "env": {
+    "editor": {
+      "name": "catalogo-institucional-editor",
+      "vars": {
+        "WORKER_ROLE": "editor",
+        "SITE_ORIGIN": "https://catalogo-institucional-editor.paulohenriquepmelo.workers.dev"
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "catalogo-institucional-db",
+          "database_id": "b8efaa3f-d3a7-440b-aadf-1ab47e9e8fdb",
+          "migrations_dir": "drizzle"
+        }
+      ],
+      "r2_buckets": [
+        {
+          "binding": "FILES",
+          "bucket_name": "catalogo-institucional-files"
+        }
+      ]
+    },
+    "public": {
+      "name": "sites-project",
+      "vars": {
+        "WORKER_ROLE": "public",
+        "SITE_ORIGIN": "https://sites-project.paulohenriquepmelo.workers.dev"
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "catalogo-institucional-db",
+          "database_id": "b8efaa3f-d3a7-440b-aadf-1ab47e9e8fdb",
+          "migrations_dir": "drizzle"
+        }
+      ],
+      "r2_buckets": [
+        {
+          "binding": "FILES",
+          "bucket_name": "catalogo-institucional-files"
+        }
+      ]
+    }
+  }
+}

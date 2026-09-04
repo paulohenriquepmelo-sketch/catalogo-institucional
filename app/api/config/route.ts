@@ -1,4 +1,8 @@
-import { getConfig, saveConfig } from '@/lib/catalog-repository';
+import {
+  getConfig,
+  getPublishedConfig,
+  saveConfig,
+} from '@/lib/catalog-repository';
 import {
   authorizeMutation,
   getEditorUser,
@@ -10,7 +14,7 @@ export async function GET(request: Request) {
   if (editor && !(await getEditorUser()))
     return Response.json({ error: 'Acesso restrito.' }, { status: 403 });
   try {
-    const settings = await getConfig();
+    const settings = editor ? await getConfig() : await getPublishedConfig();
     if (!editor)
       settings.config.brands = publishedBrands(settings.config.brands);
     return Response.json(settings, {

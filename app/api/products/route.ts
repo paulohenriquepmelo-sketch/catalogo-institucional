@@ -5,6 +5,7 @@ import {
 } from '@/lib/editor-access';
 import {
   listCatalogProducts,
+  listPublishedProducts,
   saveCatalogProduct,
 } from '@/lib/catalog-repository';
 export async function GET(request: Request) {
@@ -12,9 +13,12 @@ export async function GET(request: Request) {
   if (editor && !(await getEditorUser()))
     return Response.json({ error: 'Acesso restrito.' }, { status: 403 });
   try {
-    return Response.json(await listCatalogProducts(editor), {
-      headers: { 'cache-control': 'no-store' },
-    });
+    return Response.json(
+      editor ? await listCatalogProducts(true) : await listPublishedProducts(),
+      {
+        headers: { 'cache-control': 'no-store' },
+      },
+    );
   } catch {
     return Response.json(
       { error: 'Não foi possível carregar os produtos. Tente novamente.' },

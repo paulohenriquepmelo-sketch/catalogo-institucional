@@ -2,6 +2,7 @@ import { env } from 'cloudflare:workers';
 import { authorizeMutation, readJson } from '@/lib/editor-access';
 import {
   getConfig,
+  ensurePublishedCatalog,
   listCatalogProducts,
   saveCatalogProduct,
   validateProduct,
@@ -20,6 +21,7 @@ export async function POST(request: Request) {
   const denied = await authorizeMutation(request);
   if (denied) return denied;
   try {
+    await ensurePublishedCatalog();
     const input = await readJson(request);
     if (
       !input ||

@@ -65,8 +65,10 @@ const unique = (values: string[]) =>
   [...new Set(values)].sort((a, b) => a.localeCompare(b, 'pt-BR'));
 export function CatalogApp({
   showEditorLink = true,
+  editorPreview = false,
 }: {
   showEditorLink?: boolean;
+  editorPreview?: boolean;
 }) {
   const [items, setItems] = useState<Product[]>([]);
   const [config, setConfig] = useState<CatalogConfig>(defaultConfig);
@@ -83,8 +85,10 @@ export function CatalogApp({
     setError('');
     try {
       const [data, settings] = await Promise.all([
-        api<Product[]>('/api/products'),
-        api<{ config: CatalogConfig }>('/api/config'),
+        api<Product[]>(`/api/products${editorPreview ? '?editor=1' : ''}`),
+        api<{ config: CatalogConfig }>(
+          `/api/config${editorPreview ? '?editor=1' : ''}`,
+        ),
       ]);
       setItems(data);
       setConfig(settings.config);
@@ -100,7 +104,7 @@ export function CatalogApp({
   }
   useEffect(() => {
     void load();
-  }, []);
+  }, [editorPreview]);
   const filtered = useMemo(() => discover(items, filters), [items, filters]);
   const searchResults = useMemo(
     () =>

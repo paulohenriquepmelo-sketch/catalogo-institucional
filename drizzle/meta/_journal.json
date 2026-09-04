@@ -29,6 +29,13 @@
       "when": 1788433385709,
       "tag": "0003_import_produtos",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1788537965816,
+      "tag": "0004_graceful_silver_samurai",
+      "breakpoints": true
     }
   ]
 }

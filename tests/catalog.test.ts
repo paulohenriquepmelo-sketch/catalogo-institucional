@@ -15,7 +15,10 @@ import {
 import { products } from './fixtures';
 import {
   getConfig,
+  getPublishedConfig,
   listCatalogProducts,
+  listPublishedProducts,
+  publishCatalog,
   saveCatalogProduct,
   saveConfig,
 } from '../lib/catalog-repository';
@@ -24,6 +27,10 @@ import {
   POST as postProduct,
 } from '../app/api/products/route';
 import { POST as postConfig } from '../app/api/config/route';
+import {
+  GET as getPublication,
+  POST as postPublication,
+} from '../app/api/publication/route';
 import { GET as getUpload, POST as postUpload } from '../app/api/uploads/route';
 import { database, setIdentity } from './runtime';
 import { webp } from './image-fixtures';
@@ -144,6 +151,7 @@ test('persistent workflow: migrations, seeded records, drafts, revisions, ACL, u
     settings.config.blocks.some((block) => block.type === 'new-products'),
   );
   assert.equal((await listCatalogProducts()).length, 2525);
+  assert.equal((await listPublishedProducts()).length, 2525);
   const seed = (await listCatalogProducts(true)).find((p) => p.code === '32')!;
   assert.equal(seed.name, 'BALA FLOPI DIET 40G FLORESTAL');
   assert.equal(seed.details?.packaging, '12X40G');
@@ -186,6 +194,7 @@ test('persistent workflow: migrations, seeded records, drafts, revisions, ACL, u
     name: 'Produto de teste',
   });
   assert.equal((await listCatalogProducts()).length, 2526);
+  assert.equal((await listPublishedProducts()).length, 2525);
   await assert.rejects(
     () => saveCatalogProduct({ ...saved, name: 'Stale update' }),
     /outra sessão/,
@@ -204,8 +213,24 @@ test('persistent workflow: migrations, seeded records, drafts, revisions, ACL, u
   const updated = await saveConfig(edited, 1);
   assert.equal(updated.revision, 2);
   assert.equal((await getConfig()).config.banners[0].title, 'Banner editado');
+  assert.notEqual(
+    (await getPublishedConfig()).config.banners[0].title,
+    'Banner editado',
+  );
+  assert.equal((await publishCatalog()).productCount, 2526);
+  assert.equal((await listPublishedProducts()).length, 2526);
+  assert.equal(
+    (await getPublishedConfig()).config.banners[0].title,
+    'Banner editado',
+  );
   await assert.rejects(() => saveConfig(edited, 1), /outra sessão/);
   setIdentity();
+  assert.equal((await getPublication()).status, 403);
+  assert.equal(
+    (await postPublication(request('/api/publication', { confirm: true })))
+      .status,
+    403,
+  );
   assert.equal(
     (
       await getProducts(
@@ -245,7 +270,16 @@ test('persistent workflow: migrations, seeded records, drafts, revisions, ACL, u
     new Request('https://catalog.test/api/products'),
   );
   const data = (await read.json()) as typeof products;
-  assert.ok(!data.some((p) => p.code === 'TEST-DRAFT'));
+  assert.ok(data.some((p) => p.code === 'TEST-DRAFT'));
+  assert.equal(
+    (await postPublication(request('/api/publication', { confirm: true })))
+      .status,
+    200,
+  );
+  const republished = (await (
+    await getProducts(new Request('https://catalog.test/api/products'))
+  ).json()) as typeof products;
+  assert.ok(!republished.some((p) => p.code === 'TEST-DRAFT'));
   const makeUpload = (data: Uint8Array, type: string) => {
     const form = new FormData();
     form.append('file', new File([new Uint8Array(data)], 'test.png', { type }));

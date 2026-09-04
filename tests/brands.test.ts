@@ -10,7 +10,11 @@ import { products } from './fixtures';
 import { discover, emptyFilters } from '../lib/catalog-discovery';
 import { publishedBrands, brandLogoSearchUrl } from '../lib/catalog-brands';
 import { defaultConfig, validateConfig } from '../lib/catalog-config';
-import { getConfig, saveConfig } from '../lib/catalog-repository';
+import {
+  getConfig,
+  publishCatalog,
+  saveConfig,
+} from '../lib/catalog-repository';
 import { GET as getConfigRoute } from '../app/api/config/route';
 import { setIdentity, database } from './runtime';
 import {
@@ -158,7 +162,17 @@ void test('layout bounds, legacy defaults and brand publication survive save/rel
     new Request('https://catalog.test/api/config'),
   );
   const publicData = (await publicResponse.json()) as { config: typeof config };
-  assert.ok(!publicData.config.brands.some((b) => b.name === draftBrand.name));
+  assert.ok(publicData.config.brands.some((b) => b.name === draftBrand.name));
+  await publishCatalog();
+  const publishedResponse = await getConfigRoute(
+    new Request('https://catalog.test/api/config'),
+  );
+  const publishedData = (await publishedResponse.json()) as {
+    config: typeof config;
+  };
+  assert.ok(
+    !publishedData.config.brands.some((b) => b.name === draftBrand.name),
+  );
   assert.equal(
     (
       await getConfigRoute(

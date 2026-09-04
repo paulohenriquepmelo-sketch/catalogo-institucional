@@ -80,6 +80,7 @@ export function EditorApp({ userName }: { userName: string }) {
   const [uploads, setUploads] = useState(0);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const [publicationDirty, setPublicationDirty] = useState(false);
   const productDirty = JSON.stringify(draft) !== JSON.stringify(baseline);
   const configDirty = JSON.stringify(config) !== JSON.stringify(savedConfig);
   const dirty = productDirty || configDirty;
@@ -91,11 +92,12 @@ export function EditorApp({ userName }: { userName: string }) {
     setLoading(true);
     setError('');
     try {
-      const [data, settings] = await Promise.all([
+      const [data, settings, publication] = await Promise.all([
         api<Product[]>('/api/products?editor=1'),
         api<{ config: CatalogConfig; revision: number }>(
           '/api/config?editor=1',
         ),
+        api<{ hasChanges: boolean }>('/api/publication'),
       ]);
       setItems(data);
       setDraft(data[0] ?? blank);
@@ -103,6 +105,7 @@ export function EditorApp({ userName }: { userName: string }) {
       setConfig(settings.config);
       setSavedConfig(settings.config);
       setRevision(settings.revision);
+      setPublicationDirty(publication.hasChanges);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Falha ao carregar.');
     } finally {
@@ -110,9 +113,10 @@ export function EditorApp({ userName }: { userName: string }) {
     }
   }
   async function refreshAfterImport() {
-    const [products, settings] = await Promise.all([
+    const [products, settings, publication] = await Promise.all([
       api<Product[]>('/api/products?editor=1'),
       api<{ config: CatalogConfig; revision: number }>('/api/config?editor=1'),
+      api<{ hasChanges: boolean }>('/api/publication'),
     ]);
     setItems(products);
     const selected =
@@ -122,6 +126,7 @@ export function EditorApp({ userName }: { userName: string }) {
     setConfig(settings.config);
     setSavedConfig(settings.config);
     setRevision(settings.revision);
+    setPublicationDirty(publication.hasChanges);
     return { products, config: settings.config };
   }
   useEffect(() => {
@@ -188,10 +193,11 @@ export function EditorApp({ userName }: { userName: string }) {
           ? current.map((x) => (x.id === p.id ? p : x))
           : [p, ...current],
       );
+      setPublicationDirty(true);
       setMessage(
         p.published
-          ? 'Produto salvo e publicado.'
-          : 'Rascunho salvo. Ele não aparece na área pública.',
+          ? 'Produto salvo no editor. Publique as alterações para atualizar o site público.'
+          : 'Rascunho salvo. Ele não será enviado ao site público.',
       );
       return { id: p.id, published: p.published, segment: p.segment };
     } catch (e) {
@@ -206,14 +212,23 @@ export function EditorApp({ userName }: { userName: string }) {
     setError('');
     setMessage('');
     try {
-      const result = await api<{ config: CatalogConfig; revision: number }>(
-        '/api/config',
-        { config, revision },
+      if (configDirty) {
+        const result = await api<{ config: CatalogConfig; revision: number }>(
+          '/api/config',
+          { config, revision },
+        );
+        setConfig(result.config);
+        setSavedConfig(result.config);
+        setRevision(result.revision);
+      }
+      const publication = await api<{
+        publishedAt: string;
+        productCount: number;
+      }>('/api/publication', { confirm: true });
+      setPublicationDirty(false);
+      setMessage(
+        `Alterações publicadas no site público. ${publication.productCount} produtos enviados.`,
       );
-      setConfig(result.config);
-      setSavedConfig(result.config);
-      setRevision(result.revision);
-      setMessage('Página e configurações publicadas.');
       const data = await api<Product[]>('/api/products?editor=1');
       setItems(data);
     } catch (e) {
@@ -240,6 +255,7 @@ export function EditorApp({ userName }: { userName: string }) {
         filesDeleted: number;
       }>('/api/editor/clear-images', { confirm: true });
       await load();
+      setPublicationDirty(true);
       setMessage(
         `Limpeza concluída: ${result.productsCleared} produtos e ${result.logosCleared} logos sem imagem.`,
       );
@@ -288,6 +304,7 @@ export function EditorApp({ userName }: { userName: string }) {
         setDraft(saved);
         setBaseline(saved);
       }
+      setPublicationDirty(true);
       setMessage(
         kind === 'offers'
           ? enabled
@@ -384,11 +401,26 @@ export function EditorApp({ userName }: { userName: string }) {
           </div>
           <div>
             <span>
-              {dirty ? 'Alterações não salvas' : 'Sem alterações pendentes'}
+              {dirty
+                ? 'Alterações não salvas'
+                : publicationDirty
+                  ? 'Alterações aguardando publicação'
+                  : 'Sem alterações pendentes'}
             </span>
-            <a href="/" target="_blank" rel="noreferrer">
+            <a href="/?version=published" target="_blank" rel="noreferrer">
               <Eye /> Ver versão publicada
             </a>
+            <Button
+              disabled={
+                busy ||
+                uploads > 0 ||
+                productDirty ||
+                (!configDirty && !publicationDirty)
+              }
+              onClick={() => void savePage()}
+            >
+              <Save /> Publicar alterações no site público
+            </Button>
           </div>
         </header>
         <div className="editor-feedback" aria-live="polite">
@@ -476,7 +508,7 @@ export function EditorApp({ userName }: { userName: string }) {
               <div className="form-title">
                 <h2>{draft.id ? 'Editar produto' : 'Novo produto'}</h2>
                 <Toggle
-                  label="Publicar"
+                  label="Incluir na próxima publicação"
                   disabled={busy || uploads > 0}
                   value={draft.published === true}
                   onChange={(published) => setDraft({ ...draft, published })}
@@ -726,7 +758,7 @@ export function EditorApp({ userName }: { userName: string }) {
                 >
                   {busy ? <Loader2 className="animate-spin" /> : <Save />}{' '}
                   {draft.published
-                    ? 'Salvar e publicar produto'
+                    ? 'Salvar produto no editor'
                     : 'Salvar produto como rascunho'}
                 </Button>
               </div>
@@ -769,7 +801,10 @@ export function EditorApp({ userName }: { userName: string }) {
             <Button onClick={() => setView('products')}>
               Gerenciar produtos
             </Button>
-            <section className="editor-maintenance" aria-labelledby="image-cleanup-title">
+            <section
+              className="editor-maintenance"
+              aria-labelledby="image-cleanup-title"
+            >
               <h2 id="image-cleanup-title">Limpeza de imagens</h2>
               <p>
                 Remove somente as imagens da logo e dos produtos. Banners,
@@ -810,8 +845,10 @@ export function EditorApp({ userName }: { userName: string }) {
             <div className="settings-save">
               <span>
                 {configDirty
-                  ? 'Alterações da página ainda não publicadas.'
-                  : 'Configurações salvas.'}
+                  ? 'Alterações da página ainda não salvas.'
+                  : publicationDirty
+                    ? 'Alterações salvas e aguardando publicação.'
+                    : 'Site público atualizado.'}
               </span>
               <Button
                 variant="outline"
@@ -821,7 +858,9 @@ export function EditorApp({ userName }: { userName: string }) {
                 Desfazer
               </Button>
               <Button
-                disabled={busy || uploads > 0 || !configDirty}
+                disabled={
+                  busy || uploads > 0 || (!configDirty && !publicationDirty)
+                }
                 onClick={() => void savePage()}
               >
                 <Save /> Publicar alterações no site público
