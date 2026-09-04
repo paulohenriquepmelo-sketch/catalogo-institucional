@@ -6,13 +6,21 @@ import {
   allowedLogoImage,
   logoResult,
   searchLogos,
+  searchProductImages,
   retrieveLogo,
+  retrieveProductImage,
   boundedLogoResponse,
 } from '../lib/logo-search';
-import { importBrandLogo } from '../lib/import-brand-logo';
+import {
+  importBrandLogo,
+  importProductImage,
+} from '../lib/import-brand-logo';
 import { BrandLogoPicker } from '../components/brand-logo-picker';
+import { ProductImagePicker } from '../components/product-image-picker';
 import { GET as searchRoute } from '../app/api/logos/search/route';
 import { GET as imageRoute } from '../app/api/logos/image/route';
+import { GET as productSearchRoute } from '../app/api/product-images/search/route';
+import { GET as productImageRoute } from '../app/api/product-images/image/route';
 import { setIdentity } from './runtime';
 import { webp } from './image-fixtures';
 const page = {
@@ -80,8 +88,26 @@ void test('search and download require admin; failed validation performs no outg
     ).status,
     403,
   );
+  assert.equal(
+    (
+      await productSearchRoute(
+        new Request('https://catalog.test/api/product-images/search?q=Produto'),
+      )
+    ).status,
+    403,
+  );
+  assert.equal(
+    (
+      await productImageRoute(
+        new Request('https://catalog.test/api/product-images/image?id=42'),
+      )
+    ).status,
+    403,
+  );
   await assert.rejects(() => searchLogos('x'));
+  await assert.rejects(() => searchProductImages('x'));
   await assert.rejects(() => retrieveLogo('https://127.0.0.1'));
+  await assert.rejects(() => retrieveProductImage('https://127.0.0.1'));
   assert.equal(calls, 0);
 });
 
@@ -102,6 +128,7 @@ void test('provider results and raster retrieval use bounded, non-redirecting re
     },
   );
   assert.equal((await searchLogos('Marca'))[0].id, 42);
+  assert.equal((await searchProductImages('Produto Marca'))[0].id, 42);
   const image = await retrieveLogo('42');
   assert.equal(image.contentType, 'image/webp');
   assert.deepEqual(image.bytes, webp);
@@ -129,6 +156,29 @@ void test('provider results and raster retrieval use bounded, non-redirecting re
     () => boundedLogoResponse(new Response(new Uint8Array(101)), 100),
     /tamanho/,
   );
+});
+
+void test('product image selection uses its protected endpoint and the same optimized upload pipeline', async (t) => {
+  t.mock.method(
+    globalThis,
+    'fetch',
+    async (input: unknown, init?: RequestInit) => {
+      if (String(input) === '/api/product-images/image?id=42')
+        return new Response(webp, {
+          headers: { 'content-type': 'image/webp' },
+        });
+      assert.equal(input, '/api/uploads');
+      assert.equal(init?.method, 'POST');
+      assert.ok(init?.body instanceof FormData);
+      return Response.json({ url: '/api/uploads?key=images%2Fproduto.webp' });
+    },
+  );
+  const result = await importProductImage(42, 'Produto teste');
+  assert.equal(
+    result.url,
+    '/api/uploads?key=images%2Fproduto.webp',
+  );
+  assert.match(result.summary, /WebP/);
 });
 
 void test('selecting a logo uploads WebP and returns the new URL only after success, without saving other brand fields', async (t) => {
@@ -174,5 +224,20 @@ void test('the magnifier opens an in-editor dialog rather than navigating away',
   );
   assert.match(html, /aria-haspopup="dialog"/);
   assert.match(html, /Buscar e selecionar logo/);
+  assert.doesNotMatch(html, /href=/);
+});
+
+void test('the product magnifier opens the same in-editor selection flow', () => {
+  const html = renderToStaticMarkup(
+    createElement(ProductImagePicker, {
+      name: 'Produto teste',
+      brand: 'Marca',
+      code: '123',
+      onBusy: () => {},
+      onChange: () => {},
+    }),
+  );
+  assert.match(html, /aria-haspopup="dialog"/);
+  assert.match(html, /Buscar e selecionar foto/);
   assert.doesNotMatch(html, /href=/);
 });

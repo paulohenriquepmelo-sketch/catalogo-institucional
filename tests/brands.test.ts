@@ -36,7 +36,7 @@ void test('brand buttons open dialogs without anchor navigation or global catalo
   assert.match(html, /aria-haspopup="dialog"/);
   assert.match(html, /aria-label="Carrossel de marcas"/);
   assert.match(html, /aria-label="Avançar marcas"/);
-  assert.match(html, /aria-label="Pausar carrossel de marcas"/);
+  assert.doesNotMatch(html, /Pausar|Continuar|Retomar/);
   assert.match(html, new RegExp('Ver produtos da marca ' + brand));
   assert.doesNotMatch(html, /href=/);
   const source = readFileSync('components/catalog-brands.tsx', 'utf8');
@@ -67,7 +67,7 @@ void test('segments use distinct activity icons and open the same collection pop
   assert.match(html, /Ver produtos do segmento/);
   assert.match(html, /aria-label="Carrossel de segmentos"/);
   assert.match(html, /aria-label="Voltar segmentos"/);
-  assert.match(html, /aria-label="Pausar carrossel de segmentos"/);
+  assert.doesNotMatch(html, /Pausar|Continuar|Retomar/);
   assert.equal(
     (html.match(/data-slot="carousel-item"/g) ?? []).length,
     defaultConfig.segments.length,
@@ -243,6 +243,53 @@ void test('product details reserve a larger responsive image stage without cropp
   assert.match(rules, /\.dialog-product-top > img[\s\S]*?height: clamp/);
   assert.match(rules, /object-fit: contain/);
   assert.match(rules, /@media \(max-width: 600px\)[\s\S]*?55dvh/);
+});
+
+void test('search results normalize product photos without cropping', () => {
+  const css = readFileSync('app/globals.css', 'utf8');
+  const rules = css.slice(css.indexOf('.catalog-search-results {'));
+  assert.match(
+    rules,
+    /\.catalog-search-results \{[\s\S]*?grid-template-columns: repeat\(3, minmax\(0, 1fr\)\)/,
+  );
+  assert.match(rules, /grid-auto-rows: max-content/);
+  assert.match(
+    rules,
+    /\.catalog-search-results \.product-card \{[\s\S]*?display: grid;[\s\S]*?grid-template-rows: auto 180px/,
+  );
+  assert.match(
+    rules,
+    /\.catalog-search-results \.product-card \{[\s\S]*?min-height: 0;[\s\S]*?height: auto/,
+  );
+  assert.match(
+    rules,
+    /\.catalog-search-results \.product-card \.product-image-wrap,[\s\S]*?aspect-ratio: 1 \/ 1/,
+  );
+  assert.match(
+    rules,
+    /\.catalog-search-results \.product-card-body \{[\s\S]*?min-height: 0;[\s\S]*?height: 180px/,
+  );
+  assert.match(
+    rules,
+    /\.catalog-search-results \.product-image[\s\S]*?object-fit: contain/,
+  );
+  assert.match(
+    rules,
+    /\.catalog-search-results \.product-image[\s\S]*?width: 100%;[\s\S]*?height: 100%;[\s\S]*?padding: 10%/,
+  );
+  assert.match(rules, /object-position: center/);
+  assert.match(
+    rules,
+    /\.catalog-search-results \.product-card:hover \.product-image[\s\S]*?transform: none/,
+  );
+  assert.match(
+    rules,
+    /@media \(max-width: 1100px\)[\s\S]*?grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)/,
+  );
+  assert.match(
+    rules,
+    /@media \(max-width: 700px\)[\s\S]*?grid-template-columns: 1fr/,
+  );
 });
 
 void test('product details use strong text and the editor exposes a dedicated commercial contact area', () => {

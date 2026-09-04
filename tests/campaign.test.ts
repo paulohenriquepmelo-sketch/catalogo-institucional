@@ -19,6 +19,30 @@ import {
 import { getConfig, saveConfig } from '../lib/catalog-repository';
 import { database, setIdentity } from './runtime';
 import { POST as postConfig } from '../app/api/config/route';
+import { offerTimeLabel } from '../components/product-showcase-carousel';
+
+void test('public carousels hide play controls and offer countdown becomes precise in the last 24 hours', () => {
+  for (const file of [
+    'components/catalog-banners.tsx',
+    'components/catalog-campaign.tsx',
+    'components/discovery-carousel.tsx',
+    'components/product-showcase-carousel.tsx',
+  ]) {
+    const source = readFileSync(file, 'utf8');
+    assert.doesNotMatch(source, /<Pause|<Play|Pausar|Retomar|Continuar/);
+  }
+  const end = '2026-09-10';
+  const endTime = new Date(`${end}T23:59:59`).getTime();
+  assert.equal(offerTimeLabel(end, endTime - 90_000_000), 'Encerra em 1d 1h');
+  assert.equal(
+    offerTimeLabel(end, endTime - 18_367_000),
+    'Encerra em 05:06:07',
+  );
+  assert.equal(offerTimeLabel(end, endTime), 'Oferta encerrada');
+  const styles = readFileSync('app/globals.css', 'utf8');
+  assert.match(styles, /\.offer-perforation[\s\S]*?border-left: 1px dashed/);
+  assert.match(styles, /\.offer-card::before,[\s\S]*?\.offer-card::after/);
+});
 
 void test('theme is only a background: actual catalog controls occur once and promotional panels are absent', () => {
   const intro = createElement(
