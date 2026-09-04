@@ -30,6 +30,7 @@ import { ConfigEditor, type EditorView } from './config-editor';
 import { useCatalogTools } from '@/hooks/use-catalog-tools';
 import { ImportEditor } from './import-editor';
 import { CampaignEditor } from './campaign-editor';
+import { ProductImagePicker } from './product-image-picker';
 
 const navigation: { key: EditorView; label: string; icon: typeof Package }[] = [
   { key: 'overview', label: 'Visão geral', icon: LayoutDashboard },
@@ -306,7 +307,15 @@ export function EditorApp({ userName }: { userName: string }) {
     <main className="editor-shell">
       <aside className="editor-sidebar">
         <a href="/" className="brand-lockup">
-          <span className="brand-mark">N</span>
+          {savedConfig.logo ? (
+            <img
+              className="editor-site-logo"
+              src={savedConfig.logo}
+              alt={`Logo de ${savedConfig.name}`}
+            />
+          ) : (
+            <span className="brand-mark">{savedConfig.name.charAt(0)}</span>
+          )}
           <span>
             {savedConfig.name}
             <small>EDITOR</small>
@@ -646,6 +655,15 @@ export function EditorApp({ userName }: { userName: string }) {
                 )}
               </fieldset>
               <fieldset disabled={busy || uploads > 0}>
+                <ProductImagePicker
+                  name={draft.name}
+                  brand={draft.brand}
+                  code={draft.code}
+                  onChange={(image) =>
+                    setDraft((current) => ({ ...current, image }))
+                  }
+                  onBusy={onBusy}
+                />
                 <UploadField
                   label="Imagem do produto"
                   value={draft.image}

@@ -1,7 +1,7 @@
 'use client';
 /* oxlint-disable next/no-img-element -- Product uploads are already optimized to WebP by the catalog pipeline. */
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowRight, Clock3, Pause, Play, Sparkles } from 'lucide-react';
+import { ArrowRight, Clock3, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Carousel,
@@ -20,14 +20,17 @@ function localDateKey(date = new Date()) {
   return new Date(date.getTime() - offset).toISOString().slice(0, 10);
 }
 
-function offerTimeLabel(end: string, now: number) {
+export function offerTimeLabel(end: string, now: number) {
   const endTime = new Date(`${end}T23:59:59`).getTime();
-  const minutes = Math.max(0, Math.floor((endTime - now) / 60_000));
-  const days = Math.floor(minutes / 1440);
-  const hours = Math.floor((minutes % 1440) / 60);
-  const mins = minutes % 60;
+  const remaining = Math.max(0, endTime - now);
+  if (remaining <= 0) return 'Oferta encerrada';
+  const seconds = Math.floor(remaining / 1000);
+  const days = Math.floor(seconds / 86_400);
+  const hours = Math.floor((seconds % 86_400) / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = seconds % 60;
   if (days > 0) return `Encerra em ${days}d ${hours}h`;
-  return `Encerra em ${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
+  return `Encerra em ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 }
 
 export function ProductShowcaseCarousel({
@@ -42,7 +45,6 @@ export function ProductShowcaseCarousel({
   onOpen: (product: Product) => void;
 }) {
   const [api, setApi] = useState<CarouselApi>();
-  const [paused, setPaused] = useState(false);
   const [interacting, setInteracting] = useState(false);
   const [reduced, setReduced] = useState(false);
   const [now, setNow] = useState(0);
@@ -61,7 +63,7 @@ export function ProductShowcaseCarousel({
       setToday(localDateKey(new Date(time)));
     };
     const initial = window.setTimeout(update, 0);
-    const timer = window.setInterval(update, 60_000);
+    const timer = window.setInterval(update, 1000);
     return () => {
       window.clearTimeout(initial);
       window.clearInterval(timer);
@@ -71,7 +73,6 @@ export function ProductShowcaseCarousel({
     if (
       !api ||
       !settings.autoplay ||
-      paused ||
       interacting ||
       reduced ||
       items.length < 2
@@ -82,7 +83,7 @@ export function ProductShowcaseCarousel({
       settings.interval * 1000,
     );
     return () => window.clearInterval(timer);
-  }, [api, interacting, items.length, paused, reduced, settings]);
+  }, [api, interacting, items.length, reduced, settings]);
   const visible = useMemo(() => {
     if (!settings.published) return [];
     if (kind === 'offers') {
@@ -134,16 +135,6 @@ export function ProductShowcaseCarousel({
             <h2>{settings.title}</h2>
           </div>
           <div className="showcase-controls">
-            {settings.autoplay && !reduced && visible.length > 1 && (
-              <Button
-                variant="outline"
-                size="icon"
-                aria-label={paused ? `Continuar ${label}` : `Pausar ${label}`}
-                onClick={() => setPaused((value) => !value)}
-              >
-                {paused ? <Play /> : <Pause />}
-              </Button>
-            )}
             <CarouselPrevious aria-label={`Voltar ${label}`} />
             <CarouselNext aria-label={`Avançar ${label}`} />
           </div>
@@ -161,11 +152,16 @@ export function ProductShowcaseCarousel({
               aria-label={`${index + 1} de ${visible.length}`}
             >
               {isOffer ? (
-                <button className="offer-card" onClick={() => onOpen(product)}>
+                <button
+                  type="button"
+                  className="offer-card"
+                  onClick={() => onOpen(product)}
+                >
                   <span className="offer-discount">
                     {product.details!.offer!.discount}% OFF
                   </span>
                   <strong>{product.name}</strong>
+                  <span className="offer-perforation" aria-hidden="true" />
                   <div className="offer-product-image">
                     {product.image ? (
                       <img src={product.image} alt="" loading="lazy" />
@@ -173,10 +169,13 @@ export function ProductShowcaseCarousel({
                       <Sparkles />
                     )}
                   </div>
-                  <span className="offer-expiry">
+                  <time
+                    className="offer-expiry"
+                    dateTime={`${product.details!.offer!.endsAt}T23:59:59`}
+                  >
                     <Clock3 aria-hidden="true" />
                     {offerTimeLabel(product.details!.offer!.endsAt, now)}
-                  </span>
+                  </time>
                   <span className="offer-action">
                     Ver produto <ArrowRight />
                   </span>
