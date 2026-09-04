@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { ArrowLeft, ArrowRight, Pause, Play } from 'lucide-react';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Carousel,
@@ -20,8 +20,8 @@ export function CatalogBanners({
   const banners = config.banners.filter((b) => b.visible);
   const [api, setApi] = useState<CarouselApi>();
   const [index, setIndex] = useState(0);
-  const [paused, setPaused] = useState(false);
   const [hover, setHover] = useState(false);
+  const [focused, setFocused] = useState(false);
   const [reduced, setReduced] = useState(true);
   useEffect(() => {
     const media = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -45,8 +45,8 @@ export function CatalogBanners({
     if (
       !api ||
       !config.autoplay ||
-      paused ||
       hover ||
+      focused ||
       reduced ||
       banners.length < 2
     )
@@ -59,8 +59,8 @@ export function CatalogBanners({
     api,
     config.autoplay,
     config.interval,
-    paused,
     hover,
+    focused,
     reduced,
     banners.length,
   ]);
@@ -73,7 +73,11 @@ export function CatalogBanners({
         aria-label={title}
         onMouseEnter={() => setHover(true)}
         onMouseLeave={() => setHover(false)}
-        onFocusCapture={() => setPaused(true)}
+        onFocusCapture={() => setFocused(true)}
+        onBlurCapture={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget))
+            setFocused(false);
+        }}
       >
         <CarouselContent>
           {banners.map((b, i) => (
@@ -108,7 +112,7 @@ export function CatalogBanners({
         </CarouselContent>
         {banners.length > 1 && (
           <div className="banner-controls">
-            <span aria-live={paused ? 'polite' : 'off'}>
+            <span>
               {String(index + 1).padStart(2, '0')} /{' '}
               {String(banners.length).padStart(2, '0')}
             </span>
@@ -116,10 +120,7 @@ export function CatalogBanners({
               variant="outline"
               size="icon"
               aria-label="Banner anterior"
-              onClick={() => {
-                setPaused(true);
-                api?.scrollPrev();
-              }}
+              onClick={() => api?.scrollPrev()}
             >
               <ArrowLeft />
             </Button>
@@ -127,23 +128,10 @@ export function CatalogBanners({
               variant="outline"
               size="icon"
               aria-label="Próximo banner"
-              onClick={() => {
-                setPaused(true);
-                api?.scrollNext();
-              }}
+              onClick={() => api?.scrollNext()}
             >
               <ArrowRight />
             </Button>
-            {config.autoplay && !reduced && (
-              <Button
-                variant="outline"
-                size="icon"
-                aria-label={paused ? 'Retomar animação' : 'Pausar animação'}
-                onClick={() => setPaused(!paused)}
-              >
-                {paused ? <Play /> : <Pause />}
-              </Button>
-            )}
           </div>
         )}
       </Carousel>

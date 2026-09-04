@@ -1,7 +1,7 @@
 'use client';
 /* oxlint-disable next/no-img-element -- Exact campaign artwork is served directly, without an image optimizer. */
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
-import { ArrowLeft, ArrowRight, Pause, Play } from 'lucide-react';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Carousel,
@@ -31,8 +31,8 @@ export function CatalogCampaign({
     campaignThemes.find((p) => p.id === campaign.theme) ?? campaignThemes[0];
   const [api, setApi] = useState<CarouselApi>();
   const [index, setIndex] = useState(0);
-  const [paused, setPaused] = useState(false);
   const [hover, setHover] = useState(false);
+  const [focused, setFocused] = useState(false);
   const [reduced, setReduced] = useState(true);
   const visible = campaign.enabled && slides.some((slide) => slide.image);
   useEffect(() => {
@@ -59,8 +59,8 @@ export function CatalogCampaign({
       !visible ||
       !campaign.autoplay ||
       slides.length < 2 ||
-      paused ||
       hover ||
+      focused ||
       reduced ||
       preview
     )
@@ -78,8 +78,8 @@ export function CatalogCampaign({
     campaign.autoplay,
     campaign.interval,
     slides.length,
-    paused,
     hover,
+    focused,
     reduced,
     preview,
   ]);
@@ -108,7 +108,11 @@ export function CatalogCampaign({
         className={`campaign-intro-band ${visible ? 'has-background' : ''}`}
         onMouseEnter={() => setHover(true)}
         onMouseLeave={() => setHover(false)}
-        onFocusCapture={() => setPaused(true)}
+        onFocusCapture={() => setFocused(true)}
+        onBlurCapture={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget))
+            setFocused(false);
+        }}
       >
         {visible && (
           <>
@@ -144,7 +148,7 @@ export function CatalogCampaign({
         <div className="campaign-intro-content">{intro}</div>
         {visible && slides.length > 1 && (
           <div className="campaign-controls">
-            <span aria-live={paused ? 'polite' : 'off'}>
+            <span>
               {String(current + 1).padStart(2, '0')} /{' '}
               {String(slides.length).padStart(2, '0')}
             </span>
@@ -152,10 +156,7 @@ export function CatalogCampaign({
               variant="outline"
               size="icon"
               aria-label="Fundo anterior"
-              onClick={() => {
-                setPaused(true);
-                api?.scrollPrev();
-              }}
+              onClick={() => api?.scrollPrev()}
             >
               <ArrowLeft />
             </Button>
@@ -163,27 +164,10 @@ export function CatalogCampaign({
               variant="outline"
               size="icon"
               aria-label="Próximo fundo"
-              onClick={() => {
-                setPaused(true);
-                api?.scrollNext();
-              }}
+              onClick={() => api?.scrollNext()}
             >
               <ArrowRight />
             </Button>
-            {campaign.autoplay && !reduced && !preview && (
-              <Button
-                variant="outline"
-                size="icon"
-                aria-label={
-                  paused
-                    ? 'Retomar carrossel de fundo'
-                    : 'Pausar carrossel de fundo'
-                }
-                onClick={() => setPaused(!paused)}
-              >
-                {paused ? <Play /> : <Pause />}
-              </Button>
-            )}
           </div>
         )}
       </div>

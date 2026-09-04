@@ -1,7 +1,5 @@
 'use client';
 import { useEffect, useState, type FocusEvent, type ReactNode } from 'react';
-import { Pause, Play } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import {
   type CarouselApi,
   Carousel,
@@ -20,7 +18,6 @@ export function DiscoveryCarousel({
   children: ReactNode;
 }) {
   const [reducedMotion, setReducedMotion] = useState(false);
-  const [manualPaused, setManualPaused] = useState(false);
   const [interacting, setInteracting] = useState(false);
   const [api, setApi] = useState<CarouselApi>();
   useEffect(() => {
@@ -31,11 +28,10 @@ export function DiscoveryCarousel({
     return () => media.removeEventListener('change', update);
   }, []);
   useEffect(() => {
-    if (!api || reducedMotion || manualPaused || interacting || count < 2)
-      return;
+    if (!api || reducedMotion || interacting || count < 2) return;
     const timer = window.setInterval(() => api.scrollNext(), 4500);
     return () => window.clearInterval(timer);
-  }, [api, count, interacting, manualPaused, reducedMotion]);
+  }, [api, count, interacting, reducedMotion]);
   const label = kind === 'segment' ? 'segmentos' : 'marcas';
   const leaveFocus = (event: FocusEvent<HTMLDivElement>) => {
     if (!event.currentTarget.contains(event.relatedTarget))
@@ -65,25 +61,6 @@ export function DiscoveryCarousel({
           {count} {label} · Arraste ou use as setas
         </span>
         <div className="discovery-carousel-controls">
-          {!reducedMotion && count > 1 && (
-            <Button
-              variant="outline"
-              size="icon-lg"
-              aria-label={
-                manualPaused
-                  ? `Continuar carrossel de ${label}`
-                  : `Pausar carrossel de ${label}`
-              }
-              aria-pressed={manualPaused}
-              onClick={() => setManualPaused((value) => !value)}
-            >
-              {manualPaused ? (
-                <Play aria-hidden="true" />
-              ) : (
-                <Pause aria-hidden="true" />
-              )}
-            </Button>
-          )}
           <CarouselPrevious aria-label={`Voltar ${label}`} />
           <CarouselNext aria-label={`Avançar ${label}`} />
         </div>
