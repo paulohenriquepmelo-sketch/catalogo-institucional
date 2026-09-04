@@ -2179,6 +2179,82 @@ a:focus-visible {
   gap: 20px;
   text-align: center;
 }
+.editor-login-page {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  color: #f8fafc;
+  background: #071a33;
+}
+.editor-login-card {
+  width: min(100%, 440px);
+  padding: 36px;
+  display: grid;
+  gap: 16px;
+  border: 1px solid #24456e;
+  border-radius: 14px;
+  background: #102b4f;
+  box-shadow: 0 24px 70px rgb(0 0 0 / 24%);
+}
+.editor-login-card h1 {
+  margin: 0;
+  font-size: clamp(26px, 4vw, 36px);
+}
+.editor-login-card p {
+  margin: 0;
+  color: #c7d6ea;
+}
+.editor-login-kicker {
+  color: #f04445 !important;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+}
+.editor-login-card form {
+  display: grid;
+  gap: 10px;
+}
+.editor-login-card label {
+  font-size: 14px;
+  font-weight: 700;
+}
+.editor-login-card input {
+  min-height: 46px;
+  padding: 10px 12px;
+  border: 1px solid #8fa5c1;
+  border-radius: 6px;
+  color: #0b1d35;
+  background: #fff;
+  font: inherit;
+}
+.editor-login-card button {
+  min-height: 46px;
+  margin-top: 6px;
+  padding: 10px 16px;
+  border: 1px solid #050505;
+  border-radius: 6px;
+  color: #fff;
+  background: #050505;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.editor-login-card button:hover {
+  background: #262626;
+}
+.editor-login-card a {
+  color: #fff;
+  font-size: 14px;
+  text-decoration: underline;
+}
+.editor-login-error {
+  padding: 10px 12px;
+  border: 1px solid #f04445;
+  border-radius: 6px;
+  color: #fff !important;
+  background: rgb(240 68 69 / 18%);
+}
 .editor-sidebar {
   height: 100vh;
   min-height: 0;
