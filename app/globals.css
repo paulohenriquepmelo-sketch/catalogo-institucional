@@ -34,45 +34,45 @@
 }
 
 :root {
-  --background: #f4f1eb;
-  --foreground: #19231d;
-  --card: #fffdf9;
-  --card-foreground: #19231d;
-  --popover: #fffdf9;
-  --popover-foreground: #19231d;
-  --primary: #173b2a;
-  --primary-foreground: #f7f4ed;
-  --secondary: #e5e0d5;
-  --secondary-foreground: #243029;
-  --muted: #eae6dd;
-  --muted-foreground: #687169;
-  --accent: #cb5a3d;
-  --accent-foreground: #fffaf3;
-  --destructive: #b42318;
-  --border: #d8d3c9;
-  --input: #d1ccc2;
-  --ring: #537563;
-  --radius: 0.75rem;
+  --background: #f5f7fb;
+  --foreground: #15213d;
+  --card: #ffffff;
+  --card-foreground: #15213d;
+  --popover: #ffffff;
+  --popover-foreground: #15213d;
+  --primary: #263f85;
+  --primary-foreground: #ffffff;
+  --secondary: #e9eef8;
+  --secondary-foreground: #203770;
+  --muted: #edf1f7;
+  --muted-foreground: #60708d;
+  --accent: #ef312f;
+  --accent-foreground: #ffffff;
+  --destructive: #c91f2b;
+  --border: #d7deeb;
+  --input: #cbd5e5;
+  --ring: #ef312f;
+  --radius: 0.7rem;
 }
 
 .dark {
-  --background: #101713;
-  --foreground: #f4f1eb;
-  --card: #18211c;
-  --card-foreground: #f4f1eb;
-  --popover: #18211c;
-  --popover-foreground: #f4f1eb;
-  --primary: #9fc0aa;
-  --primary-foreground: #0c1811;
-  --secondary: #253229;
-  --secondary-foreground: #f4f1eb;
-  --muted: #253229;
-  --muted-foreground: #aab4ac;
-  --accent: #e77959;
-  --accent-foreground: #180d09;
-  --border: #344239;
-  --input: #3b4a40;
-  --ring: #94af9c;
+  --background: #0c1730;
+  --foreground: #f7f9fd;
+  --card: #142448;
+  --card-foreground: #f7f9fd;
+  --popover: #142448;
+  --popover-foreground: #f7f9fd;
+  --primary: #8fa8eb;
+  --primary-foreground: #08132d;
+  --secondary: #1c3160;
+  --secondary-foreground: #f7f9fd;
+  --muted: #1b2c52;
+  --muted-foreground: #aebbd4;
+  --accent: #ff5a58;
+  --accent-foreground: #210606;
+  --border: #314775;
+  --input: #3b5181;
+  --ring: #ff5a58;
 }
 
 * {
@@ -5272,3 +5272,279 @@ a:focus-visible {
     padding: 16px !important;
   }
 }
+
+/* Distribuidora Laurencini — editor and authentication brand system. */
+.editor-login-page {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 12% 10%, rgb(255 255 255 / 10%), transparent 28%),
+    linear-gradient(135deg, #172f6f 0%, #263f85 54%, #14285f 100%);
+}
+
+.editor-login-page::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 6px;
+  background: #ef312f;
+}
+
+.editor-login-card {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 480px);
+  padding: 40px;
+  border: 1px solid rgb(255 255 255 / 34%);
+  border-radius: 18px;
+  background: rgb(255 255 255 / 97%);
+  color: #18264a;
+  box-shadow: 0 32px 90px rgb(4 14 44 / 38%);
+}
+
+.editor-login-logo-frame,
+.editor-company-logo-frame {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  background: #fff;
+}
+
+.editor-login-logo-frame {
+  width: 100%;
+  height: 76px;
+  margin-bottom: 4px;
+}
+
+.editor-login-logo-frame img,
+.editor-company-logo-frame .editor-site-logo {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: auto;
+  transform: translateY(-50%);
+}
+
+.editor-login-kicker {
+  color: #ef312f !important;
+  font-weight: 850;
+}
+
+.editor-login-card p {
+  color: #60708d;
+}
+
+.editor-login-card input {
+  border-color: #b7c4db;
+  color: #15213d;
+  background: #fff;
+}
+
+.editor-login-card input:focus {
+  border-color: #263f85;
+  outline: 3px solid rgb(38 63 133 / 14%);
+}
+
+.editor-login-card button {
+  border-color: #263f85;
+  background: #263f85;
+  box-shadow: 0 10px 22px rgb(38 63 133 / 20%);
+}
+
+.editor-login-card button:hover {
+  border-color: #ef312f;
+  background: #ef312f;
+}
+
+.editor-login-card a {
+  color: #263f85;
+}
+
+.editor-shell {
+  --editor-navy: #203976;
+  --editor-navy-raised: #29478e;
+  --editor-navy-hover: #35549b;
+  --editor-on-navy: #f8faff;
+  --editor-on-navy-muted: #c5d0e8;
+  --editor-navy-border: #d8e0ef;
+  background: #eef2f8;
+  color: #15213d;
+}
+
+.editor-sidebar {
+  position: sticky;
+  border-right: 0;
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 6%), transparent 32%),
+    #203976;
+  color: #fff;
+  box-shadow: 10px 0 34px rgb(18 40 90 / 18%);
+}
+
+.editor-sidebar::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 5px;
+  background: #ef312f;
+}
+
+.editor-sidebar .brand-lockup {
+  display: grid;
+  gap: 10px;
+  color: #fff;
+}
+
+.editor-company-logo-frame {
+  width: 100%;
+  height: 58px;
+  border-radius: 8px;
+}
+
+.editor-site-logo {
+  max-width: none;
+}
+
+.editor-brand-label {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+}
+
+.editor-sidebar .brand-lockup small,
+.editor-nav-title,
+.editor-user small {
+  color: #c5d0e8;
+}
+
+.editor-sidebar nav button {
+  position: relative;
+  color: #d9e1f2;
+}
+
+.editor-sidebar nav button:hover {
+  background: rgb(255 255 255 / 10%);
+  color: #fff;
+}
+
+.editor-sidebar nav button.active {
+  background: #fff !important;
+  color: #203976 !important;
+  box-shadow: 0 8px 20px rgb(8 22 58 / 18%);
+}
+
+.editor-sidebar nav button.active::before {
+  content: '';
+  position: absolute;
+  inset: 7px auto 7px 0;
+  width: 3px;
+  border-radius: 2px;
+  background: #ef312f;
+}
+
+.editor-user {
+  border-top-color: rgb(255 255 255 / 18%);
+}
+
+.editor-user > svg {
+  color: #fff;
+}
+
+.editor-workspace,
+.editor-columns {
+  background:
+    radial-gradient(circle at 96% 0%, rgb(38 63 133 / 8%), transparent 24%),
+    #eef2f8;
+  color: #15213d;
+}
+
+.editor-topbar {
+  border-bottom-color: #d7deeb;
+  background: rgb(255 255 255 / 96%);
+  box-shadow: 0 5px 20px rgb(29 51 102 / 6%);
+}
+
+.editor-topbar > div,
+.editor-topbar a,
+.editor-topbar strong {
+  color: #203976;
+}
+
+.editor-topbar > div > span,
+.product-list-head,
+.publish-toggle,
+.layout-editor > section > p,
+.settings-panel > p {
+  color: #65738e;
+}
+
+.product-list-panel,
+.product-form-panel,
+.layout-editor,
+.settings-panel {
+  color: #15213d;
+}
+
+.product-list-panel {
+  border-right-color: #d7deeb;
+  background: #f7f9fc;
+}
+
+.product-form-panel,
+.settings-panel,
+.layout-editor {
+  background: #fff;
+}
+
+.editor-shell :is(.editor-field input, .editor-field select, .editor-field textarea, .editor-search input) {
+  border-color: #cbd5e5;
+  color: #15213d;
+  background: #fff;
+}
+
+.editor-shell :is(.editor-field input, .editor-field select, .editor-field textarea, .editor-search input):focus {
+  border-color: #263f85;
+  outline: 3px solid rgb(38 63 133 / 12%);
+}
+
+.editor-shell button:not([data-slot='switch']):not([role='switch']) {
+  border-color: #263f85 !important;
+  background: #263f85 !important;
+  color: #fff !important;
+}
+
+.editor-shell button:not([data-slot='switch']):not([role='switch']):hover {
+  border-color: #ef312f !important;
+  background: #ef312f !important;
+}
+
+.editor-shell .editor-sidebar button:not([data-slot='switch']):not([role='switch']) {
+  border-color: transparent !important;
+  background: transparent !important;
+}
+
+.editor-shell .editor-sidebar button:hover:not([data-slot='switch']):not([role='switch']) {
+  background: rgb(255 255 255 / 10%) !important;
+}
+
+.editor-shell .editor-sidebar button.active:not([data-slot='switch']):not([role='switch']) {
+  border-color: #fff !important;
+  background: #fff !important;
+  color: #203976 !important;
+}
+
+@media (max-width: 800px) {
+  .editor-company-logo-frame {
+    width: 132px;
+    height: 44px;
+  }
+
+  .editor-brand-label {
+    display: none;
+  }
+
+  .editor-login-card {
+    padding: 28px 22px;
+  }
+}
+

@@ -25,6 +25,7 @@ async function initializeData() {
 }
 function normalizeConfig(row: { body: string; revision: number }) {
   const stored = JSON.parse(row.body) as CatalogConfig;
+  const isLegacyNexoBrand = stored.name?.trim().toUpperCase() === 'NEXO';
   const storedBlocks = Array.isArray(stored.blocks) ? stored.blocks : [];
   const addedBlocks = defaultConfig.blocks.filter(
     (block) =>
@@ -39,6 +40,17 @@ function normalizeConfig(row: { body: string; revision: number }) {
   return {
     config: {
       ...stored,
+      ...(isLegacyNexoBrand
+        ? {
+            name: defaultConfig.name,
+            tagline: defaultConfig.tagline,
+            logo: defaultConfig.logo,
+            footer: defaultConfig.footer,
+            primary: defaultConfig.primary,
+            accent: defaultConfig.accent,
+            background: defaultConfig.background,
+          }
+        : {}),
       layout: { ...defaultLayout, ...stored.layout },
       brands: stored.brands.map((brand) => ({
         ...brand,
@@ -439,3 +451,4 @@ export async function saveConfig(value: unknown, revision: number) {
   // Segments are derived from the current configuration at read time as well.
   return { config, revision: revision + 1 };
 }
+

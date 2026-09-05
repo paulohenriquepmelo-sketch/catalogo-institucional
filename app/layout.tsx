@@ -20,7 +20,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const preview = origin
     ? new URL('/og-wholesale.png', origin).href
     : undefined;
-  const icon = config.logo || '/favicon.svg';
+  const icon = '/favicon.svg';
   return {
     title,
     description: config.tagline,
@@ -68,3 +68,4 @@ export default function RootLayout({
     </html>
   );
 }
+

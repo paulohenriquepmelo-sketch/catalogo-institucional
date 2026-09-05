@@ -229,11 +229,15 @@ export function CatalogApp({
     ...catalogLayoutStyle(config.layout),
   };
   const logoMark = config.logo ? (
-    <img className="site-logo" src={config.logo} alt="" />
+    <span className="company-logo-frame" aria-hidden="true">
+      <img className="site-logo" src={config.logo} alt="" />
+    </span>
   ) : (
     <span className="brand-mark">{config.name.charAt(0)}</span>
   );
-  const footerLogo = (
+  const footerLogo = config.logo ? (
+    logoMark
+  ) : (
     <>
       {logoMark}
       <span>
@@ -556,3 +560,4 @@ export function CatalogApp({
     </main>
   );
 }
+

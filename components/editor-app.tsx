@@ -354,17 +354,19 @@ export function EditorApp({ userName }: { userName: string }) {
       <aside className="editor-sidebar">
         <a href="/" className="brand-lockup">
           {savedConfig.logo ? (
-            <img
-              className="editor-site-logo"
-              src={savedConfig.logo}
-              alt={`Logo de ${savedConfig.name}`}
-            />
+            <span className="editor-company-logo-frame">
+              <img
+                className="editor-site-logo"
+                src={savedConfig.logo}
+                alt={`Logo de ${savedConfig.name}`}
+              />
+            </span>
           ) : (
             <span className="brand-mark">{savedConfig.name.charAt(0)}</span>
           )}
-          <span>
-            {savedConfig.name}
-            <small>EDITOR</small>
+          <span className="editor-brand-label">
+            Central do catálogo
+            <small>EDITOR COMERCIAL</small>
           </span>
         </a>
         <nav>
@@ -872,3 +874,4 @@ export function EditorApp({ userName }: { userName: string }) {
     </main>
   );
 }
+

@@ -110,15 +110,15 @@ export const defaultConfig: CatalogConfig = {
   campaign: defaultCampaign,
   offers: defaultOffers,
   newProducts: defaultNewProducts,
-  name: 'NEXO',
-  tagline: 'Seu mix completo de atacado e distribuição.',
-  logo: '',
+  name: 'Distribuidora Laurencini',
+  tagline: 'Marcas fortes, produtos certos e parceria para o seu negócio.',
+  logo: '/distribuidora-laurencini-logo.jpeg',
   email: '',
   footer:
-    'Alimentos, bebidas, bombonieri, embalagens e utilidades para abastecer o seu negócio.',
-  primary: '#173b2a',
-  accent: '#cb5a3d',
-  background: '#f4f1eb',
+    'Distribuição, variedade e atendimento comercial para fortalecer o seu ponto de venda.',
+  primary: '#263f85',
+  accent: '#ef312f',
+  background: '#f5f7fb',
   font: 'sans',
   autoplay: true,
   interval: 6,
@@ -586,3 +586,4 @@ export function validateCampaign(value: unknown): CatalogCampaign {
     );
   return result;
 }
+

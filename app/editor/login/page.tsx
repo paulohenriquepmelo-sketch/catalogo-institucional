@@ -28,7 +28,13 @@ export default async function EditorLoginPage({
   return (
     <main className="editor-login-page">
       <section className="editor-login-card" aria-labelledby="editor-login-title">
-        <p className="editor-login-kicker">NEXO · EDITOR</p>
+        <span className="editor-login-logo-frame">
+          <img
+            src="/distribuidora-laurencini-logo.jpeg"
+            alt="Distribuidora Laurencini"
+          />
+        </span>
+        <p className="editor-login-kicker">CENTRAL DO CATÁLOGO</p>
         <h1 id="editor-login-title">Acesso administrativo</h1>
         <p>Informe a senha configurada para administrar o catálogo.</p>
         {error === '1' && (
@@ -54,3 +60,4 @@ export default async function EditorLoginPage({
     </main>
   );
 }
+
