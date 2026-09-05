@@ -25,6 +25,29 @@ export const defaultColors = {
   newSectionText: 'auto',
 };
 export type CatalogColors = typeof defaultColors;
+
+export const laurenciniColors: CatalogColors = {
+  text: '#15213d',
+  heading: '#203770',
+  muted: '#60708d',
+  highlight: '#ef312f',
+  primaryText: '#ffffff',
+  themeText: '#ffffff',
+  themeHeading: '#ffffff',
+  footerBackground: '#172f6f',
+  footerText: '#ffffff',
+  segmentBorder: '#7892d1',
+  segmentSectionBackground: '#203976',
+  segmentSectionText: '#ffffff',
+  brandSectionBackground: '#f7f9fd',
+  brandSectionText: '#203770',
+  brandCardBackground: '#ffffff',
+  brandCardText: '#203770',
+  offerSectionBackground: '#203976',
+  offerSectionText: '#ffffff',
+  newSectionBackground: '#f5f7fb',
+  newSectionText: '#203770',
+};
 export function validateColors(value: unknown): CatalogColors {
   if (value === undefined) return { ...defaultColors };
   if (!value || typeof value !== 'object' || Array.isArray(value))
@@ -270,3 +293,4 @@ export function colorWarnings(config: Parameters<typeof resolveColors>[0]) {
     .filter(([, color, background]) => contrastRatio(color, background) < 4.5)
     .map(([label]) => label);
 }
+

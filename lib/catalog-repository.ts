@@ -49,6 +49,7 @@ function normalizeConfig(row: { body: string; revision: number }) {
             primary: defaultConfig.primary,
             accent: defaultConfig.accent,
             background: defaultConfig.background,
+            colors: structuredClone(defaultConfig.colors),
           }
         : {}),
       layout: { ...defaultLayout, ...stored.layout },

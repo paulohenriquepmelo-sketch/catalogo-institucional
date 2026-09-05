@@ -5,7 +5,7 @@ import {
   type CatalogLayout,
 } from './catalog-layout';
 import {
-  defaultColors,
+  laurenciniColors,
   validateColors,
   type CatalogColors,
 } from './catalog-colors';
@@ -106,7 +106,7 @@ export const defaultNewProducts: ProductShowcase = {
 
 export const defaultConfig: CatalogConfig = {
   layout: { ...defaultLayout },
-  colors: { ...defaultColors },
+  colors: { ...laurenciniColors },
   campaign: defaultCampaign,
   offers: defaultOffers,
   newProducts: defaultNewProducts,

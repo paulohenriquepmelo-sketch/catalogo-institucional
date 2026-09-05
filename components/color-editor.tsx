@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { NativeSelect } from '@/components/ui/native-select';
 import {
   defaultColors,
+  laurenciniColors,
   resolveColors,
   colorWarnings,
   type CatalogColors,
@@ -277,12 +278,23 @@ export function ColorEditor({
           onChange({
             ...config,
             colors: themeOnly
-              ? { ...colors, themeText: 'auto', themeHeading: 'auto' }
-              : { ...defaultColors },
+              ? {
+                  ...colors,
+                  themeText: laurenciniColors.themeText,
+                  themeHeading: laurenciniColors.themeHeading,
+                }
+              : { ...laurenciniColors },
+            ...(!themeOnly
+              ? {
+                  primary: '#263f85',
+                  accent: '#ef312f',
+                  background: '#f5f7fb',
+                }
+              : {}),
           })
         }
       >
-        Restaurar todas as cores automáticas
+        Restaurar padrão de cores Laurencini
       </Button>
       <div
         className="color-preview"
@@ -361,3 +373,4 @@ export function ColorEditor({
     </section>
   );
 }
+
