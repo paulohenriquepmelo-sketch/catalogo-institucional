@@ -1964,4 +1964,14 @@
   color: var(--footer-ink, #fff);
 }
 
+/* Keep the editor-selected novelty heading color above legacy carousel rules. */
+.public-catalog section.new-products-showcase :is(
+  .product-showcase-heading,
+  .product-showcase-heading h2,
+  .product-showcase-heading p,
+  .product-showcase-heading .eyebrow
+) {
+  color: var(--new-section-text, #fff) !important;
+}
+
 
