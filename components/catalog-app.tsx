@@ -235,17 +235,6 @@ export function CatalogApp({
   ) : (
     <span className="brand-mark">{config.name.charAt(0)}</span>
   );
-  const footerLogo = config.logo ? (
-    logoMark
-  ) : (
-    <>
-      {logoMark}
-      <span>
-        {config.name}
-        <small>CATÁLOGO</small>
-      </span>
-    </>
-  );
   function renderBlock(block: Block) {
     if (block.type === 'banners')
       return (
@@ -509,14 +498,45 @@ export function CatalogApp({
       ) : (
         visibleBlocks.map(renderBlock)
       )}
-      <footer>
-        <a href="#inicio" className="brand-lockup">
-          {footerLogo}
-        </a>
-        <p>{config.footer}</p>
-        <span>
-          © {new Date().getFullYear()} {config.name}
-        </span>
+      <footer className="site-footer">
+        <div className="footer-main">
+          <div className="footer-brand">
+            <a
+              href="#inicio"
+              className="footer-logo-card"
+              aria-label={`${config.name} — início`}
+            >
+              <span className="footer-logo-crop">
+                <img
+                  src={config.logo || '/distribuidora-laurencini-logo.jpeg'}
+                  alt={config.name}
+                />
+              </span>
+            </a>
+            <p>{config.footer}</p>
+          </div>
+          <div className="footer-navigation">
+            <strong>Navegue</strong>
+            <a href="#catalogo">Catálogo de produtos</a>
+            {has('segments') && <a href="#segmentos">Segmentos atendidos</a>}
+            {has('brands') && <a href="#marcas">Marcas parceiras</a>}
+          </div>
+          <div className="footer-commercial">
+            <span>PARCERIA COMERCIAL</span>
+            <h2>O mix certo para movimentar o seu negócio.</h2>
+            <p>
+              Explore produtos, marcas e embalagens para planejar suas próximas
+              compras.
+            </p>
+            <a href="#catalogo">Explorar catálogo</a>
+          </div>
+        </div>
+        <div className="footer-bottom">
+          <span>
+            © {new Date().getFullYear()} {config.name}
+          </span>
+          <span>Distribuição • Variedade • Relacionamento</span>
+        </div>
       </footer>
       <Dialog open={searchOpen} onOpenChange={setSearchOpen}>
         <DialogContent className="catalog-search-dialog" style={style}>

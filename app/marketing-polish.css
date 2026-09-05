@@ -1353,27 +1353,162 @@
 
 .public-catalog footer {
   position: relative;
+  display: block;
+  padding: 0;
   border-top: 5px solid var(--laurencini-red);
   color: #fff;
   background:
-    radial-gradient(circle at 10% 0%, rgb(255 255 255 / 9%), transparent 26%),
+    radial-gradient(circle at 8% 0%, rgb(255 255 255 / 10%), transparent 27%),
+    radial-gradient(circle at 92% 100%, rgb(68 101 182 / 36%), transparent 32%),
     #172f6f;
 }
 
-.public-catalog footer .brand-lockup {
-  min-width: 240px;
-  padding: 7px 12px;
-  border-radius: 10px;
+.public-catalog .footer-main {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: clamp(56px, 7vw, 92px) clamp(24px, 6vw, 82px) clamp(42px, 5vw, 66px);
+  display: grid;
+  grid-template-columns: minmax(280px, 1.2fr) minmax(170px, 0.56fr) minmax(300px, 1fr);
+  align-items: start;
+  gap: clamp(42px, 6vw, 88px);
+}
+
+.public-catalog .footer-brand {
+  display: grid;
+  gap: 24px;
+}
+
+.public-catalog .footer-brand > a {
+  display: block;
+  width: min(390px, 100%);
+}
+
+.public-catalog .footer-logo-card {
+  padding: 12px 18px;
+  border: 1px solid rgb(255 255 255 / 50%);
+  border-radius: 14px;
   background: #fff;
+  box-shadow: 0 18px 44px rgb(6 19 53 / 24%);
 }
 
-.public-catalog footer .company-logo-frame {
-  width: min(290px, 36vw);
-  height: 64px;
+.public-catalog .footer-logo-crop {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 68px;
+  overflow: hidden;
 }
 
-.public-catalog footer :is(p, span) {
+.public-catalog .footer-logo-crop img {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: auto;
+  transform: translateY(-50%);
+}
+
+.public-catalog .footer-brand p {
+  max-width: 48ch;
+  margin: 0;
   color: rgb(255 255 255 / 82%);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.public-catalog .footer-navigation {
+  display: grid;
+  align-content: start;
+  gap: 13px;
+}
+
+.public-catalog .footer-navigation strong {
+  margin-bottom: 7px;
+  color: #fff;
+  font-family: var(--font-manrope);
+  font-size: 13px;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.public-catalog .footer-navigation a {
+  width: fit-content;
+  color: rgb(255 255 255 / 74%);
+  font-size: 14px;
+  text-decoration: none;
+  transition: color 160ms ease, transform 160ms ease;
+}
+
+.public-catalog .footer-navigation a:hover {
+  color: #fff;
+  transform: translateX(3px);
+}
+
+.public-catalog .footer-commercial {
+  padding: 28px;
+  border: 1px solid rgb(255 255 255 / 18%);
+  border-radius: 16px;
+  background: rgb(255 255 255 / 8%);
+  box-shadow: 0 18px 48px rgb(6 19 53 / 18%);
+  backdrop-filter: blur(10px);
+}
+
+.public-catalog .footer-commercial > span {
+  color: #ff6a68;
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: 0.13em;
+}
+
+.public-catalog .footer-commercial h2 {
+  max-width: 19ch;
+  margin: 12px 0 11px;
+  color: #fff;
+  font-size: clamp(23px, 2vw, 31px);
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+}
+
+.public-catalog .footer-commercial p {
+  margin: 0 0 22px;
+  color: rgb(255 255 255 / 76%);
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.public-catalog .footer-commercial > a {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  padding: 0 18px;
+  border-radius: 8px;
+  color: #fff;
+  background: var(--laurencini-red);
+  font-size: 13px;
+  font-weight: 800;
+  text-decoration: none;
+  box-shadow: 0 10px 24px rgb(12 22 51 / 22%);
+}
+
+.public-catalog .footer-commercial > a:hover {
+  background: #ff4a48;
+}
+
+.public-catalog .footer-bottom {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 22px clamp(24px, 6vw, 82px) 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  border-top: 1px solid rgb(255 255 255 / 14%);
+}
+
+.public-catalog .footer-bottom span {
+  color: rgb(255 255 255 / 66%);
+  font-size: 11px;
+  letter-spacing: 0.04em;
 }
 
 .product-dialog,
@@ -1417,9 +1552,16 @@
     background: #fff;
   }
 
-  .public-catalog footer .company-logo-frame {
-    width: min(260px, 72vw);
-    height: 58px;
+  .public-catalog .footer-main {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .public-catalog .footer-brand {
+    grid-column: 1 / -1;
+  }
+
+  .public-catalog .footer-brand > a {
+    width: min(340px, 78vw);
   }
 }
 
@@ -1427,6 +1569,29 @@
   .public-catalog .company-logo-frame {
     width: 150px;
     height: 42px;
+  }
+
+  .public-catalog .footer-main {
+    padding: 48px 20px 36px;
+    grid-template-columns: 1fr;
+    gap: 34px;
+  }
+
+  .public-catalog .footer-brand,
+  .public-catalog .footer-navigation,
+  .public-catalog .footer-commercial {
+    grid-column: 1;
+  }
+
+  .public-catalog .footer-commercial {
+    padding: 24px 20px;
+  }
+
+  .public-catalog .footer-bottom {
+    padding: 20px;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 7px;
   }
 }
 
