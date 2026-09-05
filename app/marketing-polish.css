@@ -1327,27 +1327,31 @@
 
 .public-catalog .footer-logo-card {
   display: grid;
-  min-height: 68px;
+  min-height: 74px;
   place-items: center;
-  padding: 5px 12px;
+  padding: 3px 12px;
   overflow: hidden;
 }
 
 .public-catalog .footer-logo-crop {
   width: 100%;
-  height: 58px;
+  height: 68px;
 }
 
 .public-catalog .footer-logo-crop img {
   top: 50%;
   left: 50%;
-  width: 106%;
+  width: 100%;
+  max-width: none;
   transform: translate(-50%, -50%);
 }
 
 /* Full-screen catalog opened by “Mostrar mais produtos”. */
 .all-products-dialog {
-  inset: 0 !important;
+  top: 0 !important;
+  right: auto !important;
+  bottom: auto !important;
+  left: 0 !important;
   display: flex !important;
   width: 100vw !important;
   max-width: none !important;
@@ -1355,6 +1359,7 @@
   max-height: none !important;
   padding: 0 !important;
   transform: none !important;
+  translate: none !important;
   flex-direction: column;
   gap: 0 !important;
   overflow: hidden;
@@ -2290,6 +2295,49 @@
   .public-catalog .catalog-loading > p {
     animation: none;
   }
+}
+
+/* Final footer-logo crop: keep the complete official artwork visible. */
+.public-catalog footer .footer-brand > a {
+  width: min(360px, 100%);
+}
+
+.public-catalog footer .footer-logo-card {
+  display: grid;
+  min-height: 74px;
+  padding: 3px 12px;
+  place-items: center;
+  overflow: hidden;
+}
+
+.public-catalog footer .footer-logo-crop {
+  width: 100%;
+  height: 68px;
+}
+
+.public-catalog footer .footer-logo-crop img {
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  max-width: none;
+  transform: translate(-50%, -50%);
+}
+
+/* Final viewport positioning: neutralize Tailwind's translate longhand. */
+[data-slot='dialog-content'].all-products-dialog {
+  position: fixed !important;
+  top: 0 !important;
+  right: auto !important;
+  bottom: auto !important;
+  left: 0 !important;
+  width: 100vw !important;
+  max-width: none !important;
+  height: 100dvh !important;
+  max-height: none !important;
+  margin: 0 !important;
+  transform: none !important;
+  translate: none !important;
+  border-radius: 0 !important;
 }
 
 
