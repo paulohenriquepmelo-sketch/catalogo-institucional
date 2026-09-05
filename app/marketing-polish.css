@@ -1974,4 +1974,87 @@
   color: var(--new-section-text, #fff) !important;
 }
 
+/* Compact footer with a clean white/red transition from the catalog. */
+.public-catalog footer {
+  border-top: 0;
+}
+
+.public-catalog footer::before {
+  content: '';
+  display: block;
+  height: 28px;
+  background: linear-gradient(
+    to bottom,
+    #fff 0,
+    #fff 23px,
+    var(--laurencini-red, #ef312f) 23px,
+    var(--laurencini-red, #ef312f) 28px
+  );
+}
+
+.public-catalog .footer-main {
+  padding: clamp(34px, 4vw, 48px) clamp(24px, 6vw, 82px) clamp(24px, 3vw, 34px);
+  gap: clamp(28px, 4vw, 54px);
+}
+
+.public-catalog .footer-brand {
+  gap: 16px;
+}
+
+.public-catalog .footer-logo-card {
+  padding: 8px 14px;
+}
+
+.public-catalog .footer-logo-crop {
+  height: 54px;
+}
+
+.public-catalog .footer-brand p {
+  line-height: 1.55;
+}
+
+.public-catalog .footer-commercial {
+  padding: 20px 22px;
+}
+
+.public-catalog .footer-commercial h2 {
+  margin: 9px 0 8px;
+  font-size: clamp(21px, 1.8vw, 27px);
+}
+
+.public-catalog .footer-commercial p {
+  margin-bottom: 16px;
+}
+
+.public-catalog .footer-bottom {
+  padding-top: 14px;
+  padding-bottom: 18px;
+}
+
+@media (max-width: 600px) {
+  .public-catalog footer::before {
+    height: 22px;
+    background: linear-gradient(
+      to bottom,
+      #fff 0,
+      #fff 18px,
+      var(--laurencini-red, #ef312f) 18px,
+      var(--laurencini-red, #ef312f) 22px
+    );
+  }
+
+  .public-catalog .footer-main {
+    padding: 32px 20px 24px;
+    gap: 25px;
+  }
+
+  .public-catalog .footer-commercial {
+    padding: 20px;
+  }
+
+  .public-catalog .footer-bottom {
+    padding: 14px 20px 18px;
+  }
+}
+
 

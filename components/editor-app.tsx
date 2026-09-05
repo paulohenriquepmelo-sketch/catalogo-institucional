@@ -416,8 +416,7 @@ export function EditorApp({ userName }: { userName: string }) {
               disabled={
                 busy ||
                 uploads > 0 ||
-                productDirty ||
-                (!configDirty && !publicationDirty)
+                productDirty
               }
               onClick={() => void savePage()}
             >
@@ -860,9 +859,7 @@ export function EditorApp({ userName }: { userName: string }) {
                 Desfazer
               </Button>
               <Button
-                disabled={
-                  busy || uploads > 0 || (!configDirty && !publicationDirty)
-                }
+                disabled={busy || uploads > 0 || productDirty}
                 onClick={() => void savePage()}
               >
                 <Save /> Publicar alterações no site público
