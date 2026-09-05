@@ -76,6 +76,8 @@ export function CatalogApp({
   const [selected, setSelected] = useState<Product | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
+  const [allProductsOpen, setAllProductsOpen] = useState(false);
+  const [allProductsLimit, setAllProductsLimit] = useState(48);
   const [menuOpen, setMenuOpen] = useState(false);
   const [limit, setLimit] = useState(12);
   const [loading, setLoading] = useState(true);
@@ -351,7 +353,10 @@ export function CatalogApp({
               <div className="load-more">
                 <Button
                   variant="outline"
-                  onClick={() => setLimit((n) => n + 12)}
+                  onClick={() => {
+                    setAllProductsLimit(48);
+                    setAllProductsOpen(true);
+                  }}
                 >
                   Mostrar mais produtos ({filtered.length - limit})
                 </Button>
@@ -574,6 +579,41 @@ export function CatalogApp({
             <p className="catalog-search-empty">
               Nenhum produto corresponde à pesquisa. Tente outro nome ou código.
             </p>
+          )}
+        </DialogContent>
+      </Dialog>
+      <Dialog open={allProductsOpen} onOpenChange={setAllProductsOpen}>
+        <DialogContent className="all-products-dialog" style={style}>
+          <DialogHeader className="all-products-heading">
+            <span className="eyebrow">Catálogo completo</span>
+            <DialogTitle>Todos os produtos encontrados</DialogTitle>
+            <DialogDescription>
+              {filtered.length}{' '}
+              {filtered.length === 1
+                ? 'produto disponível com os filtros atuais.'
+                : 'produtos disponíveis com os filtros atuais.'}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="all-products-results product-grid">
+            {filtered.slice(0, allProductsLimit).map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                onOpen={(next) => {
+                  setAllProductsOpen(false);
+                  setSelected(next);
+                }}
+              />
+            ))}
+          </div>
+          {filtered.length > allProductsLimit && (
+            <div className="all-products-more">
+              <Button
+                onClick={() => setAllProductsLimit((current) => current + 48)}
+              >
+                Mostrar mais ({filtered.length - allProductsLimit})
+              </Button>
+            </div>
           )}
         </DialogContent>
       </Dialog>

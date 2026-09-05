@@ -1320,6 +1320,173 @@
   }
 }
 
+/* Footer logo: tighter crop and balanced alignment inside its white card. */
+.public-catalog .footer-brand > a {
+  width: min(360px, 100%);
+}
+
+.public-catalog .footer-logo-card {
+  display: grid;
+  min-height: 68px;
+  place-items: center;
+  padding: 5px 12px;
+  overflow: hidden;
+}
+
+.public-catalog .footer-logo-crop {
+  width: 100%;
+  height: 58px;
+}
+
+.public-catalog .footer-logo-crop img {
+  top: 50%;
+  left: 50%;
+  width: 106%;
+  transform: translate(-50%, -50%);
+}
+
+/* Full-screen catalog opened by “Mostrar mais produtos”. */
+.all-products-dialog {
+  inset: 0 !important;
+  display: flex !important;
+  width: 100vw !important;
+  max-width: none !important;
+  height: 100dvh !important;
+  max-height: none !important;
+  padding: 0 !important;
+  transform: none !important;
+  flex-direction: column;
+  gap: 0 !important;
+  overflow: hidden;
+  border: 0 !important;
+  border-radius: 0 !important;
+  color: #17284f !important;
+  background: #f4f7fc !important;
+}
+
+.all-products-dialog .all-products-heading {
+  position: relative;
+  z-index: 2;
+  flex: none;
+  padding: 24px clamp(24px, 5vw, 76px) 20px;
+  border-bottom: 4px solid #ef312f;
+  background: #fff;
+  box-shadow: 0 8px 26px rgb(24 48 102 / 9%);
+}
+
+.all-products-dialog .all-products-heading .eyebrow {
+  color: #ef312f;
+}
+
+.all-products-dialog .all-products-heading [data-slot='dialog-title'] {
+  color: #203770 !important;
+  font-size: clamp(26px, 3vw, 42px);
+  line-height: 1.05;
+}
+
+.all-products-dialog .all-products-heading [data-slot='dialog-description'] {
+  color: #65738e !important;
+}
+
+.all-products-dialog > [data-slot='dialog-close'] {
+  position: fixed;
+  z-index: 4;
+  top: 24px !important;
+  right: clamp(20px, 3vw, 42px) !important;
+  width: 42px;
+  height: 42px;
+  border: 1px solid #cdd7e8;
+  border-radius: 999px;
+  color: #203770;
+  background: #fff;
+  box-shadow: 0 7px 22px rgb(31 55 111 / 14%);
+}
+
+.all-products-dialog .all-products-results {
+  width: 100%;
+  max-width: none;
+  min-height: 0;
+  margin: 0;
+  padding: 28px clamp(22px, 5vw, 76px) 94px;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 210px), 1fr));
+  align-content: start;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.all-products-dialog .product-card {
+  overflow: hidden;
+  border: 1px solid #d6deec;
+  border-radius: 14px;
+  color: #17284f;
+  background: #fff;
+  box-shadow: 0 8px 24px rgb(25 48 101 / 7%);
+}
+
+.all-products-dialog .product-card:hover {
+  border-color: #ef312f;
+  box-shadow: 0 16px 36px rgb(25 48 101 / 14%);
+}
+
+.all-products-dialog .product-card .product-image-wrap,
+.all-products-dialog .product-card.without-photo .product-image-wrap {
+  height: clamp(150px, var(--product-photo-height, 210px), 300px);
+  background: #fff;
+}
+
+.all-products-dialog .product-card .product-image {
+  object-fit: var(--product-photo-fit, contain) !important;
+}
+
+.all-products-dialog .product-card-body {
+  border-top: 1px solid #e4e9f2;
+  background: #f8fafe;
+}
+
+.all-products-dialog .product-brand {
+  color: #ef312f !important;
+}
+
+.all-products-dialog .all-products-more {
+  position: absolute;
+  z-index: 3;
+  right: 24px;
+  bottom: 20px;
+}
+
+.all-products-dialog .all-products-more button {
+  border-color: #263f85;
+  color: #fff;
+  background: #263f85;
+  box-shadow: 0 10px 28px rgb(24 48 102 / 22%);
+}
+
+.all-products-dialog .all-products-more button:hover {
+  border-color: #ef312f;
+  background: #ef312f;
+}
+
+@media (max-width: 600px) {
+  .public-catalog .footer-brand > a {
+    width: min(330px, 100%);
+  }
+
+  .all-products-dialog .all-products-heading {
+    padding: 22px 68px 17px 18px;
+  }
+
+  .all-products-dialog .all-products-results {
+    padding: 20px 16px 78px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .all-products-dialog .all-products-more {
+    right: 16px;
+    bottom: 14px;
+  }
+}
+
 /* Distribuidora Laurencini — commercial identity for the public catalog. */
 .public-catalog {
   --laurencini-blue: #263f85;
