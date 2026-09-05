@@ -60,7 +60,7 @@ export function ProductDetailsDialog({
                 <p className="segment-label">Segmento: {selected.segment}</p>
                 <ul className="spec-list">
                   {selected.specs.map((s, i) => (
-                    <li key={i}>{s}</li>
+                    <li key={`${selected.id}-${i}-${s}`}>{s}</li>
                   ))}
                 </ul>
                 <dl className="product-specifications">
@@ -110,4 +110,5 @@ export function ProductDetailsDialog({
     </Dialog>
   );
 }
+
 

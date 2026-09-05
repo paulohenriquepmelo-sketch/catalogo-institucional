@@ -79,7 +79,7 @@ export function CatalogBanners({
             setFocused(false);
         }}
       >
-        <CarouselContent>
+        <CarouselContent className="banner-track">
           {banners.map((b, i) => (
             <CarouselItem
               key={b.id}
@@ -138,3 +138,4 @@ export function CatalogBanners({
     </section>
   );
 }
+

@@ -1120,22 +1120,6 @@
   }
 }
 
-/* Keep the commercial showcase on-brand after all legacy theme rules. */
-.public-catalog .offers-showcase {
-  color: #fff;
-  background:
-    radial-gradient(circle at 90% 10%, rgb(255 255 255 / 10%), transparent 25%),
-    linear-gradient(135deg, #172f6f, #294890);
-}
-
-.public-catalog .offers-showcase :is(.product-showcase-heading h2, .product-showcase-heading .eyebrow) {
-  color: #fff;
-}
-
-.public-catalog .offers-showcase .product-showcase-heading .eyebrow {
-  color: #ff7775;
-}
-
 /* Final Laurencini alignment: banners, carousels and section rhythm. */
 .public-catalog {
   width: 100%;
@@ -1261,21 +1245,6 @@
   border-color: #aebbd3 !important;
   background: #aebbd3 !important;
   opacity: 0.58;
-}
-
-.public-catalog .offers-showcase {
-  color: #fff;
-  background:
-    radial-gradient(circle at 90% 10%, rgb(255 255 255 / 10%), transparent 25%),
-    linear-gradient(135deg, #172f6f, #294890);
-}
-
-.public-catalog .offers-showcase :is(.product-showcase-heading h2, .product-showcase-heading .eyebrow) {
-  color: #fff;
-}
-
-.public-catalog .offers-showcase .product-showcase-heading .eyebrow {
-  color: #ff7775;
 }
 
 .public-catalog .new-products-showcase {
@@ -1818,20 +1787,181 @@
   }
 }
 
-/* Last word: branded offer canvas must override the generic showcase surface. */
+/* Definitive Laurencini system for every public card and dialog. */
 .public-catalog .offers-showcase {
-  color: #fff;
+  color: var(--offer-section-text, #fff);
   background:
     radial-gradient(circle at 90% 10%, rgb(255 255 255 / 10%), transparent 25%),
-    linear-gradient(135deg, #172f6f, #294890);
+    var(--offer-section-background, #172f6f);
 }
 
 .public-catalog .offers-showcase :is(.product-showcase-heading h2, .product-showcase-heading .eyebrow) {
-  color: #fff;
+  color: var(--offer-section-text, #fff);
 }
 
 .public-catalog .offers-showcase .product-showcase-heading .eyebrow {
-  color: #ff7775;
+  color: color-mix(in srgb, var(--offer-section-text, #fff) 72%, #ef312f);
+}
+
+.public-catalog .new-products-showcase {
+  color: var(--new-section-text, #203770);
+  background:
+    linear-gradient(120deg, rgb(38 63 133 / 5%), transparent 42%),
+    var(--new-section-background, #f5f7fb);
+}
+
+.public-catalog .segments-section {
+  color: var(--segment-section-text, #fff);
+  background:
+    radial-gradient(circle at 94% 8%, rgb(255 255 255 / 9%), transparent 26%),
+    var(--segment-section-background, #203976);
+}
+
+.public-catalog .segments-section :is(h2, .eyebrow, p, strong, small) {
+  color: var(--segment-section-text, #fff);
+}
+
+.public-catalog .brands-section {
+  color: var(--brand-section-text, #203770);
+  background:
+    linear-gradient(120deg, rgb(38 63 133 / 4%), transparent 44%),
+    var(--brand-section-background, #f7f9fd);
+}
+
+.public-catalog .brands-section > :is(h2, .eyebrow, p) {
+  color: var(--brand-section-text, #203770);
+}
+
+:is(.public-catalog, .all-brands-dialog) .brand-row button {
+  color: var(--brand-card-text, #203770) !important;
+  background: var(--brand-card-background, #fff) !important;
+  border-color: color-mix(in srgb, var(--brand-card-text, #203770) 18%, transparent) !important;
+}
+
+:is(.public-catalog, .all-brands-dialog)
+  .brand-row
+  button
+  :is(strong, small, .brand-featured-label) {
+  color: var(--brand-card-text, #203770) !important;
+}
+
+:is(.public-catalog, .all-brands-dialog) .brand-row button:hover {
+  border-color: #ef312f !important;
+  box-shadow: 0 16px 36px rgb(31 55 111 / 14%);
+}
+
+:is(.public-catalog, .product-dialog, .brand-products-dialog, .catalog-search-dialog)
+  .product-card {
+  overflow: hidden;
+  border: 1px solid #d6deec;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgb(25 48 101 / 7%);
+}
+
+:is(.public-catalog, .product-dialog, .brand-products-dialog, .catalog-search-dialog)
+  .product-card:hover {
+  border-color: #ef312f;
+  box-shadow: 0 16px 36px rgb(25 48 101 / 14%);
+}
+
+:is(.public-catalog, .product-dialog, .brand-products-dialog, .catalog-search-dialog)
+  .product-card
+  .product-image-wrap,
+:is(.public-catalog, .product-dialog, .brand-products-dialog, .catalog-search-dialog)
+  .product-card.without-photo
+  .product-image-wrap {
+  height: clamp(100px, var(--product-photo-height, 210px), 360px);
+  background: #fff;
+}
+
+:is(.public-catalog, .product-dialog, .brand-products-dialog, .catalog-search-dialog)
+  .product-card
+  .product-image {
+  object-fit: var(--product-photo-fit, contain) !important;
+}
+
+:is(.public-catalog, .product-dialog, .brand-products-dialog, .catalog-search-dialog)
+  .product-card-body {
+  border-top: 1px solid #e4e9f2;
+  color: #17284f;
+  background: #f8fafe;
+}
+
+:is(.public-catalog, .product-dialog, .brand-products-dialog, .catalog-search-dialog)
+  .product-brand {
+  color: #ef312f !important;
+}
+
+.public-catalog .offer-card,
+.public-catalog .new-product-card {
+  border-color: rgb(255 255 255 / 24%);
+  border-radius: 14px;
+  box-shadow: 0 14px 34px rgb(12 29 69 / 16%);
+}
+
+.public-catalog .banner-track {
+  margin-left: 0 !important;
+}
+
+.public-catalog .banner-track > [data-slot='carousel-item'] {
+  padding-left: 0 !important;
+}
+
+:is(.product-dialog, .catalog-search-dialog, .brand-products-dialog, .all-brands-dialog) {
+  border: 1px solid #cdd7e8 !important;
+  border-radius: 18px !important;
+  color: #17284f !important;
+  background: #f8fafe !important;
+  box-shadow: 0 30px 90px rgb(16 35 79 / 28%) !important;
+}
+
+:is(.product-dialog, .catalog-search-dialog, .brand-products-dialog, .all-brands-dialog)
+  [data-slot='dialog-title'] {
+  color: #203770 !important;
+}
+
+:is(.product-dialog, .catalog-search-dialog, .brand-products-dialog, .all-brands-dialog)
+  [data-slot='dialog-description'] {
+  color: #65738e !important;
+}
+
+:is(.product-dialog, .catalog-search-dialog, .brand-products-dialog, .all-brands-dialog)
+  [data-slot='dialog-close'] {
+  border: 1px solid #cdd7e8;
+  border-radius: 999px;
+  color: #203770;
+  background: #fff;
+  box-shadow: 0 5px 16px rgb(31 55 112 / 12%);
+}
+
+.catalog-search-dialog {
+  flex-direction: column !important;
+}
+
+.product-dialog .dialog-product-media > img {
+  width: 100%;
+  height: clamp(320px, calc(var(--product-photo-height, 210px) * 2.75), 680px);
+  max-height: min(72dvh, 680px);
+  object-fit: var(--product-photo-fit, contain) !important;
+}
+
+.product-dialog .similar-block {
+  padding-top: clamp(30px, 4vw, 52px);
+  border-top: 1px solid #dce3f0;
+  background: #f4f7fc;
+}
+
+.public-catalog footer {
+  color: var(--footer-ink, #fff);
+  background:
+    radial-gradient(circle at 8% 0%, rgb(255 255 255 / 10%), transparent 27%),
+    radial-gradient(circle at 92% 100%, rgb(68 101 182 / 36%), transparent 32%),
+    var(--footer-background, #172f6f);
+}
+
+.public-catalog footer :is(.footer-navigation strong, .footer-commercial h2) {
+  color: var(--footer-ink, #fff);
 }
 
 

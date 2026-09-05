@@ -5548,3 +5548,138 @@ a:focus-visible {
   }
 }
 
+/* Definitive Laurencini system for every editor card and popup. */
+.editor-shell :is(
+  .settings-card,
+  .color-group,
+  .color-setting,
+  .ai-segment-card,
+  .offer-editor,
+  .import-setup,
+  .import-preview,
+  .layout-editor > section
+) {
+  border-color: #d4ddec;
+  border-radius: 14px;
+  color: #17284f;
+  background: #fff;
+  box-shadow: 0 8px 26px rgb(30 54 108 / 7%);
+}
+
+.editor-shell :is(.settings-card, .color-group, .offer-editor, .import-preview) {
+  position: relative;
+  overflow: hidden;
+}
+
+.editor-shell :is(.settings-card, .color-group, .offer-editor, .import-preview)::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  background: linear-gradient(90deg, #263f85 0 78%, #ef312f 78% 100%);
+}
+
+.editor-shell :is(.settings-card, .color-group, .color-setting, .ai-segment-card)
+  :is(h2, h3, strong, label) {
+  color: #203770;
+}
+
+.editor-shell :is(.settings-card, .color-group, .color-setting, .ai-segment-card)
+  :is(p, small, span) {
+  color: #65738e;
+}
+
+.editor-shell .color-setting {
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.editor-shell .color-setting:focus-within {
+  border-color: #263f85;
+  box-shadow: 0 0 0 3px rgb(38 63 133 / 11%);
+}
+
+.editor-shell .campaign-theme-grid > button {
+  padding: 0 !important;
+  overflow: hidden;
+  border: 1px solid #d4ddec !important;
+  border-radius: 12px;
+  color: #203770 !important;
+  background: #fff !important;
+  box-shadow: 0 7px 20px rgb(30 54 108 / 7%);
+}
+
+.editor-shell .campaign-theme-grid > button:hover {
+  border-color: #263f85 !important;
+  color: #203770 !important;
+  background: #f4f7fc !important;
+}
+
+.editor-shell .campaign-theme-grid > button.selected {
+  border: 2px solid #ef312f !important;
+  color: #203770 !important;
+  background: #fff !important;
+  box-shadow: 0 0 0 3px rgb(239 49 47 / 13%);
+}
+
+.editor-shell .campaign-theme-grid > button:focus-visible {
+  outline: 3px solid rgb(38 63 133 / 20%);
+  outline-offset: 3px;
+}
+
+.editor-shell .campaign-theme-grid > button span {
+  color: #203770 !important;
+  background: #fff;
+}
+
+.editor-shell button:not([data-slot='switch']):not([role='switch']):disabled {
+  border-color: #263f85 !important;
+  color: #fff !important;
+  background: #263f85 !important;
+  opacity: 0.42;
+}
+
+.logo-picker-dialog {
+  border: 1px solid #cdd7e8 !important;
+  border-radius: 18px !important;
+  color: #17284f !important;
+  background: #f8fafe !important;
+  box-shadow: 0 30px 90px rgb(16 35 79 / 28%) !important;
+}
+
+.logo-picker-dialog [data-slot='dialog-title'] {
+  color: #203770 !important;
+}
+
+.logo-picker-dialog [data-slot='dialog-description'],
+.logo-picker-dialog .logo-picker-status,
+.logo-picker-dialog .logo-picker-paste > p {
+  color: #65738e !important;
+}
+
+.logo-picker-dialog :is(.logo-picker-results article, .logo-picker-paste) {
+  border-color: #d4ddec;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 7px 20px rgb(30 54 108 / 7%);
+}
+
+.logo-picker-dialog .logo-picker-results article:hover {
+  border-color: #ef312f;
+}
+
+.logo-picker-dialog .logo-picker-results article > button {
+  border-color: #263f85;
+  color: #fff;
+  background: #263f85;
+}
+
+.logo-picker-dialog .logo-picker-results article > button:hover {
+  border-color: #ef312f;
+  background: #ef312f;
+}
+
+.logo-picker-dialog :is(input, select, textarea):focus {
+  border-color: #263f85;
+  outline: 3px solid rgb(38 63 133 / 12%);
+}
+
