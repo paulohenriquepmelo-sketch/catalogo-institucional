@@ -8,6 +8,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from '@/components/ui/carousel';
 import { detailFields, type Product } from '@/lib/catalog-data';
 import { similarProducts } from '@/lib/catalog-discovery';
 import type { CSSProperties } from 'react';
@@ -95,11 +102,26 @@ export function ProductDetailsDialog({
               </span>
               <h3>Itens similares</h3>
               {similar.length ? (
-                <div className="similar-grid">
-                  {similar.map((p) => (
-                    <ProductCard key={p.id} product={p} onOpen={onSelect} />
-                  ))}
-                </div>
+                <Carousel
+                  className="similar-carousel"
+                  opts={{ align: 'start', slidesToScroll: 1 }}
+                  aria-label="Carrossel de itens similares"
+                >
+                  <CarouselContent className="similar-grid">
+                    {similar.map((p, index) => (
+                      <CarouselItem
+                        key={p.id}
+                        aria-label={`${index + 1} de ${similar.length}`}
+                      >
+                        <ProductCard product={p} onOpen={onSelect} />
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                  <div className="catalog-carousel-controls similar-carousel-controls">
+                    <CarouselPrevious aria-label="Voltar itens similares" />
+                    <CarouselNext aria-label="Avançar itens similares" />
+                  </div>
+                </Carousel>
               ) : (
                 <p>Ainda não há itens similares publicados.</p>
               )}
@@ -110,3 +132,4 @@ export function ProductDetailsDialog({
     </Dialog>
   );
 }
+
