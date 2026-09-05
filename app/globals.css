@@ -5683,3 +5683,71 @@ a:focus-visible {
   outline: 3px solid rgb(38 63 133 / 12%);
 }
 
+/* Match the editor loading screen to the branded public catalog loader. */
+.editor-shell .editor-catalog-loading {
+  min-height: clamp(420px, 64vh, 700px);
+  gap: 18px;
+  color: #203770;
+  background:
+    radial-gradient(circle at center, rgb(38 63 133 / 8%), transparent 34%),
+    #f7f9fd;
+}
+
+.editor-shell .editor-catalog-loading-logo {
+  display: grid;
+  min-width: min(340px, 74vw);
+  min-height: 92px;
+  place-items: center;
+  animation: editor-catalog-loading-pulse 1.65s ease-in-out infinite;
+}
+
+.editor-shell .editor-catalog-loading-logo .editor-company-logo-frame {
+  width: min(320px, 70vw);
+  height: 76px;
+  border: 1px solid #d6deec;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 14px 34px rgb(31 55 111 / 11%);
+}
+
+.editor-shell .editor-catalog-loading > p {
+  margin: 0;
+  color: #203770;
+  font-family: var(--font-manrope);
+  font-size: 15px;
+  font-weight: 750;
+  letter-spacing: 0.06em;
+  animation: editor-catalog-loading-copy 1.65s ease-in-out infinite;
+}
+
+@keyframes editor-catalog-loading-pulse {
+  0%,
+  100% {
+    opacity: 0.68;
+    transform: scale(0.975);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes editor-catalog-loading-copy {
+  0%,
+  100% {
+    opacity: 0.46;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .editor-shell .editor-catalog-loading-logo,
+  .editor-shell .editor-catalog-loading > p {
+    animation: none;
+  }
+}
+

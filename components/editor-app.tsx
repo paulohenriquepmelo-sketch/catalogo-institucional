@@ -433,8 +433,27 @@ export function EditorApp({ userName }: { userName: string }) {
           {message && <p className="success-message">{message}</p>}
         </div>
         {loading ? (
-          <div className="access-message">
-            <Loader2 className="animate-spin" /> Carregando o catálogo…
+          <div
+            className="access-message editor-catalog-loading"
+            role="status"
+            aria-live="polite"
+          >
+            <div className="editor-catalog-loading-logo" aria-hidden="true">
+              {savedConfig.logo ? (
+                <span className="editor-company-logo-frame">
+                  <img
+                    className="editor-site-logo"
+                    src={savedConfig.logo}
+                    alt=""
+                  />
+                </span>
+              ) : (
+                <span className="brand-mark">
+                  {savedConfig.name.charAt(0)}
+                </span>
+              )}
+            </div>
+            <p>Carregando o catálogo…</p>
           </div>
         ) : revision === 0 ? (
           <div className="access-message">
