@@ -4,6 +4,7 @@ import { env } from 'cloudflare:workers';
 import { getConfig, getPublishedConfig } from '@/lib/catalog-repository';
 import { defaultConfig } from '@/lib/catalog-config';
 import './globals.css';
+import './marketing-polish.css';
 
 const dmSans = DM_Sans({ variable: '--font-dm-sans', subsets: ['latin'] });
 const manrope = Manrope({ variable: '--font-manrope', subsets: ['latin'] });
