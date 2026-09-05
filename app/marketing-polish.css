@@ -541,9 +541,9 @@
 
 /* Product detail — redesigned as a balanced commercial product sheet. */
 .product-dialog {
-  width: min(1180px, calc(100vw - 48px)) !important;
-  max-width: 1180px !important;
-  max-height: min(92dvh, 900px) !important;
+  width: min(1360px, calc(100vw - 24px)) !important;
+  max-width: 1360px !important;
+  max-height: min(calc(100dvh - 20px), 960px) !important;
   padding: 0 !important;
   gap: 0 !important;
   overflow-y: auto;
@@ -578,16 +578,16 @@
 
 .product-dialog .dialog-product-top {
   display: grid;
-  grid-template-columns: minmax(0, 1.08fr) minmax(390px, 0.92fr) !important;
+  grid-template-columns: minmax(0, 1.12fr) minmax(410px, 0.88fr) !important;
   align-items: stretch !important;
-  min-height: 560px;
+  min-height: 600px;
 }
 
 .product-dialog .dialog-product-media {
   display: grid;
   place-items: center;
   width: 100%;
-  min-height: 560px !important;
+  min-height: 600px !important;
   align-self: stretch !important;
   padding: clamp(34px, 4vw, 64px) !important;
   overflow: hidden;
@@ -599,7 +599,7 @@
   width: 100%;
   height: auto;
   max-width: 100%;
-  max-height: min(68dvh, 620px);
+  max-height: min(72dvh, 680px);
   object-fit: contain !important;
   object-position: center center !important;
 }
@@ -833,22 +833,26 @@
 }
 
 .product-dialog .similar-grid .product-image-wrap {
-  display: grid;
+  position: relative;
+  display: block;
   width: 100%;
-  height: 136px !important;
-  min-height: 136px;
-  place-items: center;
-  padding: 18px;
+  height: 148px !important;
+  min-height: 148px;
+  padding: 0;
   overflow: hidden;
   background: #fff;
 }
 
 .product-dialog .similar-grid .product-image {
+  position: absolute !important;
+  inset: 14px !important;
   display: block;
-  width: 100% !important;
-  height: 100% !important;
-  max-width: 100% !important;
-  max-height: 100% !important;
+  width: calc(100% - 28px) !important;
+  height: calc(100% - 28px) !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  max-width: none !important;
+  max-height: none !important;
   padding: 0 !important;
   object-fit: contain !important;
   object-position: center center !important;
@@ -856,7 +860,7 @@
 }
 
 .product-dialog .similar-grid .product-card-body {
-  min-height: 126px;
+  min-height: 122px;
   padding: 10px 12px 12px;
 }
 
@@ -1111,8 +1115,8 @@
   }
 
   .product-dialog .similar-grid .product-image-wrap {
-    height: 132px !important;
-    min-height: 132px;
+    height: 144px !important;
+    min-height: 144px;
   }
 }
 
@@ -1123,4 +1127,5 @@
     transition-duration: 0.01ms !important;
   }
 }
+
 
