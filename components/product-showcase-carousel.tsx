@@ -2,7 +2,6 @@
 /* oxlint-disable next/no-img-element -- Product uploads are already optimized to WebP by the catalog pipeline. */
 import { useEffect, useMemo, useState } from 'react';
 import { ArrowRight, Clock3, Sparkles } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import {
   Carousel,
   CarouselContent,
@@ -134,10 +133,6 @@ export function ProductShowcaseCarousel({
             <span className="eyebrow">{settings.eyebrow}</span>
             <h2>{settings.title}</h2>
           </div>
-          <div className="showcase-controls">
-            <CarouselPrevious aria-label={`Voltar ${label}`} />
-            <CarouselNext aria-label={`Avançar ${label}`} />
-          </div>
         </div>
         <CarouselContent
           className={
@@ -189,7 +184,12 @@ export function ProductShowcaseCarousel({
             </CarouselItem>
           ))}
         </CarouselContent>
+        <div className="catalog-carousel-controls showcase-controls">
+          <CarouselPrevious aria-label={`Voltar ${label}`} />
+          <CarouselNext aria-label={`Avançar ${label}`} />
+        </div>
       </Carousel>
     </section>
   );
 }
+
