@@ -60,16 +60,17 @@ export function DiscoveryCarousel({
         <span>
           {count} {label} · Arraste ou use as setas
         </span>
-        <div className="discovery-carousel-controls">
-          <CarouselPrevious aria-label={`Voltar ${label}`} />
-          <CarouselNext aria-label={`Avançar ${label}`} />
-        </div>
       </div>
       <CarouselContent
         className={kind === 'segment' ? 'segment-grid' : 'brand-row'}
       >
         {children}
       </CarouselContent>
+      <div className="catalog-carousel-controls discovery-carousel-controls">
+        <CarouselPrevious aria-label={`Voltar ${label}`} />
+        <CarouselNext aria-label={`Avançar ${label}`} />
+      </div>
     </Carousel>
   );
 }
+
