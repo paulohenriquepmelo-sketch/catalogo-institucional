@@ -33,13 +33,15 @@ export function ProductDetailsDialog({
         {selected && (
           <>
             <div className="dialog-product-top">
-              {selected.image ? (
-                <img src={selected.image} alt={selected.name} />
-              ) : (
-                <div className="missing-image">
-                  <Package /> Imagem não cadastrada
-                </div>
-              )}
+              <div className="dialog-product-media">
+                {selected.image ? (
+                  <img src={selected.image} alt={selected.name} />
+                ) : (
+                  <div className="missing-image">
+                    <Package /> Imagem não cadastrada
+                  </div>
+                )}
+              </div>
               <div className="dialog-product-info">
                 <DialogHeader>
                   <span className="eyebrow">
