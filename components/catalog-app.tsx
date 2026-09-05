@@ -487,8 +487,15 @@ export function CatalogApp({
         </div>
       )}
       {loading ? (
-        <div className="access-message" role="status">
-          Carregando catálogo…
+        <div
+          className="access-message catalog-loading"
+          role="status"
+          aria-live="polite"
+        >
+          <div className="catalog-loading-logo" aria-hidden="true">
+            {logoMark}
+          </div>
+          <p>Carregando catálogo…</p>
         </div>
       ) : error ? (
         <div className="access-message">
