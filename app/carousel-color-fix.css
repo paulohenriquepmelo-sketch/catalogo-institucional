@@ -1,31 +1,72 @@
 /*
  * Carousel color fix — Distribuidora Laurencini
- * Loaded after marketing-polish.css to prevent legacy/theme rules from
- * leaking incorrect colors into carousel navigation and dark/light sections.
+ * Loaded after marketing-polish.css.
+ * Keep each carousel control family independent so a full-width control rail
+ * never receives the visual treatment meant for compact navigation pills.
  */
 
-/* Shared navigation shell: always readable, independent of section color. */
+/* --------------------------------------------------------------------------
+ * BANNER CAROUSEL
+ * .banner-controls is intentionally a full-width absolute rail. Do not paint
+ * the rail itself; only style the counter chip and the two arrow buttons.
+ * -------------------------------------------------------------------------- */
+.public-catalog .banner-controls {
+  border: 0 !important;
+  color: #263f85 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+.public-catalog .banner-controls > span {
+  border: 1px solid #d1daea !important;
+  color: #263f85 !important;
+  background: rgb(255 255 255 / 92%) !important;
+  box-shadow: 0 8px 22px rgb(18 39 88 / 12%);
+  backdrop-filter: blur(10px);
+}
+
+.public-catalog .banner-controls button {
+  border: 1px solid #263f85 !important;
+  color: #ffffff !important;
+  background: #263f85 !important;
+  box-shadow: 0 7px 16px rgb(38 63 133 / 18%) !important;
+}
+
+.public-catalog .banner-controls button:hover:not(:disabled) {
+  border-color: #ef312f !important;
+  color: #ffffff !important;
+  background: #ef312f !important;
+}
+
+.public-catalog .banner-controls button:disabled {
+  border-color: #aebbd3 !important;
+  color: #ffffff !important;
+  background: #aebbd3 !important;
+  opacity: 0.58 !important;
+}
+
+/* --------------------------------------------------------------------------
+ * COMPACT CAROUSEL NAVIGATION
+ * Products, brands, segments and related-item carousels use a compact pill.
+ * -------------------------------------------------------------------------- */
 .public-catalog :is(
   .catalog-carousel-controls,
-  .campaign-controls,
-  .banner-controls,
   .showcase-controls,
   .discovery-carousel-controls
 ),
 .product-dialog .catalog-carousel-controls,
 .brand-products-dialog .catalog-carousel-controls {
+  width: max-content !important;
   border: 1px solid #d1daea !important;
   color: #263f85 !important;
   background: rgb(255 255 255 / 96%) !important;
-  box-shadow: 0 10px 28px rgb(18 39 88 / 16%) !important;
+  box-shadow: 0 10px 28px rgb(18 39 88 / 14%) !important;
   backdrop-filter: blur(12px);
 }
 
-/* Arrow buttons: never inherit white/section colors from dark carousels. */
 .public-catalog :is(
   .catalog-carousel-controls,
-  .campaign-controls,
-  .banner-controls,
   .showcase-controls,
   .discovery-carousel-controls
 ) button,
@@ -39,8 +80,6 @@
 
 .public-catalog :is(
   .catalog-carousel-controls,
-  .campaign-controls,
-  .banner-controls,
   .showcase-controls,
   .discovery-carousel-controls
 ) button:hover:not(:disabled),
@@ -53,8 +92,6 @@
 
 .public-catalog :is(
   .catalog-carousel-controls,
-  .campaign-controls,
-  .banner-controls,
   .showcase-controls,
   .discovery-carousel-controls
 ) button:disabled,
@@ -66,7 +103,38 @@
   opacity: 0.58 !important;
 }
 
-/* Dark sections: headings/toolbars stay white while controls remain white/blue. */
+/* Campaign controls may also span their artwork. Keep their rail transparent. */
+.public-catalog .campaign-controls {
+  border: 0 !important;
+  color: #263f85 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+.public-catalog .campaign-controls > span {
+  border: 1px solid #d1daea !important;
+  color: #263f85 !important;
+  background: rgb(255 255 255 / 92%) !important;
+  box-shadow: 0 8px 22px rgb(18 39 88 / 12%);
+  backdrop-filter: blur(10px);
+}
+
+.public-catalog .campaign-controls button {
+  border: 1px solid #263f85 !important;
+  color: #ffffff !important;
+  background: #263f85 !important;
+  box-shadow: 0 7px 16px rgb(38 63 133 / 18%) !important;
+}
+
+.public-catalog .campaign-controls button:hover:not(:disabled) {
+  border-color: #ef312f !important;
+  background: #ef312f !important;
+}
+
+/* --------------------------------------------------------------------------
+ * SECTION CONTRAST
+ * -------------------------------------------------------------------------- */
 .public-catalog .offers-showcase,
 .public-catalog .segments-section {
   color: #ffffff !important;
@@ -91,7 +159,6 @@
   color: #ff7775 !important;
 }
 
-/* Light sections: explicitly restore Laurencini text colors. */
 .public-catalog :is(.new-products-showcase, .brands-section) {
   color: #203770 !important;
 }
@@ -115,7 +182,7 @@
   color: #ef312f !important;
 }
 
-/* Product cards inside every carousel must remain neutral/readable. */
+/* Product cards stay neutral regardless of the section background. */
 .public-catalog :is(
   .product-showcase,
   .discovery-carousel,
@@ -163,7 +230,7 @@
   color: #60708d !important;
 }
 
-/* Banner carousel is always a light commercial card. */
+/* Banner content itself remains a light commercial card. */
 .public-catalog .banner-slide,
 .public-catalog .banner-copy {
   color: #15213d !important;
