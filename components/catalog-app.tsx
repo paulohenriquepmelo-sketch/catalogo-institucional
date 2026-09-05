@@ -66,9 +66,11 @@ const unique = (values: string[]) =>
 export function CatalogApp({
   showEditorLink = true,
   editorPreview = false,
+  fullCatalogPage = false,
 }: {
   showEditorLink?: boolean;
   editorPreview?: boolean;
+  fullCatalogPage?: boolean;
 }) {
   const [items, setItems] = useState<Product[]>([]);
   const [config, setConfig] = useState<CatalogConfig>(defaultConfig);
@@ -76,10 +78,8 @@ export function CatalogApp({
   const [selected, setSelected] = useState<Product | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
-  const [allProductsOpen, setAllProductsOpen] = useState(false);
-  const [allProductsLimit, setAllProductsLimit] = useState(48);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [limit, setLimit] = useState(12);
+  const [limit, setLimit] = useState(fullCatalogPage ? 48 : 12);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   async function load() {
@@ -115,12 +115,15 @@ export function CatalogApp({
         : [],
     [items, searchQuery],
   );
-  const visibleBlocks = config.blocks.filter((b) => b.visible);
+  const allVisibleBlocks = config.blocks.filter((b) => b.visible);
+  const visibleBlocks = fullCatalogPage
+    ? allVisibleBlocks.filter((b) => b.type === 'catalog')
+    : allVisibleBlocks;
   const has = (type: Block['type']) =>
-    visibleBlocks.some((b) => b.type === type);
+    allVisibleBlocks.some((b) => b.type === type);
   function update(patch: Partial<Filters>) {
     setFilters((current) => ({ ...current, ...patch }));
-    setLimit(12);
+    setLimit(fullCatalogPage ? 48 : 12);
   }
   useCatalogTools([
     {
@@ -246,7 +249,11 @@ export function CatalogApp({
       return (
         <CatalogCampaign
           key={block.id}
-          campaign={config.campaign ?? defaultCampaign}
+          campaign={
+            fullCatalogPage
+              ? { ...(config.campaign ?? defaultCampaign), enabled: false }
+              : (config.campaign ?? defaultCampaign)
+          }
           intro={<div className="campaign-visual-spacer" aria-hidden="true" />}
         >
           <div className="catalog-filter-band">
@@ -351,15 +358,18 @@ export function CatalogApp({
             )}
             {filtered.length > limit && (
               <div className="load-more">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setAllProductsLimit(48);
-                    setAllProductsOpen(true);
-                  }}
-                >
-                  Mostrar mais produtos ({filtered.length - limit})
-                </Button>
+                {fullCatalogPage ? (
+                  <Button
+                    variant="outline"
+                    onClick={() => setLimit((current) => current + 48)}
+                  >
+                    Mostrar mais produtos ({filtered.length - limit})
+                  </Button>
+                ) : (
+                  <a className="catalog-page-link" href="/produtos">
+                    Ver todos os produtos ({filtered.length})
+                  </a>
+                )}
               </div>
             )}
           </section>
@@ -428,7 +438,7 @@ export function CatalogApp({
   return (
     <main
       id="inicio"
-      className={`public-catalog ${config.font === 'serif' ? 'serif-headings' : ''}`}
+      className={`public-catalog ${fullCatalogPage ? 'full-catalog-page' : ''} ${config.font === 'serif' ? 'serif-headings' : ''}`}
       style={style}
     >
       <a className="skip-link" href="#catalogo">
@@ -439,7 +449,7 @@ export function CatalogApp({
       </div>
       <header className="site-header">
         <a
-          href="#inicio"
+          href={fullCatalogPage ? '/' : '#inicio'}
           className="brand-lockup"
           aria-label={`${config.name} — início`}
         >
@@ -466,8 +476,14 @@ export function CatalogApp({
           onClick={() => setMenuOpen(false)}
         >
           <a href="#catalogo">Catálogo</a>
-          {has('segments') && <a href="#segmentos">Segmentos</a>}
-          {has('brands') && <a href="#marcas">Marcas</a>}
+          {has('segments') && (
+            <a href={fullCatalogPage ? '/#segmentos' : '#segmentos'}>
+              Segmentos
+            </a>
+          )}
+          {has('brands') && (
+            <a href={fullCatalogPage ? '/#marcas' : '#marcas'}>Marcas</a>
+          )}
           {showEditorLink && (
             <a href="/editor" className="editor-link">
               <Settings2 className="size-4" /> Editor
@@ -508,13 +524,28 @@ export function CatalogApp({
           <Button onClick={() => void load()}>Tentar novamente</Button>
         </div>
       ) : (
-        visibleBlocks.map(renderBlock)
+        <>
+          {fullCatalogPage && (
+            <section
+              className="full-catalog-intro"
+              aria-labelledby="catalog-page-title"
+            >
+              <span className="eyebrow">Catálogo completo</span>
+              <h1 id="catalog-page-title">Todos os produtos</h1>
+              <p>
+                Encontre rapidamente o item ideal usando os filtros por
+                departamento, seção e categoria.
+              </p>
+            </section>
+          )}
+          {visibleBlocks.map(renderBlock)}
+        </>
       )}
       <footer className="site-footer">
         <div className="footer-main">
           <div className="footer-brand">
             <a
-              href="#inicio"
+              href={fullCatalogPage ? '/' : '#inicio'}
               className="footer-logo-card"
               aria-label={`${config.name} — início`}
             >
@@ -530,8 +561,16 @@ export function CatalogApp({
           <div className="footer-navigation">
             <strong>Navegue</strong>
             <a href="#catalogo">Catálogo de produtos</a>
-            {has('segments') && <a href="#segmentos">Segmentos atendidos</a>}
-            {has('brands') && <a href="#marcas">Marcas parceiras</a>}
+            {has('segments') && (
+              <a href={fullCatalogPage ? '/#segmentos' : '#segmentos'}>
+                Segmentos atendidos
+              </a>
+            )}
+            {has('brands') && (
+              <a href={fullCatalogPage ? '/#marcas' : '#marcas'}>
+                Marcas parceiras
+              </a>
+            )}
           </div>
           <div className="footer-commercial">
             <span>PARCERIA COMERCIAL</span>
@@ -579,41 +618,6 @@ export function CatalogApp({
             <p className="catalog-search-empty">
               Nenhum produto corresponde à pesquisa. Tente outro nome ou código.
             </p>
-          )}
-        </DialogContent>
-      </Dialog>
-      <Dialog open={allProductsOpen} onOpenChange={setAllProductsOpen}>
-        <DialogContent className="all-products-dialog" style={style}>
-          <DialogHeader className="all-products-heading">
-            <span className="eyebrow">Catálogo completo</span>
-            <DialogTitle>Todos os produtos encontrados</DialogTitle>
-            <DialogDescription>
-              {filtered.length}{' '}
-              {filtered.length === 1
-                ? 'produto disponível com os filtros atuais.'
-                : 'produtos disponíveis com os filtros atuais.'}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="all-products-results product-grid">
-            {filtered.slice(0, allProductsLimit).map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                onOpen={(next) => {
-                  setAllProductsOpen(false);
-                  setSelected(next);
-                }}
-              />
-            ))}
-          </div>
-          {filtered.length > allProductsLimit && (
-            <div className="all-products-more">
-              <Button
-                onClick={() => setAllProductsLimit((current) => current + 48)}
-              >
-                Mostrar mais ({filtered.length - allProductsLimit})
-              </Button>
-            </div>
           )}
         </DialogContent>
       </Dialog>
