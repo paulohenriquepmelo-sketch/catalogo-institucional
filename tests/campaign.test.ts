@@ -28,10 +28,13 @@ import type { Product } from '../lib/catalog-data';
 
 void test('public navigation downloads the Android app stored in R2', async () => {
   const source = readFileSync('components/catalog-app.tsx', 'utf8');
+  const routeSource = readFileSync('app/api/app-download/route.ts', 'utf8');
   const brands = source.indexOf('>Marcas</a>');
   const download = source.indexOf('Baixa o APP');
   assert.ok(brands >= 0 && download > brands);
   assert.match(source, /href="\/api\/app-download" download/);
+  assert.match(routeSource, /env\.FILES/);
+  assert.doesNotMatch(routeSource, /env\.DB|\bD1\b/);
 
   const bytes = new TextEncoder().encode('apk-test').buffer;
   await testEnv.FILES.put('apps/catalogo-institucional.apk', bytes, {

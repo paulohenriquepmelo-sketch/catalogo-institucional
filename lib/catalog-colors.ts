@@ -32,8 +32,8 @@ export const laurenciniColors: CatalogColors = {
   muted: '#60708d',
   highlight: '#ef312f',
   primaryText: '#ffffff',
-  themeText: '#ffffff',
-  themeHeading: '#ffffff',
+  themeText: 'auto',
+  themeHeading: 'auto',
   footerBackground: '#172f6f',
   footerText: '#ffffff',
   segmentBorder: '#7892d1',
@@ -293,4 +293,3 @@ export function colorWarnings(config: Parameters<typeof resolveColors>[0]) {
     .filter(([, color, background]) => contrastRatio(color, background) < 4.5)
     .map(([label]) => label);
 }
-

@@ -319,9 +319,14 @@ export function imageUrl(value: unknown): string {
   if (campaignThemes.some((theme) => theme.image === value))
     return String(value);
   if (value === '') return '';
-  if (value === '/og-wholesale.png') return value;
   if (typeof value !== 'string' || value.length > 2048)
     throw new Error('Endereço de imagem inválido.');
+  if (
+    /^\/(?:[a-z0-9_-]+\/)*[a-z0-9][a-z0-9._-]*\.(?:png|jpe?g|webp|gif|svg)$/i.test(
+      value,
+    )
+  )
+    return value;
   if (
     /^\/api\/uploads\?key=(?:images%2F[a-f0-9-]+\.(?:png|jpg|webp|gif)|pending%2Fproduct-images%2F[a-zA-Z0-9_-]+%2F[a-zA-Z0-9_-]+%2F[a-zA-Z0-9-]+\.webp)$/i.test(
       value,
@@ -586,4 +591,3 @@ export function validateCampaign(value: unknown): CatalogCampaign {
     );
   return result;
 }
-
