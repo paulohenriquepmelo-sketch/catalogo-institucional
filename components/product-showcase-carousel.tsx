@@ -32,6 +32,31 @@ export function offerTimeLabel(end: string, now: number) {
   return `Encerra em ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 }
 
+export function selectActiveOffers(
+  items: Product[],
+  today: string,
+  limit: number,
+) {
+  return [...items]
+    .filter((product) => {
+      const offer = product.details?.offer;
+      return (
+        offer?.enabled === true &&
+        offer.startsAt <= today &&
+        offer.endsAt >= today
+      );
+    })
+    .sort((left, right) => {
+      const leftUpdated = Date.parse(left.updatedAt ?? '');
+      const rightUpdated = Date.parse(right.updatedAt ?? '');
+      const recentFirst =
+        (Number.isFinite(rightUpdated) ? rightUpdated : 0) -
+        (Number.isFinite(leftUpdated) ? leftUpdated : 0);
+      return recentFirst || left.name.localeCompare(right.name, 'pt-BR');
+    })
+    .slice(0, limit);
+}
+
 export function ProductShowcaseCarousel({
   kind,
   settings,
@@ -86,16 +111,7 @@ export function ProductShowcaseCarousel({
   const visible = useMemo(() => {
     if (!settings.published) return [];
     if (kind === 'offers') {
-      return items
-        .filter((product) => {
-          const offer = product.details?.offer;
-          return (
-            offer?.enabled === true &&
-            offer.startsAt <= today &&
-            offer.endsAt >= today
-          );
-        })
-        .slice(0, settings.limit);
+      return selectActiveOffers(items, today, settings.limit);
     }
     const earliest = now - (settings.days ?? 30) * 86_400_000;
     return [...items]
@@ -192,4 +208,3 @@ export function ProductShowcaseCarousel({
     </section>
   );
 }
-

@@ -19,7 +19,11 @@ import {
 import { getConfig, saveConfig } from '../lib/catalog-repository';
 import { database, setIdentity } from './runtime';
 import { POST as postConfig } from '../app/api/config/route';
-import { offerTimeLabel } from '../components/product-showcase-carousel';
+import {
+  offerTimeLabel,
+  selectActiveOffers,
+} from '../components/product-showcase-carousel';
+import type { Product } from '../lib/catalog-data';
 
 void test('public carousels hide play controls and offer countdown becomes precise in the last 24 hours', () => {
   for (const file of [
@@ -42,6 +46,78 @@ void test('public carousels hide play controls and offer countdown becomes preci
   const styles = readFileSync('app/globals.css', 'utf8');
   assert.match(styles, /\.offer-perforation[\s\S]*?border-left: 1px dashed/);
   assert.match(styles, /\.offer-card::before,[\s\S]*?\.offer-card::after/);
+});
+
+void test('offer carousel prioritizes the most recently saved active promotions', () => {
+  const offer = (partial: Partial<Product>): Product => ({
+    id: 1,
+    code: '1',
+    name: 'Produto',
+    description: '',
+    department: 'Departamento',
+    section: 'Seção',
+    category: 'Categoria',
+    segment: 'Segmento',
+    brand: 'Marca',
+    image: '',
+    specs: [],
+    published: true,
+    details: {
+      offer: {
+        enabled: true,
+        discount: 20,
+        startsAt: '2026-09-01',
+        endsAt: '2026-09-30',
+      },
+    },
+    ...partial,
+  });
+  const selected = selectActiveOffers(
+    [
+      offer({
+        id: 1,
+        name: 'Antiga em ordem alfabética',
+        updatedAt: '2026-09-01T10:00:00.000Z',
+      }),
+      offer({
+        id: 2,
+        name: 'Nova promoção',
+        updatedAt: '2026-09-08T10:00:00.000Z',
+      }),
+      offer({
+        id: 3,
+        name: 'Oferta vencida',
+        updatedAt: '2026-09-09T10:00:00.000Z',
+        details: {
+          offer: {
+            enabled: true,
+            discount: 20,
+            startsAt: '2026-08-01',
+            endsAt: '2026-08-31',
+          },
+        },
+      }),
+    ],
+    '2026-09-08',
+    1,
+  );
+  assert.deepEqual(
+    selected.map((product) => product.name),
+    ['Nova promoção'],
+  );
+});
+
+void test('light editor surfaces keep form copy dark while sidebar and buttons retain white text', () => {
+  const css = readFileSync('app/globals.css', 'utf8');
+  const contrastFix = css.slice(
+    css.indexOf('Light editor surfaces own their text color'),
+  );
+  assert.match(
+    contrastFix,
+    /\.product-form-panel[\s\S]*?color: #17284f !important/,
+  );
+  assert.match(contrastFix, /\.source-note[\s\S]*?color: #65738e !important/);
+  assert.doesNotMatch(contrastFix, /\.editor-sidebar/);
 });
 
 void test('theme is only a background: actual catalog controls occur once and promotional panels are absent', () => {
