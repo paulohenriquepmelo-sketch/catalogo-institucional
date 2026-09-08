@@ -5787,3 +5787,29 @@ a:focus-visible {
     animation: none;
   }
 }
+
+/* Public Android app download beside the catalog navigation links. */
+.public-catalog .main-nav .app-download-link {
+  display: inline-flex;
+  min-height: 36px;
+  padding: 8px 13px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border-radius: 8px;
+  color: #fff;
+  background: var(--primary);
+  box-shadow: 0 5px 14px color-mix(in srgb, var(--primary) 22%, transparent);
+  white-space: nowrap;
+}
+
+.public-catalog .main-nav .app-download-link:hover {
+  color: #fff;
+  background: var(--accent);
+}
+
+@media (max-width: 900px) {
+  .public-catalog .main-nav .app-download-link {
+    align-self: stretch;
+  }
+}

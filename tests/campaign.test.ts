@@ -17,13 +17,38 @@ import {
   validateConfig,
 } from '../lib/catalog-config';
 import { getConfig, saveConfig } from '../lib/catalog-repository';
-import { database, setIdentity } from './runtime';
+import { database, env as testEnv, setIdentity } from './runtime';
 import { POST as postConfig } from '../app/api/config/route';
+import { GET as downloadApp } from '../app/api/app-download/route';
 import {
   offerTimeLabel,
   selectActiveOffers,
 } from '../components/product-showcase-carousel';
 import type { Product } from '../lib/catalog-data';
+
+void test('public navigation downloads the Android app stored in R2', async () => {
+  const source = readFileSync('components/catalog-app.tsx', 'utf8');
+  const brands = source.indexOf('>Marcas</a>');
+  const download = source.indexOf('Baixa o APP');
+  assert.ok(brands >= 0 && download > brands);
+  assert.match(source, /href="\/api\/app-download" download/);
+
+  const bytes = new TextEncoder().encode('apk-test').buffer;
+  await testEnv.FILES.put('apps/catalogo-institucional.apk', bytes, {
+    httpMetadata: { contentType: 'application/vnd.android.package-archive' },
+  });
+  const response = await downloadApp();
+  assert.equal(response.status, 200);
+  assert.equal(
+    response.headers.get('content-disposition'),
+    'attachment; filename="catalogo-institucional.apk"',
+  );
+  assert.equal(
+    response.headers.get('content-length'),
+    String(bytes.byteLength),
+  );
+  assert.deepEqual(await response.arrayBuffer(), bytes);
+});
 
 void test('public carousels hide play controls and offer countdown becomes precise in the last 24 hours', () => {
   for (const file of [

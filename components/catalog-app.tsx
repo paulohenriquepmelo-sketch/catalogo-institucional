@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useMemo, useState } from 'react';
 import { catalogColorStyle } from '@/lib/catalog-colors';
-import { Menu, Package, Search, Settings2, X } from 'lucide-react';
+import { Download, Menu, Package, Search, Settings2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { NativeSelect } from '@/components/ui/native-select';
@@ -484,6 +484,10 @@ export function CatalogApp({
           {has('brands') && (
             <a href={fullCatalogPage ? '/#marcas' : '#marcas'}>Marcas</a>
           )}
+          <a href="/api/app-download" download className="app-download-link">
+            <Download className="size-4" aria-hidden="true" />
+            Baixa o APP
+          </a>
           {showEditorLink && (
             <a href="/editor" className="editor-link">
               <Settings2 className="size-4" /> Editor
@@ -631,4 +635,3 @@ export function CatalogApp({
     </main>
   );
 }
-

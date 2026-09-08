@@ -108,5 +108,15 @@ export const env = {
           }
         : null;
     },
+    async head(key: string) {
+      const file = files.get(key);
+      return file
+        ? {
+            size: file.data.byteLength,
+            httpMetadata: file.httpMetadata,
+            customMetadata: file.customMetadata,
+          }
+        : null;
+    },
   },
 };
