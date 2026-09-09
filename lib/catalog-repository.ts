@@ -15,6 +15,7 @@ import { defaultCampaign } from './catalog-campaign';
 import { defaultColors } from './catalog-colors';
 import { defaultLayout } from './catalog-layout';
 import {
+  publishedCatalogSnapshotExists,
   readPublishedCatalogSnapshot,
   type PublishedCatalogSnapshot,
   writePublishedCatalogSnapshot,
@@ -109,6 +110,14 @@ export async function ensurePublishedCatalog() {
 }
 
 export async function getPublishedConfig() {
+  const snapshot = await readPublishedCatalogSnapshot();
+  if (snapshot) return { config: snapshot.config, revision: snapshot.revision };
+  if (env.WORKER_ROLE === 'public')
+    throw new Error('Versão publicada indisponível.');
+  return getLegacyPublishedConfig();
+}
+
+async function getLegacyPublishedConfig() {
   await ensurePublishedCatalog();
   const row = await env.DB.prepare(
     'SELECT body,revision FROM published_catalog_config WHERE id=1',
@@ -171,8 +180,25 @@ export async function listCatalogProducts(
 }
 
 export async function listPublishedProducts(codes?: string[]) {
-  const { config } = await getPublishedConfig();
   if (codes?.length === 0) return [];
+  const snapshot = await readPublishedCatalogSnapshot();
+  if (snapshot) {
+    if (!codes) return snapshot.products;
+    const selectedCodes = new Set(codes);
+    return snapshot.products.filter((product) =>
+      selectedCodes.has(product.code),
+    );
+  }
+  if (env.WORKER_ROLE === 'public')
+    throw new Error('Versão publicada indisponível.');
+  const { config } = await getLegacyPublishedConfig();
+  return listLegacyPublishedProducts(config, codes);
+}
+
+async function listLegacyPublishedProducts(
+  config: CatalogConfig,
+  codes?: string[],
+) {
   const condition = codes
     ? `WHERE code IN (${codes.map(() => '?').join(',')})`
     : '';
@@ -202,7 +228,15 @@ export async function listCatalogProductsPage(
 }
 
 export async function listPublishedProductsPage(cursor: number, limit: number) {
-  const { config } = await getPublishedConfig();
+  const snapshot = await readPublishedCatalogSnapshot();
+  if (snapshot)
+    return snapshot.products
+      .filter((product) => product.id > cursor)
+      .sort((left, right) => left.id - right.id)
+      .slice(0, limit);
+  if (env.WORKER_ROLE === 'public')
+    throw new Error('Versão publicada indisponível.');
+  const { config } = await getLegacyPublishedConfig();
   const result = await env.DB.prepare(
     'SELECT * FROM published_products WHERE id > ? ORDER BY id LIMIT ?',
   )
@@ -212,8 +246,8 @@ export async function listPublishedProductsPage(cursor: number, limit: number) {
 }
 
 async function createPublishedCatalogSnapshot() {
-  const { config, revision } = await getPublishedConfig();
-  const products = await listPublishedProducts();
+  const { config, revision } = await getLegacyPublishedConfig();
+  const products = await listLegacyPublishedProducts(config);
   const publication = await env.DB.prepare(
     'SELECT published_at FROM published_catalog_config WHERE id=1',
   ).first<{ published_at: string }>();
@@ -227,9 +261,26 @@ async function createPublishedCatalogSnapshot() {
   return snapshot;
 }
 
+let publishedCatalogReady: Promise<void> | undefined;
+async function ensurePublishedCatalogSnapshot() {
+  publishedCatalogReady ??= (async () => {
+    if (await publishedCatalogSnapshotExists()) return;
+    await writePublishedCatalogSnapshot(await createPublishedCatalogSnapshot());
+  })().catch((error) => {
+    publishedCatalogReady = undefined;
+    throw error;
+  });
+  return publishedCatalogReady;
+}
+
 export async function getPublishedCatalogSnapshot() {
   const snapshot = await readPublishedCatalogSnapshot();
   if (snapshot) return snapshot;
+
+  // The public Worker must never fall back to D1. A missing R2 snapshot is
+  // safer as a temporary 503 than an accidental database scan per visitor.
+  if (env.WORKER_ROLE === 'public')
+    throw new Error('Versão publicada indisponível.');
 
   const generated = await createPublishedCatalogSnapshot();
   try {
@@ -241,52 +292,43 @@ export async function getPublishedCatalogSnapshot() {
 }
 
 export async function getPublicationStatus() {
-  await ensurePublishedCatalog();
+  const [{ revision }, snapshot] = await Promise.all([
+    getConfig(),
+    getPublishedCatalogSnapshot(),
+  ]);
   const row = await env.DB.prepare(
-    `SELECT
-      c.revision AS draft_revision,
-      pc.revision AS published_revision,
-      pc.published_at,
-      EXISTS(SELECT 1 FROM products WHERE updated_at > pc.published_at) AS changed_products
-     FROM catalog_config c
-     JOIN published_catalog_config pc ON pc.id=c.id
-     WHERE c.id=1`,
-  ).first<{
-    draft_revision: number;
-    published_revision: number;
-    published_at: string;
-    changed_products: number;
-  }>();
+    'SELECT EXISTS(SELECT 1 FROM products WHERE updated_at > ? LIMIT 1) AS changed_products',
+  )
+    .bind(snapshot.publishedAt)
+    .first<{
+      changed_products: number;
+    }>();
   if (!row) throw new Error('Estado de publicação indisponível.');
   return {
-    hasChanges:
-      row.draft_revision !== row.published_revision ||
-      Boolean(row.changed_products),
-    publishedAt: row.published_at,
-    draftRevision: row.draft_revision,
-    publishedRevision: row.published_revision,
+    hasChanges: revision !== snapshot.revision || Boolean(row.changed_products),
+    publishedAt: snapshot.publishedAt,
+    draftRevision: revision,
+    publishedRevision: snapshot.revision,
   };
 }
 
+async function listProductsForSnapshot(config: CatalogConfig) {
+  const result = await env.DB.prepare(
+    'SELECT * FROM products WHERE published=1 ORDER BY featured DESC, name COLLATE NOCASE',
+  ).all<Record<string, unknown>>();
+  return result.results.map((row) => mapProductRow(row, config, false));
+}
+
 export async function publishCatalog() {
-  await ensurePublishedCatalog();
   const { config, revision } = await getConfig();
-  const publishedAt = new Date().toISOString();
-  await env.DB.batch([
-    env.DB.prepare('DELETE FROM published_products'),
-    env.DB.prepare(
-      `INSERT INTO published_products
-        (id,code,name,description,department,section,category,segment,brand,image,specs,details,featured,published,created_at,updated_at)
-       SELECT id,code,name,description,department,section,category,segment,brand,image,specs,details,featured,published,created_at,updated_at
-       FROM products WHERE published=1`,
-    ),
-    env.DB.prepare(
-      `INSERT INTO published_catalog_config (id,body,revision,published_at)
-       VALUES (1,?,?,?)
-       ON CONFLICT(id) DO UPDATE SET body=excluded.body,revision=excluded.revision,published_at=excluded.published_at`,
-    ).bind(JSON.stringify(config), revision, publishedAt),
-  ]);
-  const products = await listPublishedProducts();
+  const products = await listProductsForSnapshot(config);
+  const latestProductUpdate = products.reduce(
+    (latest, product) => Math.max(latest, Date.parse(product.updatedAt) || 0),
+    0,
+  );
+  const publishedAt = new Date(
+    Math.max(Date.now(), latestProductUpdate + 1),
+  ).toISOString();
   await writePublishedCatalogSnapshot({
     version: 1,
     revision,
@@ -396,7 +438,7 @@ export async function saveCatalogProduct(
   value: unknown,
   context?: { config: CatalogConfig; revision: number },
 ) {
-  await ensurePublishedCatalog();
+  await ensurePublishedCatalogSnapshot();
   const { config, revision } = context ?? (await getConfig());
   const p = validateProduct(value, config);
   const previous = Date.parse(p.updatedAt ?? '');
@@ -449,7 +491,7 @@ export async function saveCatalogProduct(
   return { ...p, id, updatedAt: now, createdAt: p.createdAt ?? now };
 }
 export async function saveConfig(value: unknown, revision: number) {
-  await ensurePublishedCatalog();
+  await ensurePublishedCatalogSnapshot();
   const config = validateConfig(value);
   const products = await listCatalogProducts(true);
   for (const p of products) {

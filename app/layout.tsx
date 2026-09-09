@@ -1,7 +1,10 @@
 import type { Metadata } from 'next';
 import { DM_Sans, Manrope } from 'next/font/google';
 import { env } from 'cloudflare:workers';
-import { getConfig, getPublishedConfig } from '@/lib/catalog-repository';
+import {
+  getConfig,
+  getPublishedCatalogSnapshot,
+} from '@/lib/catalog-repository';
 import { defaultConfig } from '@/lib/catalog-config';
 import './globals.css';
 import './marketing-polish.css';
@@ -12,7 +15,7 @@ const manrope = Manrope({ variable: '--font-manrope', subsets: ['latin'] });
 
 export async function generateMetadata(): Promise<Metadata> {
   const configResult =
-    env.WORKER_ROLE === 'public' ? getPublishedConfig() : getConfig();
+    env.WORKER_ROLE === 'public' ? getPublishedCatalogSnapshot() : getConfig();
   const { config } = await configResult.catch(() => ({
     config: defaultConfig,
   }));

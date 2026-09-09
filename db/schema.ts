@@ -1,4 +1,5 @@
 import {
+  index,
   integer,
   sqliteTable,
   text,
@@ -66,7 +67,10 @@ export const productsTable = sqliteTable(
     createdAt: text('created_at').notNull(),
     updatedAt: text('updated_at').notNull(),
   },
-  (table) => [uniqueIndex('idx_products_code').on(table.code)],
+  (table) => [
+    uniqueIndex('idx_products_code').on(table.code),
+    index('idx_products_updated_at').on(table.updatedAt),
+  ],
 );
 
 export const pageBlocks = sqliteTable('page_blocks', {

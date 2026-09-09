@@ -225,6 +225,16 @@ test('persistent workflow: migrations, seeded records, drafts, revisions, ACL, u
     (await publishedSnapshot.json<{ products: unknown[] }>()).products.length,
     2526,
   );
+  assert.equal(
+    Number(
+      (
+        database
+          .prepare('SELECT COUNT(*) AS total FROM published_products')
+          .get() as { total: number }
+      ).total,
+    ),
+    2525,
+  );
   assert.equal((await listPublishedProducts()).length, 2526);
   assert.equal(
     (await getPublishedConfig()).config.banners[0].title,

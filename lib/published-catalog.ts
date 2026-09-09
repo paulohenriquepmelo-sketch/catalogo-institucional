@@ -12,6 +12,10 @@ export type PublishedCatalogSnapshot = {
   products: Product[];
 };
 
+export async function publishedCatalogSnapshotExists() {
+  return Boolean(await env.FILES.head(PUBLISHED_CATALOG_KEY));
+}
+
 export async function readPublishedCatalogSnapshot() {
   const object = await env.FILES.get(PUBLISHED_CATALOG_KEY);
   if (!object) return null;

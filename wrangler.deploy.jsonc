@@ -45,14 +45,6 @@
         "WORKER_ROLE": "public",
         "SITE_ORIGIN": "https://sites-project.paulohenriquepmelo.workers.dev"
       },
-      "d1_databases": [
-        {
-          "binding": "DB",
-          "database_name": "catalogo-institucional-db",
-          "database_id": "b8efaa3f-d3a7-440b-aadf-1ab47e9e8fdb",
-          "migrations_dir": "drizzle"
-        }
-      ],
       "r2_buckets": [
         {
           "binding": "FILES",

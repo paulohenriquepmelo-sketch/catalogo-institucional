@@ -1,0 +1,1 @@
+CREATE INDEX `idx_products_updated_at` ON `products` (`updated_at`);
