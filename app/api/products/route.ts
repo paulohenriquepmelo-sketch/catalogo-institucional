@@ -6,8 +6,7 @@ import {
 import {
   listCatalogProducts,
   listCatalogProductsPage,
-  listPublishedProducts,
-  listPublishedProductsPage,
+  getPublishedCatalogSnapshot,
   saveCatalogProduct,
 } from '@/lib/catalog-repository';
 export async function GET(request: Request) {
@@ -29,20 +28,35 @@ export async function GET(request: Request) {
         return Response.json({ error: 'Página inválida.' }, { status: 400 });
       const items = editor
         ? await listCatalogProductsPage(true, cursor, limit)
-        : await listPublishedProductsPage(cursor, limit);
+        : (await getPublishedCatalogSnapshot()).products
+            .filter((product) => product.id > cursor)
+            .sort((left, right) => left.id - right.id)
+            .slice(0, limit);
       return Response.json(
         {
           items,
           nextCursor: items.at(-1)?.id ?? cursor,
           done: items.length < limit,
         },
-        { headers: { 'cache-control': 'no-store' } },
+        {
+          headers: {
+            'cache-control': editor
+              ? 'no-store'
+              : 'public, max-age=60, must-revalidate',
+          },
+        },
       );
     }
     return Response.json(
-      editor ? await listCatalogProducts(true) : await listPublishedProducts(),
+      editor
+        ? await listCatalogProducts(true)
+        : (await getPublishedCatalogSnapshot()).products,
       {
-        headers: { 'cache-control': 'no-store' },
+        headers: {
+          'cache-control': editor
+            ? 'no-store'
+            : 'public, max-age=60, must-revalidate',
+        },
       },
     );
   } catch {

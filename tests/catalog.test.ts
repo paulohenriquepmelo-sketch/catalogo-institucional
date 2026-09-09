@@ -32,7 +32,8 @@ import {
   POST as postPublication,
 } from '../app/api/publication/route';
 import { GET as getUpload, POST as postUpload } from '../app/api/uploads/route';
-import { database, setIdentity } from './runtime';
+import { PUBLISHED_CATALOG_KEY } from '../lib/published-catalog';
+import { database, env as testEnv, setIdentity } from './runtime';
 import { webp } from './image-fixtures';
 
 const clone = () => structuredClone(defaultConfig);
@@ -218,6 +219,12 @@ test('persistent workflow: migrations, seeded records, drafts, revisions, ACL, u
     'Banner editado',
   );
   assert.equal((await publishCatalog()).productCount, 2526);
+  const publishedSnapshot = await testEnv.FILES.get(PUBLISHED_CATALOG_KEY);
+  assert.ok(publishedSnapshot);
+  assert.equal(
+    (await publishedSnapshot.json<{ products: unknown[] }>()).products.length,
+    2526,
+  );
   assert.equal((await listPublishedProducts()).length, 2526);
   assert.equal(
     (await getPublishedConfig()).config.banners[0].title,

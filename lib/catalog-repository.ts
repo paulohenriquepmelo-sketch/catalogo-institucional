@@ -14,6 +14,11 @@ import { classifySegment } from './segment-classifier';
 import { defaultCampaign } from './catalog-campaign';
 import { defaultColors } from './catalog-colors';
 import { defaultLayout } from './catalog-layout';
+import {
+  readPublishedCatalogSnapshot,
+  type PublishedCatalogSnapshot,
+  writePublishedCatalogSnapshot,
+} from './published-catalog';
 
 // Migrations own both the schema and the one-time spreadsheet import.
 async function initializeData() {
@@ -206,6 +211,35 @@ export async function listPublishedProductsPage(cursor: number, limit: number) {
   return result.results.map((row) => mapProductRow(row, config, false));
 }
 
+async function createPublishedCatalogSnapshot() {
+  const { config, revision } = await getPublishedConfig();
+  const products = await listPublishedProducts();
+  const publication = await env.DB.prepare(
+    'SELECT published_at FROM published_catalog_config WHERE id=1',
+  ).first<{ published_at: string }>();
+  const snapshot: PublishedCatalogSnapshot = {
+    version: 1,
+    revision,
+    publishedAt: publication?.published_at ?? new Date().toISOString(),
+    config,
+    products,
+  };
+  return snapshot;
+}
+
+export async function getPublishedCatalogSnapshot() {
+  const snapshot = await readPublishedCatalogSnapshot();
+  if (snapshot) return snapshot;
+
+  const generated = await createPublishedCatalogSnapshot();
+  try {
+    await writePublishedCatalogSnapshot(generated);
+  } catch {
+    // Keep the public catalog available if R2 has a transient write failure.
+  }
+  return generated;
+}
+
 export async function getPublicationStatus() {
   await ensurePublishedCatalog();
   const row = await env.DB.prepare(
@@ -252,10 +286,15 @@ export async function publishCatalog() {
        ON CONFLICT(id) DO UPDATE SET body=excluded.body,revision=excluded.revision,published_at=excluded.published_at`,
     ).bind(JSON.stringify(config), revision, publishedAt),
   ]);
-  const count = await env.DB.prepare(
-    'SELECT COUNT(*) AS total FROM published_products',
-  ).first<{ total: number }>();
-  return { hasChanges: false, publishedAt, productCount: count?.total ?? 0 };
+  const products = await listPublishedProducts();
+  await writePublishedCatalogSnapshot({
+    version: 1,
+    revision,
+    publishedAt,
+    config,
+    products,
+  });
+  return { hasChanges: false, publishedAt, productCount: products.length };
 }
 export function validateProduct(
   value: unknown,
@@ -452,4 +491,3 @@ export async function saveConfig(value: unknown, revision: number) {
   // Segments are derived from the current configuration at read time as well.
   return { config, revision: revision + 1 };
 }
-

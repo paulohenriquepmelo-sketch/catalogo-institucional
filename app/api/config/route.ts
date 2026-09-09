@@ -1,6 +1,6 @@
 import {
   getConfig,
-  getPublishedConfig,
+  getPublishedCatalogSnapshot,
   saveConfig,
 } from '@/lib/catalog-repository';
 import {
@@ -14,11 +14,20 @@ export async function GET(request: Request) {
   if (editor && !(await getEditorUser()))
     return Response.json({ error: 'Acesso restrito.' }, { status: 403 });
   try {
-    const settings = editor ? await getConfig() : await getPublishedConfig();
+    const settings = editor
+      ? await getConfig()
+      : await getPublishedCatalogSnapshot().then(({ config, revision }) => ({
+          config,
+          revision,
+        }));
     if (!editor)
       settings.config.brands = publishedBrands(settings.config.brands);
     return Response.json(settings, {
-      headers: { 'cache-control': 'no-store' },
+      headers: {
+        'cache-control': editor
+          ? 'no-store'
+          : 'public, max-age=60, must-revalidate',
+      },
     });
   } catch {
     return Response.json(

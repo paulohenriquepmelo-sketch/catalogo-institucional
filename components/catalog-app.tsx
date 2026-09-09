@@ -90,6 +90,9 @@ export function CatalogApp({
         loadProducts(editorPreview),
         api<{ config: CatalogConfig }>(
           `/api/config${editorPreview ? '?editor=1' : ''}`,
+          undefined,
+          undefined,
+          editorPreview ? 'no-store' : 'default',
         ),
       ]);
       setItems(data);

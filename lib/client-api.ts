@@ -2,11 +2,12 @@ export async function api<T>(
   url: string,
   body?: unknown,
   signal?: AbortSignal,
+  cache: RequestCache = 'no-store',
 ): Promise<T> {
   const response = await fetch(
     url,
     body === undefined
-      ? { cache: 'no-store', signal }
+      ? { cache, signal }
       : {
           method: 'POST',
           signal,
@@ -33,6 +34,19 @@ export async function loadProducts(
     nextCursor: number;
     done: boolean;
   };
+  if (!editor) {
+    const products = await api<Product[]>(
+      '/api/products',
+      undefined,
+      undefined,
+      'default',
+    );
+    return products.sort(
+      (left, right) =>
+        Number(right.featured) - Number(left.featured) ||
+        left.name.localeCompare(right.name, 'pt-BR'),
+    );
+  }
   const products: Product[] = [];
   let cursor = 0;
   for (let pageNumber = 0; pageNumber < 100; pageNumber++) {
