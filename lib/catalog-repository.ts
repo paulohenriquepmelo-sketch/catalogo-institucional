@@ -493,23 +493,43 @@ export async function saveCatalogProduct(
 export async function saveConfig(value: unknown, revision: number) {
   await ensurePublishedCatalogSnapshot();
   const config = validateConfig(value);
-  const products = await listCatalogProducts(true);
-  for (const p of products) {
-    if (!config.brands.some((b) => b.name === p.brand))
+  // Only the columns needed to validate brand/taxonomy usage are read here —
+  // a handful of distinct values instead of every column of every product —
+  // to avoid the full `SELECT * FROM products` scan that was blowing past
+  // the D1 free-tier daily row-read limit on every config save.
+  const usedBrands = await env.DB.prepare(
+    `SELECT DISTINCT brand FROM products`,
+  ).all<{ brand: string }>();
+  for (const { brand } of usedBrands.results) {
+    if (!config.brands.some((b) => b.name === brand))
       throw new Error(
-        `A marca ${p.brand} está em uso. Altere os produtos antes de removê-la.`,
+        `A marca ${brand} está em uso. Altere os produtos antes de removê-la.`,
       );
+  }
+  const usedTaxonomy = await env.DB.prepare(
+    `SELECT DISTINCT department, section, category FROM products`,
+  ).all<{ department: string; section: string; category: string }>();
+  for (const { department, section, category } of usedTaxonomy.results) {
     if (
       !config.taxonomy.some(
         (t) =>
-          t.department === p.department &&
-          t.section === p.section &&
-          t.category === p.category,
+          t.department === department &&
+          t.section === section &&
+          t.category === category,
       )
-    )
+    ) {
+      // Only fetch an example product once a conflict is actually found, to
+      // keep the original error message's product-name reference without
+      // reading every product up front.
+      const example = await env.DB.prepare(
+        `SELECT name FROM products WHERE department=? AND section=? AND category=? LIMIT 1`,
+      )
+        .bind(department, section, category)
+        .first<{ name: string }>();
       throw new Error(
-        `A categoria de ${p.name} está em uso. Mova o produto antes de removê-la.`,
+        `A categoria de ${example?.name ?? `${department}/${section}/${category}`} está em uso. Mova o produto antes de removê-la.`,
       );
+    }
   }
   // The CAS revision and product timestamp guards prevent silent overwrites.
   const r = await env.DB.prepare(
