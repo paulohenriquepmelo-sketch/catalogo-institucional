@@ -1,4 +1,5 @@
 import type { ComponentType } from 'react';
+import type { ColorValue } from 'react-native';
 import type { LucideProps } from 'lucide-react-native';
 import {
   AlarmClock,
@@ -109,9 +110,11 @@ const icons: Record<AppIconName, ComponentType<LucideProps>> = {
 type Props = {
   name: AppIconName;
   size?: number;
-  color?: string;
+  // A barra de abas do React Navigation entrega ColorValue; na prática são
+  // sempre cores em texto (hex/rgba), que é o que o SVG do lucide aceita.
+  color?: ColorValue;
   strokeWidth?: number;
-  fill?: string;
+  fill?: ColorValue;
 };
 
 export function AppIcon({
@@ -122,5 +125,5 @@ export function AppIcon({
   fill = 'none',
 }: Props) {
   const Icon = icons[name];
-  return <Icon width={size} height={size} color={color} strokeWidth={strokeWidth} fill={fill} />;
+  return <Icon width={size} height={size} color={color as string} strokeWidth={strokeWidth} fill={fill as string} />;
 }

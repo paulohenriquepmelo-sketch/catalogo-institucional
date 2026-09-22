@@ -323,7 +323,7 @@ const styles = StyleSheet.create({
   hero: { height: 232, margin: spacing.sm, marginBottom: 6, justifyContent: 'space-between' },
   heroImage: { borderRadius: radius.lg },
   heroShade: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     borderRadius: radius.lg,
     backgroundColor: 'rgba(0,31,77,0.22)',
   },
