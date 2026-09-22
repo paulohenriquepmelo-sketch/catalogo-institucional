@@ -1,0 +1,184 @@
+═══════════════════════════════════════════════════════════════════════════════
+COMANDOS PARA ATUALIZAR EXPO - Catálogo Laurencini
+═══════════════════════════════════════════════════════════════════════════════
+
+Copie e cole os comandos no PowerShell (como Administrador)
+
+═══════════════════════════════════════════════════════════════════════════════
+OPÇÃO 1: USAR O SCRIPT AUTOMÁTICO (Recomendado)
+═══════════════════════════════════════════════════════════════════════════════
+
+1. Abra PowerShell como Administrador
+2. Navegue até a pasta do projeto:
+   cd C:\seu\caminho\mobile-app
+
+3. Configure permissão de execução:
+   Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+
+4. Execute o script:
+   .\update-expo.ps1
+
+O script cuidará de tudo automaticamente!
+
+═══════════════════════════════════════════════════════════════════════════════
+OPÇÃO 2: EXECUTAR MANUALMENTE (passo a passo)
+═══════════════════════════════════════════════════════════════════════════════
+
+PASSO 1: Verificar versões atuais
+──────────────────────────────────
+node --version
+npm --version
+npm list expo --depth=0
+
+PASSO 2: Limpar cache npm
+──────────────────────────────────
+npm cache clean --force
+
+PASSO 3: Atualizar Expo CLI globalmente
+──────────────────────────────────────────
+npm install -g expo-cli@latest
+
+Ou se usar pnpm:
+pnpm add -g expo-cli@latest
+
+PASSO 4: Atualizar no projeto (ESCOLHA UMA OPÇÃO)
+───────────────────────────────────────────────────
+
+OPÇÃO A - Atualizar para última versão (recomendado):
+  npm install expo@latest
+  npm install
+
+OPÇÃO B - Atualizar de forma segura (versão atual):
+  npm update
+  npm install
+
+OPÇÃO C - Atualizar apenas Expo:
+  npm update expo
+
+PASSO 5: Verificação final
+────────────────────────────────────
+npm list expo --depth=0
+npm start
+
+═══════════════════════════════════════════════════════════════════════════════
+COMANDOS RÁPIDOS (copie e cole tudo de uma vez)
+═══════════════════════════════════════════════════════════════════════════════
+
+# Atualizar tudo:
+npm cache clean --force && npm install -g expo-cli@latest && npm install expo@latest && npm install
+
+# Ou se usar yarn:
+yarn global add expo-cli@latest && yarn upgrade expo
+
+# Ou se usar pnpm:
+pnpm add -g expo-cli@latest && pnpm update expo
+
+═══════════════════════════════════════════════════════════════════════════════
+DEPOIS DE ATUALIZAR: Próximos passos
+═══════════════════════════════════════════════════════════════════════════════
+
+1. Inicie a aplicação:
+   npx expo start
+
+2. No terminal, pressione:
+   'a' → Abrir no Android
+   'i' → Abrir no iOS
+   'w' → Abrir na Web
+   'c' → Limpar cache e reiniciar
+
+3. Para build EAS (produção):
+   eas build --platform all
+
+4. Para preview EAS:
+   eas build --platform android --profile preview
+   eas build --platform ios --profile preview
+
+═══════════════════════════════════════════════════════════════════════════════
+TROUBLESHOOTING - Problemas comuns
+═══════════════════════════════════════════════════════════════════════════════
+
+PROBLEMA: "comando não reconhecido - npm"
+SOLUÇÃO:
+  1. Instale Node.js: https://nodejs.org/ (LTS recomendado)
+  2. Reinicie o PowerShell
+  3. Tente novamente
+
+PROBLEMA: "permission denied / acesso negado"
+SOLUÇÃO:
+  1. Abra PowerShell como Administrador
+  2. Execute: Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+  3. Tente novamente
+
+PROBLEMA: "EACCES: permission denied /usr/local/lib/node_modules"
+SOLUÇÃO (Windows):
+  1. Use PowerShell como Administrador
+  2. Execute: npm install -g --force expo-cli@latest
+
+PROBLEMA: "módulo não encontrado / cannot find module"
+SOLUÇÃO:
+  1. Delete a pasta node_modules:
+     rmdir node_modules -r -force
+  2. Limpe cache:
+     npm cache clean --force
+  3. Reinstale tudo:
+     npm install
+
+PROBLEMA: "ERR! code ERESOLVE"
+SOLUÇÃO:
+  npm install --legacy-peer-deps
+
+PROBLEMA: "App não inicia após atualização"
+SOLUÇÃO:
+  # Limpe build anterior:
+  expo prebuild --clean
+
+  # Ou inicie com cache limpo:
+  npx expo start -c
+
+  # Ou delete tudo e reinstale:
+  rmdir node_modules -r -force
+  npm cache clean --force
+  npm install
+
+PROBLEMA: "Porta 8081 já está em uso"
+SOLUÇÃO:
+  npx expo start -p 19000
+
+═══════════════════════════════════════════════════════════════════════════════
+VERSÕES RECOMENDADAS
+═══════════════════════════════════════════════════════════════════════════════
+
+Node.js: v18+ ou v20+ (LTS)
+npm: v9+
+Expo CLI: Latest
+Expo SDK: 52+ (para Android 14+)
+
+Verificar compatibilidade:
+node --version
+npm --version
+npm list expo --depth=0
+
+═══════════════════════════════════════════════════════════════════════════════
+GUIAS ÚTEIS
+═══════════════════════════════════════════════════════════════════════════════
+
+Documentação Expo:
+  https://docs.expo.dev
+
+Atualizar Expo SDK:
+  https://docs.expo.dev/workflow/upgrading-expo-sdk-walkthrough/
+
+EAS Build:
+  https://docs.expo.dev/build/introduction/
+
+Troubleshooting:
+  https://docs.expo.dev/troubleshooting/help/
+
+═══════════════════════════════════════════════════════════════════════════════
+
+Dúvidas? Consulte:
+  1. Documentação oficial: https://docs.expo.dev
+  2. Stack Overflow: tag [expo]
+  3. GitHub Discussions: https://github.com/expo/expo/discussions
+
+═══════════════════════════════════════════════════════════════════════════════
