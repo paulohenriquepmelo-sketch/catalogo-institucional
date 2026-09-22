@@ -34,7 +34,17 @@ export const ProductCard = memo(function ProductCard({
   const showOffer = !discontinued && offer?.enabled === true;
 
   return (
-    <View style={[styles.card, width === undefined ? null : { width }, style]}>
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`Ver informações de ${product.name}`}
+      onPress={() => router.push(`/produto/${product.id}`)}
+      style={({ pressed }) => [
+        styles.card,
+        width === undefined ? null : { width },
+        style,
+        pressed && styles.cardPressed,
+      ]}
+    >
       <View style={styles.imageWrap}>
         {imageUri && !broken ? (
           <Image
@@ -70,17 +80,7 @@ export const ProductCard = memo(function ProductCard({
         <Text style={styles.brand} numberOfLines={1}>{product.brand}</Text>
         <Text style={styles.name} numberOfLines={2}>{product.name}</Text>
       </View>
-
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={`Informações sobre ${product.name}`}
-        onPress={() => router.push(`/produto/${product.id}`)}
-        style={({ pressed }) => [styles.infoButton, pressed && styles.infoButtonPressed]}
-      >
-        <AppIcon name="information-circle" size={22} color="#fff" />
-        <Text style={styles.infoText}>Informações</Text>
-      </Pressable>
-    </View>
+    </Pressable>
   );
 });
 
@@ -98,6 +98,7 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 2,
   },
+  cardPressed: { opacity: 0.85, transform: [{ scale: 0.98 }] },
   imageWrap: {
     width: '100%',
     aspectRatio: 1.08,
@@ -137,15 +138,4 @@ const styles = StyleSheet.create({
   details: { minHeight: 55, paddingHorizontal: 2, paddingTop: spacing.sm },
   brand: { ...typography.small, color: '#56709a', fontSize: 10, textTransform: 'uppercase' },
   name: { ...typography.body, color: colors.primaryDark, fontWeight: '800', marginTop: 2 },
-  infoButton: {
-    height: 38,
-    borderRadius: radius.sm,
-    backgroundColor: '#023d91',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-  },
-  infoButtonPressed: { opacity: 0.86 },
-  infoText: { color: '#fff', fontSize: 13, fontWeight: '700' },
 });
