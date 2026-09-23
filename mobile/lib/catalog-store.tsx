@@ -17,6 +17,8 @@ type CatalogState = {
 const CatalogContext = createContext<CatalogState | null>(null);
 const CatalogSearchContext = createContext<{ searchQuery: string; setSearchQuery: (query: string) => void } | null>(null);
 
+const CHECK_INTERVAL_MS = 5 * 60_000;
+
 export function isDiscontinued(product: Product, now = Date.now()) {
   const until = Date.parse(product.discontinuedUntil ?? '');
   return product.published === false && Number.isFinite(until) && until > now;
@@ -97,7 +99,7 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
 
   const syncIncremental = useCallback(async (manual = false) => {
     // Sem internet não adianta tentar: marca offline na hora, sem esperar
-    // uma requisição falhar e sem redesenhar as telas a cada minuto.
+    // uma requisição falhar e sem redesenhar as telas a cada checagem.
     if (!isOnline()) { setOffline(true); setRefreshing(false); return; }
     if (runningRef.current) return runningRef.current;
     const operation = (async () => {
@@ -158,9 +160,11 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
     const stopNetwork = onNetworkChange(() => {
       if (isOnline()) void syncIncremental(false); else setOffline(true);
     });
+    // Checagem de fundo a cada 5 minutos (1 leitura no R2 cada). Ao voltar
+    // para o app, a checagem roda na hora (listener do AppState acima).
     const timer = setInterval(() => {
       if (AppState.currentState === 'active') void syncIncremental(false);
-    }, 60_000);
+    }, CHECK_INTERVAL_MS);
     return () => {
       cancelled = true; subscription.remove(); stopNetwork(); clearInterval(timer); abortController.current?.abort();
     };
@@ -175,7 +179,7 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
   }, [config, products]);
 
   const refresh = useCallback(() => syncIncremental(true), [syncIncremental]);
-  // A sincronização de fundo (a cada minuto) não tem estado aqui de propósito:
+  // A sincronização de fundo (a cada 5 minutos) não tem estado aqui de propósito:
   // se tivesse, redesenharia todas as telas abertas duas vezes a cada rodada.
   const value = useMemo(() => ({
     config, products, loading, refreshing, error, offline,
