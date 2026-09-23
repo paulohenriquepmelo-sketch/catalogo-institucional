@@ -1,8 +1,9 @@
 import type { AppIconName } from '@/components/AppIcon';
 
 /**
- * Segmentos de clientes do app (gerado a partir das regras validadas contra o
- * catálogo publicado; edite aqui e confira as contagens na aba Segmentos).
+ * Segmentos de clientes do app. ARQUIVO GERADO: edite
+ * `scripts/segmentos/segrules.py` e rode `gen.py` (veja o LEIA-ME.md de lá),
+ * que também confere as regras contra o catálogo publicado.
  *
  * Diferente do site, um produto pode estar em VÁRIOS segmentos: a sacola
  * serve para a padaria, o restaurante e o delivery. Cada segmento é dividido
@@ -73,16 +74,16 @@ export const SEGMENT_RULES: SegmentRule[] = [
       },
       {
         name: 'Bomboniere',
-        categories: ['2.1-balas & drops', '2.2-chicletes', '2.3-pirulitos', '2.4-chocolates', '2.5-doces / brinquedos', '2.7-gulozitos', 'barra dark', 'barra regular', 'hersheys mix'],
-        keywords: [],
-        exclude: [],
+        categories: ['2.1-balas & drops', '2.2-chicletes', '2.3-pirulitos', '2.4-chocolates', '2.5-doces / brinquedos', 'barra dark', 'barra regular', 'hersheys mix'],
+        keywords: ['geladinho', 'banana fit'],
+        exclude: ['chips', 'tortilla', 'salgadinho', 'pipoca'],
         minSize: 0,
       },
       {
         name: 'Salgadinhos e petiscos',
         categories: ['2.6-salgadinhos / pipocas / chips', 'salgadinhos', 'pipocas microondas', 'batata chips art fritas', 'torresmos'],
-        keywords: ['amendoim', 'pururuca'],
-        exclude: ['mendoreto', 'coq', 'chocolate', 'colorido', 'doce', 'bala', 'barra', 'torroni'],
+        keywords: ['amendoim', 'pururuca', 'chips', 'tortilla', 'tortilha', 'salgadinho', 'pipoca'],
+        exclude: ['mendoreto', 'coq', 'chocolate', 'colorido', 'doce', 'bala', 'barra', 'torroni', 'milho p/pipoca', 'sacola', 'sorvete'],
         minSize: 0,
       },
       {
@@ -110,7 +111,7 @@ export const SEGMENT_RULES: SegmentRule[] = [
         name: 'Utilidades e bazar',
         categories: ['utilidades', 'filme pvc/ papel aluminio'],
         keywords: [],
-        exclude: ['vassoura', 'rodo', 'saco lixo', 'esponja', 'pano', 'porta latinha', 'porta cerveja', 'porta litrao', 'porta latao', 'porta guardanapo'],
+        exclude: ['vassoura', 'rodo', 'saco lixo', 'saco p/lixo', 'esponja', 'pano', 'porta latinha', 'porta cerveja', 'porta litrao', 'porta latao', 'porta guardanapo', 'escova sanit', 'esfregao', 'rastelo', 'cabo madeira', 'pa p/', 'pa para', 'pa s/cabo', 'pa (s/cabo)', 'p/lixo', 'flanela', 'papel toalha'],
         minSize: 0,
       },
       {
@@ -167,7 +168,7 @@ export const SEGMENT_RULES: SegmentRule[] = [
         name: 'Descartáveis',
         categories: ['descartaveis'],
         keywords: ['copo ', 'prato', 'garfo', 'colher', 'faca', 'talher', 'canudo', 'guardanapo', 'mexedor', 'palito', 'tampa'],
-        exclude: ['doce', 'bala', 'choco', 'luva', 'mascara', 'touca', 'dispenser', 'extrato', 'pilha', 'americano', 'nadir', 'porta', 'azeitona', 'agua', 'frigideira', 'panela', 'canecao', 'caneca', 'leiteira', 'cuscuzeira', 'chaleira', 'caçarola', 'cacarola', 'forma de', 'isqueiro'],
+        exclude: ['doce', 'bala', 'choco', 'luva', 'mascara', 'touca', 'dispenser', 'extrato', 'pilha', 'americano', 'nadir', 'porta', 'azeitona', 'agua', 'marmit', 'pote', 'emb ', 'emb.', 'embalagem', 'garrafa', 'pazinha', 'suporte', 'sacola', 'frangueira', 'termico', 'avental', 'frigideira', 'panela', 'canecao', 'caneca', 'leiteira', 'cuscuzeira', 'chaleira', 'caçarola', 'cacarola', 'forma de', 'isqueiro'],
         minSize: 0,
       },
       {
@@ -180,22 +181,22 @@ export const SEGMENT_RULES: SegmentRule[] = [
       {
         name: 'Marmitex e bandejas',
         categories: ['eps (isopor)/bandejas aluminio'],
-        keywords: ['marmitex', 'bandeja', 'assadeira', 'pote termico', 'copo termico', 'tampa pote'],
+        keywords: ['marmitex', 'marmita', 'bandeja', 'assadeira', 'pote termico', 'copo termico', 'tampa pote'],
         exclude: ['disco pizza', 'hambur', 'prato', 'frigideira', 'panela', 'canecao', 'caneca', 'leiteira', 'cuscuzeira', 'chaleira', 'caçarola', 'cacarola', 'forma de', 'isqueiro'],
         minSize: 0,
       },
       {
-        name: 'Potes e tampas',
+        name: 'Potes, garrafas e tampas',
         categories: [],
-        keywords: ['pote', 'emb kit pot', 'sushi', 'emb. ret', 'embalagem (base)', 'embalagem (tampa)', 'frangueira'],
-        exclude: ['choco', 'pacoca', 'doce', 'bala', 'goma', 'confeito', 'granulado', 'cond ', 'escova', 'soda', 'marmitex', 'termico', 'brinq', 'slime'],
+        keywords: ['pote', 'emb kit pot', 'sushi', 'emb. ret', 'embalagem (base)', 'embalagem (tampa)', 'frangueira', 'garrafa quadrada', 'garrafa cristal'],
+        exclude: ['choco', 'pacoca', 'doce', 'bala', 'goma', 'confeito', 'granulado', 'cond ', 'escova', 'soda', 'marmitex', 'termico', 'brinq', 'slime', 'chicle', 'pir '],
         minSize: 0,
       },
       {
         name: 'Sacolas para viagem',
         categories: ['sacolas/ bobinas/ sacos pp'],
         keywords: [],
-        exclude: ['teste', 'lixo'],
+        exclude: ['teste', 'lixo', 'acougue', 'pipoca', 'chup', 'bobina pic'],
         minSize: 0,
       },
       {
@@ -230,22 +231,22 @@ export const SEGMENT_RULES: SegmentRule[] = [
       {
         name: 'Recheios, coberturas e confeitos',
         categories: ['linha foods service'],
-        keywords: ['margarina', 'chantil', 'cobertura', 'recheio', 'creme de conf', 'creme culinario', 'choc. granul', 'granulado', 'coco ralado', 'leite cond', 'leite condensado', 'acucar', 'gelatina sem sabor', 'gelatina em po', 'corante', 'confeit', 'doce de leite', 'sob.lactea', 'forneavel', 'choco creme', 'creme de leite', 'chocolate em po', 'choco em po', 'achocolatado em po', 'goiabada', 'essencia', 'aroma', 'doce leite', 'leite po', 'glucose', 'cremor', 'bicarbonato', 'emulsificante'],
-        exclude: ['bala', 'bisc', 'suco', 'goma', 'ref ', 'gomets', 'pirulito', 'pir ', 'chup ', 'doce mole', 'brinq', 'lavanda', 'limpadua', 'sequilho', 'amassyxup'],
+        keywords: ['margarina', 'chantil', 'cobertura', 'recheio', 'creme de conf', 'creme culinario', 'choc. granul', 'granulado', 'coco ralado', 'leite cond', 'leite condensado', 'acucar', 'gelatina sem sabor', 'gelatina em po', 'corante', 'confeit', 'sob.lactea', 'doce brigadeiro', 'doce famoso', 'doce palha', 'leite de coco', 'creme culinar', 'ovomaltine', 'pessego em calda', 'forneavel', 'choco creme', 'creme de leite', 'chocolate em po', 'choco em po', 'achocolatado em po', 'goiabada', 'essencia', 'aroma', 'doce leite', 'leite po', 'glucose', 'cremor', 'emulsificante'],
+        exclude: ['bala', 'bisc', 'suco', 'goma', 'ref ', 'gomets', 'pirulito', 'pir ', 'chup ', 'doce mole', 'brinq', 'lavanda', 'limpadua', 'sequilho', 'amassyxup', 'bicarbonato', 'sache', 'catchup', 'zero acucar', 'doce goiabada', 'ebl', 'barrinha', 'barra'],
         minSize: 0,
       },
       {
         name: 'Embalagens de bolo, torta e doces',
         categories: [],
         keywords: ['emb bolo', 'emba. bolo', 'embalagem p/ bolo', 'torta', 'leva doce', 'salgados/doces', 'emb leva', 'forminha', 'fatia', 'mini bolo', 'cake', 'cupcake', 'bandeja', 'disco', 'tampa'],
-        exclude: ['pizza', 'marmitex', 'copo', 'pote termico', 'eps', 'doce mole', 'isopor', 'hambur', 'azeitona', 'frigideira', 'panela', 'canecao', 'caneca', 'leiteira', 'cuscuzeira', 'chaleira', 'caçarola', 'cacarola', 'forma de', 'isqueiro'],
+        exclude: ['pizza', 'marmitex', 'copo', 'pote termico', 'eps', 'doce mole', 'isopor', 'hambur', 'azeitona', 'cogumelo', 'fatiad', 'chicle', 'pir ', 'frigideira', 'panela', 'canecao', 'caneca', 'leiteira', 'cuscuzeira', 'chaleira', 'caçarola', 'cacarola', 'forma de', 'isqueiro'],
         minSize: 0,
       },
       {
         name: 'Sacolas, sacos e papéis',
         categories: ['sacolas/ bobinas/ sacos pp'],
         keywords: ['papel manteiga', 'papel canada', 'papel p/'],
-        exclude: ['teste', 'lixo', 'hamburg', 'pizza', 'cigarro'],
+        exclude: ['teste', 'lixo', 'hambur', 'pizza', 'cigarro', 'acougue', 'cachorro'],
         minSize: 0,
       },
       {
@@ -256,10 +257,24 @@ export const SEGMENT_RULES: SegmentRule[] = [
         minSize: 0,
       },
       {
+        name: 'Frios e lanches',
+        categories: [],
+        keywords: ['mortadela', 'salsicha', 'linguica', 'linguiça', 'presunto', 'apresuntado', 'queijo prato', 'mussarela', 'salame'],
+        exclude: ['chips', 'salg', 'bisc', 'gulao', 'gulossauros', 'pipoca'],
+        minSize: 0,
+      },
+      {
+        name: 'Café, açúcar e adoçantes',
+        categories: [],
+        keywords: ['cafe ', 'adocante', 'sache acucar', 'acucar cristal', 'acucar refinado'],
+        exclude: ['bala', 'barra', 'chicle', 'coador', 'colher', 'mexedor', 'bisc'],
+        minSize: 0,
+      },
+      {
         name: 'Revenda de balcão',
-        categories: ['1.3-biscoitos', '3.1-sucos', '3.2-refrigerantes', '3.4-agua mineral', '2.4-chocolates', 'barra regular', 'barra dark', '2.1-balas & drops', '2.2-chicletes'],
-        keywords: ['panettone', 'chocotone', 'bolinho', 'sequilho', 'rosquinha', 'wafer', 'cafe radiante', 'achocolatado 200', 'leite cond.', 'doce de leite (ebl)'],
-        exclude: ['cesta'],
+        categories: ['1.3-biscoitos', '3.1-sucos', '3.2-refrigerantes', '3.4-agua mineral', '2.4-chocolates', 'barra regular', 'barra dark', '2.1-balas & drops', '2.2-chicletes', '2.3-pirulitos'],
+        keywords: ['panettone', 'chocotone', 'bolinho', 'sequilho', 'rosquinha', 'wafer', 'achocolatado', 'vitamina', 'leite cond.', 'doce de leite (ebl)', 'pacoca', 'bananada', 'mariola', 'doce mole', 'doce de leite', 'nutry'],
+        exclude: ['cesta', 'achocolatado em po'],
         minSize: 0,
       },
       {
@@ -293,16 +308,16 @@ export const SEGMENT_RULES: SegmentRule[] = [
       },
       {
         name: 'Doces e brinquedos',
-        categories: ['2.5-doces / brinquedos', '2.7-gulozitos'],
-        keywords: ['pacoca', 'pe de moleque', 'doce mole', 'mariola', 'goiabada', 'bananada', 'cocada'],
-        exclude: ['coquetel'],
+        categories: ['2.5-doces / brinquedos'],
+        keywords: ['pacoca', 'pe de moleque', 'doce mole', 'mariola', 'goiabada', 'bananada', 'cocada', 'geladinho', 'banana fit'],
+        exclude: ['coquetel', 'chips', 'tortilla', 'salgadinho', 'pipoca', 'forneavel', 'cremosa'],
         minSize: 0,
       },
       {
         name: 'Salgadinhos e petiscos',
         categories: ['2.6-salgadinhos / pipocas / chips', 'salgadinhos', 'pipocas microondas', 'batata chips art fritas', 'torresmos'],
-        keywords: ['amendoim', 'pururuca'],
-        exclude: ['mendoreto', 'coq', 'chocolate', 'colorido', 'doce', 'bala', 'barra', 'torroni'],
+        keywords: ['amendoim', 'pururuca', 'chips', 'tortilla', 'tortilha', 'salgadinho', 'pipoca'],
+        exclude: ['mendoreto', 'coq', 'chocolate', 'colorido', 'doce', 'bala', 'barra', 'torroni', 'milho p/pipoca', 'sacola', 'sorvete'],
         minSize: 0,
       },
       {
@@ -358,8 +373,15 @@ export const SEGMENT_RULES: SegmentRule[] = [
       {
         name: 'Salgadinhos e petiscos',
         categories: ['2.6-salgadinhos / pipocas / chips', 'salgadinhos', 'pipocas microondas', 'batata chips art fritas', 'torresmos'],
-        keywords: ['amendoim', 'pururuca'],
-        exclude: ['mendoreto', 'coq', 'chocolate', 'colorido', 'doce', 'bala', 'barra', 'torroni'],
+        keywords: ['amendoim', 'pururuca', 'chips', 'tortilla', 'tortilha', 'salgadinho', 'pipoca'],
+        exclude: ['mendoreto', 'coq', 'chocolate', 'colorido', 'doce', 'bala', 'barra', 'torroni', 'milho p/pipoca', 'sacola', 'sorvete'],
+        minSize: 0,
+      },
+      {
+        name: 'Porções e petiscos',
+        categories: [],
+        keywords: ['azeitona', 'pepino', 'pepininho', 'cebolinha', 'calabresa', 'linguica', 'linguiça', 'mortadela', 'tremoco', 'ovo de codorna'],
+        exclude: ['chips', 'doce', 'chocolate', 'bala', 'cond '],
         minSize: 0,
       },
       {
@@ -387,15 +409,15 @@ export const SEGMENT_RULES: SegmentRule[] = [
       {
         name: 'Marmitex e bandejas',
         categories: ['eps (isopor)/bandejas aluminio'],
-        keywords: ['marmitex', 'bandeja', 'assadeira', 'pote termico', 'copo termico', 'tampa pote'],
+        keywords: ['marmitex', 'marmita', 'bandeja', 'assadeira', 'pote termico', 'copo termico', 'tampa pote'],
         exclude: ['disco pizza', 'hambur', 'prato', 'frigideira', 'panela', 'canecao', 'caneca', 'leiteira', 'cuscuzeira', 'chaleira', 'caçarola', 'cacarola', 'forma de', 'isqueiro'],
         minSize: 0,
       },
       {
-        name: 'Potes e tampas',
+        name: 'Potes, garrafas e tampas',
         categories: [],
-        keywords: ['pote', 'emb kit pot', 'sushi', 'emb. ret', 'embalagem (base)', 'embalagem (tampa)', 'frangueira'],
-        exclude: ['choco', 'pacoca', 'doce', 'bala', 'goma', 'confeito', 'granulado', 'cond ', 'escova', 'soda', 'marmitex', 'termico', 'brinq', 'slime'],
+        keywords: ['pote', 'emb kit pot', 'sushi', 'emb. ret', 'embalagem (base)', 'embalagem (tampa)', 'frangueira', 'garrafa quadrada', 'garrafa cristal'],
+        exclude: ['choco', 'pacoca', 'doce', 'bala', 'goma', 'confeito', 'granulado', 'cond ', 'escova', 'soda', 'marmitex', 'termico', 'brinq', 'slime', 'chicle', 'pir '],
         minSize: 0,
       },
       {
@@ -416,7 +438,7 @@ export const SEGMENT_RULES: SegmentRule[] = [
         name: 'Sacolas de entrega',
         categories: [],
         keywords: ['deliv', 'kraft', 'sacola papel', 'sacola camis', 'sacola p/', 'sacola cam'],
-        exclude: ['talher', 'teste'],
+        exclude: ['talher', 'teste', 'pipoca', 'chup'],
         minSize: 0,
       },
       {
@@ -459,7 +481,7 @@ export const SEGMENT_RULES: SegmentRule[] = [
         name: 'Higiene pessoal',
         categories: ['higiene pessoal'],
         keywords: [],
-        exclude: ['papel hig', 'fralda', 'creme dental', 'escova dental', 'fio dental'],
+        exclude: ['papel hig', 'fralda', 'creme dental', 'escova dental', 'escova dent', 'fio dental', 'enxaguante', 'lava roupas', 'limp. perf', 'papel interf', 'papel toalha', 'escolva'],
         minSize: 0,
       },
       {
@@ -472,7 +494,7 @@ export const SEGMENT_RULES: SegmentRule[] = [
       {
         name: 'Higiene bucal',
         categories: [],
-        keywords: ['creme dental', 'escova dental', 'fio dental', 'enxaguante'],
+        keywords: ['creme dental', 'escova dental', 'escova dent', 'escolva', 'fio dental', 'enxaguante'],
         exclude: [],
         minSize: 0,
       },
@@ -487,14 +509,14 @@ export const SEGMENT_RULES: SegmentRule[] = [
       {
         name: 'Produtos de limpeza',
         categories: ['limpeza'],
-        keywords: [],
+        keywords: ['lava roupas', 'limp. perf'],
         exclude: ['vassoura', 'rodo', 'pano', 'esponja', 'luva', 'saco lixo'],
         minSize: 0,
       },
       {
         name: 'Vassouras, rodos e utensílios',
         categories: [],
-        keywords: ['vassoura', 'rodo', 'rastelo', 'pa p/ lixo', 'pa de lixo', 'cabo madeira', 'escova', 'desentupidor', 'balde', 'lixeira', 'esfregao', 'mop'],
+        keywords: ['vassoura', 'rodo', 'rastelo', 'pa p/', 'pa para', 'pa s/cabo', 'pa (s/cabo)', 'pa de lixo', 'cabo madeira', 'escova', 'saco p/lixo', 'desentupidor', 'balde', 'lixeira', 'esfregao', 'mop'],
         exclude: ['escova dental', 'escova dent'],
         minSize: 0,
       },
@@ -515,7 +537,7 @@ export const SEGMENT_RULES: SegmentRule[] = [
       {
         name: 'Papel toalha e dispensers',
         categories: [],
-        keywords: ['papel toalha', 'dispenser', 'papel hig'],
+        keywords: ['papel toalha', 'papel interf', 'dispenser', 'papel hig'],
         exclude: [],
         minSize: 0,
       },
@@ -531,7 +553,7 @@ export const SEGMENT_RULES: SegmentRule[] = [
         name: 'Utilidades domésticas',
         categories: ['utilidades'],
         keywords: [],
-        exclude: ['vassoura', 'rodo', 'rastelo', 'saco lixo', 'esponja', 'pano', 'pa p/ lixo', 'cabo madeira', 'papel toalha', 'escova sanit'],
+        exclude: ['vassoura', 'rodo', 'rastelo', 'saco lixo', 'saco p/lixo', 'esponja', 'pano', 'pa p/', 'pa para', 'pa s/cabo', 'pa (s/cabo)', 'p/lixo', 'cabo madeira', 'papel toalha', 'escova', 'esfregao', 'flanela'],
         minSize: 0,
       },
       {
@@ -631,7 +653,7 @@ export const SEGMENT_RULES: SegmentRule[] = [
         name: 'Batata, bacon e acompanhamentos',
         categories: ['banhas'],
         keywords: ['batata palha', 'bacon', 'salsicha', 'banha', 'torresmo', 'cheddar', 'milho verde', 'ervilha'],
-        exclude: ['chips', 'gulao', 'gulossauros', 'pipoca', 'doce', 'farofa', 'sache', 'sorvete', 'salg', ' ond '],
+        exclude: ['chips', 'gulao', 'gulossauros', 'pipoca', 'doce', 'farofa', 'sache', 'sorvete', 'salg', ' ond ', 'molho'],
         minSize: 900,
       },
       {
@@ -674,21 +696,21 @@ export const SEGMENT_RULES: SegmentRule[] = [
         name: 'Bases e pós para sorvete',
         categories: [],
         keywords: ['po  p/sorvete', 'po p/sorvete', 'sorvete', 'acai', 'liga neutra', 'emulsificante', 'saborizante'],
-        exclude: ['doce mole', 'banana fit', 'mariola', 'ref ', 'pazinha'],
+        exclude: ['doce mole', 'banana fit', 'mariola', 'ref ', 'pazinha', 'colher'],
         minSize: 0,
       },
       {
         name: 'Coberturas e complementos',
         categories: [],
         keywords: ['cobertura', 'granulado', 'confeit', 'leite cond', 'leite condensado', 'pacoca', 'amendoim', 'choco creme', 'creme de avela', 'coco ralado', 'calda', 'sob.lactea', 'marshmallow', 'chocoball', 'choco bolinha', 'ovomaltine', 'gotas'],
-        exclude: ['bala', 'mendoreto', 'dori 70g', 'pirulito', 'japones', 'salgado', 'coquetel'],
+        exclude: ['bala', 'mendoreto', 'dori 70g', 'pirulito', 'pir ', 'japones', 'salgado', 'coquetel', 'amassyxup', 'barra', 'barrinha', 'brinq', 'sequilho', 'doce machado', 'bisc'],
         minSize: 0,
       },
       {
         name: 'Copos, potes e tampas',
         categories: [],
         keywords: ['copo ', 'pote', 'tampa copo', 'tampa bolha', 'tampa t', 'tampa pote'],
-        exclude: ['doce', 'bala', 'choco', 'pacoca', 'extrato', 'americano', 'nadir', 'marmitex', 'emb kit', 'goma', 'confeito', 'cond ', 'soda', 'escova', 'sushi', 'p/ molho', 'azeitona', 'agua', 'brinq', 'slime', 'frigideira', 'panela', 'canecao', 'caneca', 'leiteira', 'cuscuzeira', 'chaleira', 'caçarola', 'cacarola', 'forma de', 'isqueiro'],
+        exclude: ['doce', 'bala', 'choco', 'pacoca', 'extrato', 'americano', 'nadir', 'marmitex', 'emb kit', 'goma', 'confeito', 'cond ', 'soda', 'escova', 'sushi', 'p/ molho', 'azeitona', 'agua', 'brinq', 'slime', 'chicle', 'pir ', 'frigideira', 'panela', 'canecao', 'caneca', 'leiteira', 'cuscuzeira', 'chaleira', 'caçarola', 'cacarola', 'forma de', 'isqueiro'],
         minSize: 0,
       },
       {
@@ -744,7 +766,7 @@ export const SEGMENT_RULES: SegmentRule[] = [
       {
         name: 'Marmitex e bandejas',
         categories: ['eps (isopor)/bandejas aluminio'],
-        keywords: ['marmitex', 'bandeja', 'assadeira', 'pote termico', 'copo termico', 'tampa pote'],
+        keywords: ['marmitex', 'marmita', 'bandeja', 'assadeira', 'pote termico', 'copo termico', 'tampa pote'],
         exclude: ['disco pizza', 'hambur', 'prato', 'frigideira', 'panela', 'canecao', 'caneca', 'leiteira', 'cuscuzeira', 'chaleira', 'caçarola', 'cacarola', 'forma de', 'isqueiro'],
         minSize: 0,
       },
@@ -773,7 +795,7 @@ export const SEGMENT_RULES: SegmentRule[] = [
         name: 'Sacolas',
         categories: [],
         keywords: ['sacola camis', 'sacola cam', 'sacola p/', 'deliv', 'kraft'],
-        exclude: ['teste', 'hambur'],
+        exclude: ['teste', 'hambur', 'pipoca', 'chup'],
         minSize: 0,
       },
       {
