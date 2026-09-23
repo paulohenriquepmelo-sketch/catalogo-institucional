@@ -16,6 +16,13 @@ import {
   UtensilsCrossed,
   Bell,
   BadgeInfo,
+  Balloon,
+  Cake,
+  Gift,
+  Heart,
+  Music,
+  PartyPopper,
+  TreePine,
   Building2,
   ChevronDown,
   ChevronRight,
@@ -51,7 +58,9 @@ export type AppIconName =
   | 'basket'
   | 'beer'
   | 'bread'
+  | 'balloon'
   | 'business'
+  | 'cake'
   | 'candy'
   | 'cafe'
   | 'chevron-down'
@@ -62,16 +71,20 @@ export type AppIconName =
   | 'cube'
   | 'fast-food'
   | 'flask'
+  | 'gift'
   | 'grid'
   | 'handshake'
+  | 'heart'
   | 'headset'
   | 'home'
   | 'ice-cream'
   | 'image'
   | 'information-circle'
   | 'mail'
+  | 'music'
   | 'medkit'
   | 'notifications'
+  | 'party'
   | 'people'
   | 'percent'
   | 'pricetag'
@@ -85,6 +98,7 @@ export type AppIconName =
   | 'spray'
   | 'store'
   | 'time'
+  | 'tree'
   | 'truck';
 
 const icons: Record<AppIconName, ComponentType<LucideProps>> = {
@@ -94,7 +108,9 @@ const icons: Record<AppIconName, ComponentType<LucideProps>> = {
   basket: ShoppingBasket,
   beer: BottleWine,
   bread: Croissant,
+  balloon: Balloon,
   business: Building2,
+  cake: Cake,
   candy: Candy,
   cafe: CupSoda,
   'chevron-down': ChevronDown,
@@ -105,16 +121,20 @@ const icons: Record<AppIconName, ComponentType<LucideProps>> = {
   cube: Package,
   'fast-food': Hamburger,
   flask: FlaskConical,
+  gift: Gift,
   grid: Grid2X2,
   handshake: Handshake,
+  heart: Heart,
   headset: Headphones,
   home: House,
   'ice-cream': IceCreamCone,
   image: ImageIcon,
   'information-circle': BadgeInfo,
   mail: Mail,
+  music: Music,
   medkit: SoapDispenserDroplet,
   notifications: Bell,
+  party: PartyPopper,
   people: Handshake,
   percent: Percent,
   pricetag: Tag,
@@ -128,6 +148,7 @@ const icons: Record<AppIconName, ComponentType<LucideProps>> = {
   spray: SprayCan,
   store: Store,
   time: Clock,
+  tree: TreePine,
   truck: Truck,
 };
 

@@ -12,7 +12,8 @@ import {
 import { AppIcon } from '@/components/AppIcon';
 import { useCatalog } from '@/lib/catalog-store';
 import { buildNotifications, markNotificationsSeen } from '@/lib/notifications';
-import { colors, radius, spacing, typography } from '@/lib/theme';
+import { radius, spacing, typography } from '@/lib/theme';
+import { createThemedStyles, useThemeColors } from '@/lib/app-theme';
 
 function timeAgo(at: number) {
   const diff = Date.now() - at;
@@ -28,6 +29,8 @@ function timeAgo(at: number) {
 }
 
 export default function NotificacoesScreen() {
+  const styles = useStyles();
+  const colors = useThemeColors();
   const { products, config, offline } = useCatalog();
 
   const notifications = useMemo(
@@ -62,7 +65,7 @@ export default function NotificacoesScreen() {
         <AppIcon name="chevron-forward" size={18} color={colors.textMuted} />
       </Pressable>
     ),
-    [],
+    [styles, colors],
   );
 
   // Abrir a tela marca tudo como visto e zera o contador do sino.
@@ -112,7 +115,7 @@ export default function NotificacoesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedStyles((colors) => ({
   screen: { flex: 1, backgroundColor: colors.background },
   header: { padding: spacing.lg, paddingBottom: spacing.sm },
   title: { ...typography.title, color: colors.text },
@@ -159,4 +162,4 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     paddingHorizontal: spacing.lg,
   },
-});
+}));

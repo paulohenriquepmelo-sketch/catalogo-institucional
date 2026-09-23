@@ -17,9 +17,12 @@ import { useCatalog } from '@/lib/catalog-store';
 import { publishedBrands } from '@/lib/api';
 import { useAfterFirstFrame } from '@/lib/useAfterFirstFrame';
 import { useResponsiveLayout } from '@/lib/useResponsiveLayout';
-import { colors, radius, spacing, typography } from '@/lib/theme';
+import { radius, spacing, typography } from '@/lib/theme';
+import { createThemedStyles, useThemeColors } from '@/lib/app-theme';
 
 export default function MarcasScreen() {
+  const styles = useStyles();
+  const colors = useThemeColors();
   const router = useRouter();
   const { config, products, refreshing, refresh } = useCatalog();
   const { columns } = useResponsiveLayout();
@@ -52,7 +55,7 @@ export default function MarcasScreen() {
         </Text>
       </Pressable>
     ),
-    [router],
+    [router, styles],
   );
   const renderBatchSize = Math.max(4, columns * 2);
 
@@ -99,7 +102,7 @@ export default function MarcasScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedStyles((colors) => ({
   screen: { flex: 1, backgroundColor: colors.background },
   header: { padding: spacing.lg, paddingBottom: spacing.sm },
   title: { ...typography.title, color: colors.text },
@@ -123,4 +126,4 @@ const styles = StyleSheet.create({
   count: { ...typography.small, color: colors.textMuted },
   empty: { alignItems: 'center', paddingVertical: spacing.xxl, gap: spacing.sm },
   emptyText: { ...typography.body, color: colors.textMuted },
-});
+}));

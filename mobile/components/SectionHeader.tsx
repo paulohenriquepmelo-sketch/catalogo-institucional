@@ -1,5 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { colors, spacing, typography } from '@/lib/theme';
+import { spacing, typography } from '@/lib/theme';
+import { createThemedStyles } from '@/lib/app-theme';
 
 export function SectionHeader({
   eyebrow,
@@ -12,6 +13,7 @@ export function SectionHeader({
   actionLabel?: string;
   onAction?: () => void;
 }) {
+  const styles = useStyles();
   return (
     <View style={styles.row}>
       <View style={{ flex: 1 }}>
@@ -27,7 +29,7 @@ export function SectionHeader({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedStyles((colors) => ({
   row: {
     flexDirection: 'row',
     alignItems: 'flex-end',
@@ -44,4 +46,4 @@ const styles = StyleSheet.create({
   },
   title: { ...typography.title, color: colors.text },
   action: { ...typography.body, color: colors.primary, fontWeight: '600' },
-});
+}));

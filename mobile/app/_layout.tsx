@@ -5,9 +5,11 @@ import { CatalogProvider, useCatalog } from '@/lib/catalog-store';
 import { LoadingScreen } from '@/components/LoadingScreen';
 import { AppHeader } from '@/components/AppHeader';
 import { AppIcon } from '@/components/AppIcon';
-import { colors, radius, spacing, typography } from '@/lib/theme';
+import { radius, spacing, typography } from '@/lib/theme';
+import { AppThemeProvider, createThemedStyles, useThemeColors } from '@/lib/app-theme';
 
 function RootNavigator() {
+  const colors = useThemeColors();
   const {
     loading,
     loadingLabel,
@@ -56,6 +58,8 @@ function ErrorScreen({
   busy: boolean;
   onRetry: () => void;
 }) {
+  const styles = useStyles();
+  const colors = useThemeColors();
   return (
     <View style={styles.errorScreen}>
       <AppIcon name="cloud-offline" size={52} color={colors.textMuted} />
@@ -75,13 +79,16 @@ function ErrorScreen({
 export default function RootLayout() {
   return (
     <CatalogProvider>
-      <StatusBar style="light" />
-      <RootNavigator />
+      {/* O tema segue a campanha publicada no site (lida pelo catálogo). */}
+      <AppThemeProvider>
+        <StatusBar style="light" />
+        <RootNavigator />
+      </AppThemeProvider>
     </CatalogProvider>
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedStyles((colors) => ({
   errorScreen: {
     flex: 1,
     alignItems: 'center',
@@ -116,4 +123,4 @@ const styles = StyleSheet.create({
   },
   retryBusy: { opacity: 0.6 },
   retryText: { color: colors.textOnPrimary, fontWeight: '700', fontSize: 14 },
-});
+}));

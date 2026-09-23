@@ -14,10 +14,13 @@ import { useCatalog } from '@/lib/catalog-store';
 import { activeOffers, offerTimeLabel } from '@/lib/api';
 import { useAfterFirstFrame } from '@/lib/useAfterFirstFrame';
 import { useResponsiveLayout } from '@/lib/useResponsiveLayout';
-import { colors, spacing, typography } from '@/lib/theme';
+import { spacing, typography } from '@/lib/theme';
 import { ProductCard } from '@/components/ProductCard';
+import { createThemedStyles, useThemeColors } from '@/lib/app-theme';
 
 export default function OfertasScreen() {
+  const styles = useStyles();
+  const colors = useThemeColors();
   const { config, products, refreshing, refresh } = useCatalog();
   const { columns } = useResponsiveLayout();
   const ready = useAfterFirstFrame();
@@ -41,7 +44,7 @@ export default function OfertasScreen() {
         </View>
       </View>
     ),
-    [now],
+    [now, styles, colors],
   );
   const renderBatchSize = Math.max(4, columns * 2);
 
@@ -88,7 +91,7 @@ export default function OfertasScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedStyles((colors) => ({
   screen: { flex: 1, backgroundColor: colors.background },
   header: { padding: spacing.lg, paddingBottom: spacing.sm },
   title: { ...typography.title, color: colors.text },
@@ -107,4 +110,4 @@ const styles = StyleSheet.create({
   timerText: { ...typography.small, color: colors.accent, fontWeight: '600' },
   empty: { alignItems: 'center', paddingVertical: spacing.xxl, gap: spacing.sm },
   emptyText: { ...typography.body, color: colors.textMuted },
-});
+}));

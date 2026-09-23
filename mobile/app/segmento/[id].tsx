@@ -17,12 +17,15 @@ import { useCatalog } from '@/lib/catalog-store';
 import { buildSegments } from '@/lib/segments';
 import { useAfterFirstFrame } from '@/lib/useAfterFirstFrame';
 import { useResponsiveLayout } from '@/lib/useResponsiveLayout';
-import { colors, radius, spacing, typography } from '@/lib/theme';
+import { radius, spacing, typography } from '@/lib/theme';
 import type { Product } from '@/lib/api';
+import { createThemedStyles, useThemeColors } from '@/lib/app-theme';
 
 const ALL = -1;
 
 export default function SegmentoScreen() {
+  const styles = useStyles();
+  const colors = useThemeColors();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { products } = useCatalog();
   const { columns } = useResponsiveLayout();
@@ -46,7 +49,7 @@ export default function SegmentoScreen() {
         <ProductCard product={item} style={styles.cardFill} />
       </View>
     ),
-    [],
+    [styles],
   );
   const renderBatchSize = Math.max(4, columns * 2);
 
@@ -126,6 +129,7 @@ export default function SegmentoScreen() {
 }
 
 function Chip({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
+  const styles = useStyles();
   return (
     <Pressable
       accessibilityRole="button"
@@ -140,7 +144,7 @@ function Chip({ label, active, onPress }: { label: string; active: boolean; onPr
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedStyles((colors) => ({
   screen: { flex: 1, backgroundColor: colors.background },
   grid: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxl },
   row: { gap: spacing.md, marginBottom: spacing.md },
@@ -152,7 +156,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: radius.pill,
-    backgroundColor: '#eef2fb',
+    backgroundColor: colors.soft,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -180,4 +184,4 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     backgroundColor: colors.background,
   },
-});
+}));

@@ -15,13 +15,16 @@ import { isDiscontinued, useCatalog } from '@/lib/catalog-store';
 import { similarProducts } from '@/lib/api';
 import { complementProducts } from '@/lib/complements';
 import { useLocalImageUri } from '@/lib/image-cache';
-import { colors, radius, spacing, typography } from '@/lib/theme';
+import { radius, spacing, typography } from '@/lib/theme';
 import { ProductRow } from '@/components/ProductRow';
 import { detailFields } from '@/lib/product-fields';
+import { createThemedStyles, useThemeColors } from '@/lib/app-theme';
 
 const RELATED_LIMIT = 8;
 
 export default function ProdutoScreen() {
+  const styles = useStyles();
+  const colors = useThemeColors();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { products, config } = useCatalog();
   const [broken, setBroken] = useState(false);
@@ -178,7 +181,7 @@ export default function ProdutoScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedStyles((colors) => ({
   screen: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.lg, paddingBottom: spacing.xxl },
   imageWrap: {
@@ -250,4 +253,4 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   notFoundText: { ...typography.body, color: colors.textMuted },
-});
+}));

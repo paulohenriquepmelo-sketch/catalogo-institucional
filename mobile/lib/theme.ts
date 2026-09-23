@@ -1,10 +1,18 @@
 // Identidade visual da Distribuidora Laurencini — mesmas cores usadas no
 // catálogo institucional (site público), para o app ficar visualmente
 // consistente com o site.
-export const colors = {
+// Cores do tema Padrão. Os temas de campanha (lib/app-theme.tsx) trocam
+// primary, primaryDark, accent, header e soft; o resto é comum a todos.
+// Nos componentes, as cores vêm do tema ativo: useThemeColors() ou
+// createThemedStyles() — nunca direto daqui.
+export const defaultColors = {
   primary: '#263f85',
   primaryDark: '#172f6f',
   accent: '#ef312f',
+  /** Barra do topo do app. */
+  header: '#034598',
+  /** Fundo claro de apoio (ícones, faixas suaves). */
+  soft: '#eef2fb',
   background: '#ffffff',
   surface: '#ffffff',
   border: '#e2e6f0',
@@ -14,6 +22,8 @@ export const colors = {
   success: '#1f9d55',
   warning: '#b8860b',
 };
+
+export type ThemeColors = typeof defaultColors;
 
 export const spacing = {
   xs: 4,

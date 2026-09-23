@@ -9,7 +9,8 @@ import {
   countUnread,
   useNotificationsSeenAt,
 } from '@/lib/notifications';
-import { colors, radius, spacing } from '@/lib/theme';
+import { radius, spacing } from '@/lib/theme';
+import { createThemedStyles, useThemeColors } from '@/lib/app-theme';
 
 export function AppHeader({
   canGoBack = false,
@@ -18,6 +19,8 @@ export function AppHeader({
   canGoBack?: boolean;
   onBack?: () => void;
 }) {
+  const styles = useStyles();
+  const colors = useThemeColors();
   const { config, products } = useCatalog();
   const { searchQuery, setSearchQuery } = useCatalogSearch();
   const insets = useSafeAreaInsets();
@@ -95,9 +98,9 @@ export function AppHeader({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedStyles((colors) => ({
   container: {
-    backgroundColor: '#034598',
+    backgroundColor: colors.header,
     paddingHorizontal: spacing.md,
     paddingBottom: spacing.sm,
     borderBottomWidth: 3,
@@ -154,4 +157,4 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontSize: 13,
   },
-});
+}));

@@ -11,10 +11,12 @@ import {
 } from 'react-native';
 import { CachedImage } from '@/components/CachedImage';
 import { useResponsiveLayout } from '@/lib/useResponsiveLayout';
-import { colors, radius, spacing, typography } from '@/lib/theme';
+import { radius, spacing, typography } from '@/lib/theme';
 import type { Banner } from '@/lib/api';
+import { createThemedStyles } from '@/lib/app-theme';
 
 export function BannerCarousel({ banners }: { banners: Banner[] }) {
+  const styles = useStyles();
   const visible = banners.filter((b) => b.visible !== false);
   const [active, setActive] = useState(0);
   // useWindowDimensions (dentro do hook) é reativo — recalcula ao girar a
@@ -60,6 +62,7 @@ function BannerSlider({
   gap: number;
   horizontalPadding: number;
 }) {
+  const styles = useStyles();
   // Altura calculada explicitamente (proporção 2:1) — não usar height:'100%'
   // aqui, pois o ScrollView pai não tem altura própria definida e isso
   // colapsava os banners para 0px de altura.
@@ -109,7 +112,7 @@ function BannerSlider({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedStyles((colors) => ({
   track: { marginBottom: spacing.sm },
   slideBase: {
     borderRadius: radius.lg,
@@ -141,4 +144,4 @@ const styles = StyleSheet.create({
     backgroundColor: colors.border,
   },
   dotActive: { backgroundColor: colors.primary, width: 16 },
-});
+}));

@@ -14,10 +14,13 @@ import { useCatalog } from '@/lib/catalog-store';
 import { newProducts } from '@/lib/api';
 import { useAfterFirstFrame } from '@/lib/useAfterFirstFrame';
 import { useResponsiveLayout } from '@/lib/useResponsiveLayout';
-import { colors, spacing, typography } from '@/lib/theme';
+import { spacing, typography } from '@/lib/theme';
 import { ProductCard } from '@/components/ProductCard';
+import { createThemedStyles, useThemeColors } from '@/lib/app-theme';
 
 export default function NovidadesScreen() {
+  const styles = useStyles();
+  const colors = useThemeColors();
   const { config, products, refreshing, refresh } = useCatalog();
   const { columns } = useResponsiveLayout();
   const ready = useAfterFirstFrame();
@@ -32,7 +35,7 @@ export default function NovidadesScreen() {
         <ProductCard product={item} style={styles.cardFill} />
       </View>
     ),
-    [],
+    [styles],
   );
   const renderBatchSize = Math.max(4, columns * 2);
 
@@ -79,7 +82,7 @@ export default function NovidadesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedStyles((colors) => ({
   screen: { flex: 1, backgroundColor: colors.background },
   header: { padding: spacing.lg, paddingBottom: spacing.sm },
   title: { ...typography.title, color: colors.text },
@@ -90,4 +93,4 @@ const styles = StyleSheet.create({
   cardFill: { width: '100%' },
   empty: { alignItems: 'center', paddingVertical: spacing.xxl, gap: spacing.sm },
   emptyText: { ...typography.body, color: colors.textMuted },
-});
+}));

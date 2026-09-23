@@ -12,9 +12,10 @@ import { AppIcon } from '@/components/AppIcon';
 import { router } from 'expo-router';
 import { useLocalImageUri } from '@/lib/image-cache';
 import { isOnline } from '@/lib/network';
-import { colors, radius, spacing, typography } from '@/lib/theme';
+import { radius, spacing, typography } from '@/lib/theme';
 import type { Product } from '@/lib/api';
 import { isDiscontinued } from '@/lib/catalog-store';
+import { createThemedStyles, useAppTheme } from '@/lib/app-theme';
 
 // memo: numa lista longa, sem isto todo card visível redesenha sempre que
 // a tela pai re-renderiza.
@@ -27,6 +28,8 @@ export const ProductCard = memo(function ProductCard({
   style?: StyleProp<ViewStyle>;
   width?: number;
 }) {
+  const styles = useStyles();
+  const themeBadge = useAppTheme().badge;
   const [broken, setBroken] = useState(false);
   // Arquivo salvo no aparelho quando já baixado; senão a URL remota.
   const imageUri = useLocalImageUri(product.image);
@@ -70,6 +73,8 @@ export const ProductCard = memo(function ProductCard({
 
         {showOffer ? (
           <View style={styles.badge}>
+            {/* Com tema ativo, o selo de oferta leva o ícone da data. */}
+            {themeBadge ? <AppIcon name={themeBadge.icon} size={11} color="#fff" /> : null}
             <Text style={styles.badgeText}>{offer!.discount}% OFF</Text>
           </View>
         ) : null}
@@ -93,7 +98,7 @@ export const ProductCard = memo(function ProductCard({
   );
 });
 
-const styles = StyleSheet.create({
+const useStyles = createThemedStyles((colors) => ({
   card: {
     overflow: 'hidden',
     backgroundColor: colors.surface,
@@ -130,6 +135,9 @@ const styles = StyleSheet.create({
     left: 4,
     borderRadius: radius.sm,
     backgroundColor: colors.accent,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
     paddingHorizontal: 8,
     paddingVertical: 5,
   },
@@ -155,4 +163,4 @@ const styles = StyleSheet.create({
     marginTop: 3,
     fontVariant: ['tabular-nums'],
   },
-});
+}));

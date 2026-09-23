@@ -17,8 +17,9 @@ import { ProductCard } from '@/components/ProductCard';
 import { isDiscontinued, useCatalog, useCatalogSearch } from '@/lib/catalog-store';
 import { useAfterFirstFrame } from '@/lib/useAfterFirstFrame';
 import { useResponsiveLayout } from '@/lib/useResponsiveLayout';
-import { colors, radius, spacing, typography } from '@/lib/theme';
+import { radius, spacing, typography } from '@/lib/theme';
 import type { Product } from '@/lib/api';
+import { createThemedStyles, useThemeColors } from '@/lib/app-theme';
 
 const ALL = 'Todos';
 
@@ -63,6 +64,8 @@ function firstParam(value?: string | string[]) {
 }
 
 export default function CatalogoScreen() {
+  const styles = useStyles();
+  const colors = useThemeColors();
   const { products, refreshing, refresh, offline } = useCatalog();
   const { searchQuery, setSearchQuery } = useCatalogSearch();
   const { columns, spacing: adaptiveSpacing } = useResponsiveLayout();
@@ -245,7 +248,7 @@ export default function CatalogoScreen() {
         <ProductCard product={item} style={styles.cardFill} />
       </View>
     ),
-    [],
+    [styles],
   );
   const renderBatchSize = Math.max(4, columns * 2);
 
@@ -365,6 +368,7 @@ function FilterGroup({
   selected: string;
   onSelect: (value: string) => void;
 }) {
+  const styles = useStyles();
   if (options.length <= 1) return null;
   return (
     <View style={styles.filterGroup}>
@@ -392,7 +396,7 @@ function FilterGroup({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedStyles((colors) => ({
   screen: {
     flex: 1,
     backgroundColor: colors.background,
@@ -459,7 +463,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     borderRadius: radius.md,
-    backgroundColor: '#fff2f2',
+    backgroundColor: colors.soft,
     borderWidth: 1,
     borderColor: '#ffe2e2',
     alignSelf: 'flex-start',
@@ -510,4 +514,4 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: 13,
   },
-});
+}));

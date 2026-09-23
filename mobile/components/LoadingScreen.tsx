@@ -1,6 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { Animated, Easing, Image, StyleSheet, Text, View } from 'react-native';
-import { colors, spacing, typography } from '@/lib/theme';
+import { spacing, typography } from '@/lib/theme';
+import { createThemedStyles, useAppTheme } from '@/lib/app-theme';
+import { AppIcon } from '@/components/AppIcon';
 
 // Tela de carregamento do app: logo pulsando + o que está sendo baixado no
 // momento. Quando o progresso é conhecido (download das imagens), a barra
@@ -12,6 +14,8 @@ export function LoadingScreen({
   label?: string;
   progress?: number | null;
 }) {
+  const styles = useStyles();
+  const theme = useAppTheme();
   const pulse = useRef(new Animated.Value(0.85)).current;
 
   useEffect(() => {
@@ -50,6 +54,13 @@ export function LoadingScreen({
         />
       </Animated.View>
 
+      {theme.badge ? (
+        <View style={styles.themeBadge}>
+          <AppIcon name={theme.badge.icon} size={14} color="#fff" />
+          <Text style={styles.themeBadgeText}>{theme.badge.label}</Text>
+        </View>
+      ) : null}
+
       <Text style={styles.label}>{label}</Text>
 
       <View style={styles.progressBar}>
@@ -80,7 +91,18 @@ export function LoadingScreen({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedStyles((colors) => ({
+  themeBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: colors.accent,
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    marginBottom: spacing.md,
+  },
+  themeBadgeText: { color: '#fff', fontSize: 12, fontWeight: '800' },
   container: {
     flex: 1,
     alignItems: 'center',
@@ -114,4 +136,4 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     fontVariant: ['tabular-nums'],
   },
-});
+}));
