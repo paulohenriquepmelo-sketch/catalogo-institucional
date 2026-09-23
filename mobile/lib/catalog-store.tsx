@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import type { ReactNode } from 'react';
 import { AppState } from 'react-native';
 import {
-  fetchAllProducts, fetchConfig, persistSyncRevision, readCachedConfig, readCachedProducts,
+  campaignBackground, fetchAllProducts, fetchConfig, persistSyncRevision, readCachedConfig, readCachedProducts,
   readCachedSyncRevision, type CatalogConfig, type Product,
 } from './api';
 import { loadImageManifest, prefetchAllImages, pruneImages } from './image-cache';
@@ -32,6 +32,8 @@ function catalogImages(config: CatalogConfig | null, products: Product[]) {
   return [
     ...(config?.brands ?? []).map((brand) => brand.logo),
     ...(config?.banners ?? []).map((banner) => banner.image),
+    // Fundo do topo da Início: salvo no aparelho para aparecer offline.
+    campaignBackground(config),
     ...products.map((product) => product.image),
   ];
 }

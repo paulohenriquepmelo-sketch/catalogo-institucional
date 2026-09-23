@@ -13,7 +13,8 @@ import {
 } from 'react-native';
 import { AppIcon, type AppIconName } from '@/components/AppIcon';
 import { useCatalog } from '@/lib/catalog-store';
-import { activeOffers, BASE_URL, newProducts, publishedBrands } from '@/lib/api';
+import { activeOffers, BASE_URL, campaignBackground, newProducts, publishedBrands } from '@/lib/api';
+import { useLocalImageUri } from '@/lib/image-cache';
 import { colors, radius, spacing, typography } from '@/lib/theme';
 import { ProductRow } from '@/components/ProductRow';
 import { BannerCarousel } from '@/components/BannerCarousel';
@@ -83,6 +84,15 @@ export default function HomeScreen() {
     () => publishedBrands(config?.brands ?? []).slice(0, 10),
     [config?.brands],
   );
+  const heroUri = useLocalImageUri(campaignBackground(config));
+  // Tamanho real do mix, arredondado para baixo na centena ("Mais de 2.500").
+  const catalogSizeLabel = useMemo(() => {
+    const count = products.filter((product) => product.published !== false).length;
+    if (count < 100) return 'Mix completo\npara o seu negócio';
+    const rounded = Math.floor(count / 100) * 100;
+    // Ponto de milhar sem depender do suporte a idiomas do aparelho.
+    return `Mais de ${String(rounded).replace(/\B(?=(\d{3})+(?!\d))/g, '.')}\nprodutos`;
+  }, [products]);
   // Atalhos de categoria montados a partir das seções que realmente existem
   // no catálogo (as mais numerosas primeiro). Antes eram nomes fixos no
   // código ("bebidas", "higiene"…) que podiam não existir nos dados — e aí
@@ -120,7 +130,9 @@ export default function HomeScreen() {
       ) : null}
 
       <ImageBackground
-        source={require('../../assets/hero-laurencini.png')}
+        // Mesma imagem do topo do site (campanha do editor); sem campanha ou
+        // sem internet e sem cópia salva, usa a imagem do próprio app.
+        source={heroUri ? { uri: heroUri } : require('../../assets/hero-laurencini.png')}
         style={styles.hero}
         imageStyle={styles.heroImage}
       >
@@ -131,9 +143,9 @@ export default function HomeScreen() {
           <Text style={styles.heroHighlight}>PARCERIA PARA{`\n`}O SEU NEGÓCIO.</Text>
         </View>
         <View style={styles.heroBenefits}>
-          <Benefit icon="truck" label={'Entrega\npara todo o ES'} />
-          <Benefit icon="shield-checkmark" label={'Produtos\n100% originais'} />
-          <Benefit icon="headset" label={'Atendimento\nespecializado'} />
+          <Benefit icon="truck" label={'Entrega no Norte\ne Serrana do ES'} />
+          <Benefit icon="cube" label={catalogSizeLabel} />
+          <Benefit icon="pricetags" label={'Preço de atacado\npara revenda'} />
         </View>
       </ImageBackground>
 

@@ -401,6 +401,39 @@ export async function getCacheAge(): Promise<number | null> {
   }
 }
 
+// Temas de campanha do site (lib/catalog-campaign.ts): a arte fica em /themes.
+const CAMPAIGN_THEMES = [
+  'natal',
+  'ano-novo',
+  'black-friday',
+  'dia-das-maes',
+  'aniversario',
+  'carnaval',
+  'dia-das-criancas',
+];
+
+/**
+ * Imagem de fundo do topo, igual à do site público (campaignSlides do site):
+ * modo "image" usa a imagem enviada no editor, "theme" a arte do tema e
+ * "carousel" o primeiro slide visível. Campanha desligada → sem imagem.
+ */
+export function campaignBackground(config: CatalogConfig | null): string | undefined {
+  const campaign = config?.campaign;
+  if (!campaign || campaign.enabled === false) return undefined;
+  if (campaign.mode === 'carousel') {
+    const slides = Array.isArray(campaign.slides)
+      ? (campaign.slides as { image?: string; visible?: boolean }[])
+      : [];
+    const slide = slides.find((s) => s.visible !== false && s.image);
+    return slide?.image ? mediaUrl(slide.image) : undefined;
+  }
+  if (campaign.mode === 'image') return campaign.image || undefined;
+  const theme = CAMPAIGN_THEMES.includes(String(campaign.theme))
+    ? String(campaign.theme)
+    : CAMPAIGN_THEMES[0];
+  return `${BASE_URL}/themes/${theme}.png`;
+}
+
 // --- Regras replicadas do site público (product-showcase-carousel.tsx) ---
 // para que "Ofertas" e "Novidades" no app mostrem exatamente os mesmos
 // produtos que aparecem no site.
