@@ -33,11 +33,28 @@ function wordStartPattern(words: string[]) {
   return parts.length ? new RegExp(`(?:^|[^a-z0-9])(?:${parts.join('|')})`) : null;
 }
 
+// Quantidade no nome, em gramas ou ml: "1,01KG", "5,01 LTS", "900ML", "1,700 KG".
+// Se houver mais de uma, vale a maior.
+const SIZE_PATTERN = /(\d+(?:[.,]\d+)?)\s*(kg|kgs|g|gr|grs|gramas|lt|lts|l|litro|litros|ml)(?![a-z])/g;
+// Embalagem grande sem tamanho escrito: bag, galão, balde, bombona ou "(GR)".
+const BULK_PATTERN = /(?:^|[^a-z0-9])(?:bag|galao|balde|bombona)(?![a-z])|\(gr\)/;
+
+function sizeOf(name: string): number | null {
+  let largest: number | null = null;
+  for (const [, amount, unit] of name.matchAll(SIZE_PATTERN)) {
+    let value = Number(amount.replace(',', '.'));
+    if (unit.startsWith('k') || unit.startsWith('l')) value *= 1000;
+    largest = largest === null ? value : Math.max(largest, value);
+  }
+  return largest;
+}
+
 type CompiledGroup = {
   name: string;
   categories: Set<string>;
   keywords: RegExp | null;
   exclude: RegExp | null;
+  minSize: number;
 };
 
 const compiled = SEGMENT_RULES.map((rule) => ({
@@ -47,6 +64,7 @@ const compiled = SEGMENT_RULES.map((rule) => ({
     categories: new Set(group.categories.map((category) => normalize(category))),
     keywords: wordStartPattern(group.keywords),
     exclude: wordStartPattern(group.exclude),
+    minSize: group.minSize,
   })),
 }));
 
@@ -65,10 +83,21 @@ export function buildSegments(products: Product[]): Segment[] {
     // Espaço nas pontas: "copo " também casa quando "copo" é a última palavra.
     const name = ` ${normalize(product.name ?? '')} `;
     const category = normalize(product.category ?? '');
+    // Lidos só se algum grupo pedir tamanho mínimo, e uma vez por produto.
+    let size: number | null | undefined;
+    let bulk: boolean | undefined;
     compiled.forEach((segment, s) => {
       segment.groups.forEach((group, g) => {
         if (group.exclude?.test(name)) return;
-        if (group.categories.has(category) || group.keywords?.test(name)) hits[s][g].push(product);
+        if (!group.categories.has(category) && !group.keywords?.test(name)) return;
+        if (group.minSize > 0) {
+          bulk ??= BULK_PATTERN.test(name);
+          if (!bulk) {
+            if (size === undefined) size = sizeOf(name);
+            if (size === null || size < group.minSize) return;
+          }
+        }
+        hits[s][g].push(product);
       });
     });
   }
