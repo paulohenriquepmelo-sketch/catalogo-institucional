@@ -85,6 +85,9 @@ export const ProductCard = memo(function ProductCard({
       <View style={styles.details}>
         <Text style={styles.brand} numberOfLines={1}>{product.brand}</Text>
         <Text style={styles.name} numberOfLines={2}>{product.name}</Text>
+        {product.code ? (
+          <Text style={styles.code} numberOfLines={1}>Código {product.code}</Text>
+        ) : null}
       </View>
     </Pressable>
   );
@@ -141,7 +144,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   discontinuedText: { color: '#fff', fontSize: 10, fontWeight: '900', letterSpacing: 0.5 },
-  details: { minHeight: 55, paddingHorizontal: 2, paddingTop: spacing.sm },
+  // Marca + nome em até 2 linhas + código: altura fixa mantém os cards da grade alinhados.
+  details: { minHeight: 72, paddingHorizontal: 2, paddingTop: spacing.sm },
   brand: { ...typography.small, color: '#56709a', fontSize: 10, textTransform: 'uppercase' },
   name: { ...typography.body, color: colors.primaryDark, fontWeight: '800', marginTop: 2 },
+  code: {
+    ...typography.small,
+    color: colors.textMuted,
+    fontSize: 11,
+    marginTop: 3,
+    fontVariant: ['tabular-nums'],
+  },
 });

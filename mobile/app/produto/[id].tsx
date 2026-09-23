@@ -89,6 +89,12 @@ export default function ProdutoScreen() {
 
       <Text style={styles.brand}>{product.brand}</Text>
       <Text style={styles.name}>{product.name}</Text>
+      {product.code ? (
+        // Selecionável: o vendedor pode copiar o código para o pedido.
+        <Text style={styles.code} selectable>
+          Código {product.code}
+        </Text>
+      ) : null}
       {discontinued ? (
         <View style={styles.discontinuedBanner}>
           <AppIcon name="circle-alert" size={18} color="#fff" />
@@ -181,6 +187,13 @@ const styles = StyleSheet.create({
   badgeText: { color: '#fff', fontWeight: '700' },
   brand: { ...typography.small, color: colors.textMuted, fontWeight: '600' },
   name: { ...typography.title, color: colors.text, marginTop: 2 },
+  code: {
+    ...typography.body,
+    color: colors.primary,
+    fontWeight: '700',
+    marginTop: 4,
+    fontVariant: ['tabular-nums'],
+  },
   discontinuedBanner: {
     flexDirection: 'row',
     alignItems: 'center',
