@@ -11,7 +11,7 @@ import {
 } from '@/lib/notifications';
 import { radius, spacing } from '@/lib/theme';
 import { createThemedStyles, useThemeColors } from '@/lib/app-theme';
-import { LogoOrnament, ThemeGarland } from '@/components/ThemeDecor';
+import { HeaderDecor, LogoOrnament, ThemeGarland } from '@/components/ThemeDecor';
 
 export function AppHeader({
   canGoBack = false,
@@ -35,7 +35,8 @@ export function AppHeader({
   const unread = countUnread(notifications, seenAt);
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top + 6 }]}> 
+    <View style={[styles.container, { paddingTop: insets.top + 6 }]}>
+      <HeaderDecor /> 
       <View style={styles.topRow}>
         {canGoBack ? (
           <Pressable

@@ -28,7 +28,11 @@ export default function SegmentosScreen() {
   // Classificar o catálogo inteiro leva um instante: o topo aparece primeiro.
   const ready = useAfterFirstFrame();
 
-  const segments = useMemo(() => (ready ? buildSegments(products) : []), [ready, products]);
+  const segments = useMemo(
+    // Coleções de data (ex.: Natal) abrem pelo atalho do tema, não por aqui.
+    () => (ready ? buildSegments(products).filter((segment) => !segment.rule.hidden) : []),
+    [ready, products],
+  );
 
   const renderSegment = useCallback<ListRenderItem<Segment>>(
     ({ item }) => (

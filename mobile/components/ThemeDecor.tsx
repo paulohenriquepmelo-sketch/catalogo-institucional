@@ -275,6 +275,121 @@ function buildPineRope(width: number) {
   return { core, needles, ribbon };
 }
 
+// Floco de neve: 3 eixos com pontas em "V".
+function snowflakePath(size: number) {
+  const r = size / 2;
+  let d = '';
+  for (let k = 0; k < 3; k++) {
+    const a = (k * Math.PI) / 3;
+    const [cx, cy] = [Math.cos(a) * r, Math.sin(a) * r];
+    d += `M ${(r - cx).toFixed(1)} ${(r - cy).toFixed(1)} L ${(r + cx).toFixed(1)} ${(r + cy).toFixed(1)} `;
+    for (const sign of [1, -1]) {
+      const [tx, ty] = [r + sign * cx * 0.62, r + sign * cy * 0.62];
+      for (const turn of [0.6, -0.6]) {
+        const b = a + (sign > 0 ? 0 : Math.PI) + Math.PI + turn;
+        d += `M ${tx.toFixed(1)} ${ty.toFixed(1)} l ${(Math.cos(b) * r * 0.3).toFixed(1)} ${(Math.sin(b) * r * 0.3).toFixed(1)} `;
+      }
+    }
+  }
+  return d;
+}
+
+// Posições fixas (em % da largura/altura) para os flocos do cabeçalho.
+const SNOWFLAKES = [
+  { x: 0.27, y: 0.12, s: 16 },
+  { x: 0.58, y: 0.07, s: 12 },
+  { x: 0.7, y: 0.42, s: 20 },
+  { x: 0.9, y: 0.55, s: 12 },
+  { x: 0.04, y: 0.72, s: 14 },
+  { x: 0.46, y: 0.5, s: 10 },
+];
+
+// Galho de pinheiro com bolas de Natal, para o canto superior direito.
+function PineBranch({ width = 120, height = 76 }: { width?: number; height?: number }) {
+  const { needles, ornaments } = useMemo(() => {
+    // Galho curvo que entra pelo canto direito e desce para a esquerda.
+    const point = (t: number) => ({
+      x: width - t * width * 0.95,
+      y: 4 + t * t * height * 0.55,
+    });
+    let d = '';
+    for (let i = 0; i <= 60; i++) {
+      const t = i / 60;
+      const { x, y } = point(t);
+      const len = 9 * (1 - t * 0.45);
+      for (const [dx, dy] of [
+        [-0.5, -1],
+        [-0.6, 1],
+        [0.2, 1],
+      ]) {
+        d += `M ${x.toFixed(1)} ${y.toFixed(1)} l ${(dx * len).toFixed(1)} ${(dy * len).toFixed(1)} `;
+      }
+    }
+    const balls = [
+      { t: 0.18, r: 7.5, color: '#c62828', drop: 10 },
+      { t: 0.45, r: 6, color: '#e0a526', drop: 8 },
+      { t: 0.72, r: 5, color: '#c62828', drop: 7 },
+    ].map((b) => ({ ...b, ...point(b.t) }));
+    return { needles: d, ornaments: balls };
+  }, [width, height]);
+
+  return (
+    <Svg width={width} height={height}>
+      <Path d={needles} stroke="#1f5a30" strokeWidth={2} strokeLinecap="round" fill="none" />
+      <Path d={needles} stroke="#3d8a4c" strokeWidth={0.9} strokeLinecap="round" fill="none" opacity={0.8} />
+      {ornaments.map((o, i) => (
+        <Path key={`f${i}`} d={`M ${o.x} ${o.y} L ${o.x} ${o.y + o.drop}`} stroke="#d9b45b" strokeWidth={1} />
+      ))}
+      {ornaments.map((o, i) => (
+        <Circle key={`b${i}`} cx={o.x} cy={o.y + o.drop + o.r} r={o.r} fill={o.color} />
+      ))}
+      {ornaments.map((o, i) => (
+        <Circle
+          key={`h${i}`}
+          cx={o.x - o.r * 0.35}
+          cy={o.y + o.drop + o.r * 0.65}
+          r={o.r * 0.32}
+          fill="#ffffff"
+          opacity={0.55}
+        />
+      ))}
+    </Svg>
+  );
+}
+
+/**
+ * Fundo temático do cabeçalho (Natal): flocos de neve e galho de pinheiro
+ * no canto. Fica atrás do conteúdo e não recebe toques.
+ */
+export function HeaderDecor() {
+  const decor = useThemeDecor();
+  const [box, setBox] = useState({ width: 0, height: 0 });
+  if (decor?.rope !== 'pine') return null;
+  return (
+    <View
+      style={StyleSheet.absoluteFill}
+      pointerEvents="none"
+      onLayout={(e) => setBox(e.nativeEvent.layout)}
+    >
+      {box.width > 0
+        ? SNOWFLAKES.map((f, i) => (
+            <Svg
+              key={i}
+              width={f.s}
+              height={f.s}
+              style={{ position: 'absolute', left: f.x * box.width, top: f.y * box.height }}
+            >
+              <Path d={snowflakePath(f.s)} stroke="#ffffff" strokeWidth={1.1} strokeLinecap="round" opacity={0.28} />
+            </Svg>
+          ))
+        : null}
+      <View style={styles.pineCorner}>
+        <PineBranch />
+      </View>
+    </View>
+  );
+}
+
 /** Enfeite no canto do card de produto (gorro no Natal, ícone nos outros). */
 export function CardOrnament() {
   const decor = useThemeDecor();
@@ -324,6 +439,7 @@ const styles = StyleSheet.create({
   garland: { height: 22, marginTop: 4, marginBottom: -6, marginHorizontal: -12 },
   garlandPine: { height: 28, marginTop: 6, marginBottom: -8, marginHorizontal: -12 },
   bulb: { position: 'absolute' },
+  pineCorner: { position: 'absolute', top: 0, right: 0 },
   cardHat: { position: 'absolute', top: 0, right: 0, transform: [{ rotate: '18deg' }] },
   cardIcon: {
     position: 'absolute',

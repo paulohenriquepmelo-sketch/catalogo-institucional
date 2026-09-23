@@ -342,4 +342,17 @@ SEGMENTS = [
              dict(name='Bebidas', categories=c('REFRI', 'SUCOS', 'AGUA')),
              EPI,
          ]),
+    # --- Coleções de data (hidden=True: não aparecem na aba Segmentos; abrem
+    # pelo atalho do tema, ex.: "Natal" na Início) ---
+    dict(id='natal', name='Especial de Natal', note='Produtos para a ceia, presentes e festas', icon='tree',
+         hidden=True, groups=[
+             dict(name='Panetones e chocotones', keywords=['panettone', 'panetone', 'chocotone']),
+             dict(name='Cestas natalinas', keywords=['cesta natalina', 'cesta 0'], exclude=['garrafa', 'litrao']),
+             dict(name='Bombons e chocolates para presente', keywords=['bombom', 'trufa', 'caixa de bombom'],
+                  exclude=['bala']),
+             dict(name='Bebidas para as festas', keywords=['espumante', 'sidra', 'vinho', 'suco de uva', 'suco uva',
+                                                           'champagne', 'frisante'],
+                  exclude=['porta', 'cesta']),
+             dict(name='Caixas e embalagens de presente', keywords=['caixa natal', 'presente', 'embalagem presente']),
+         ]),
 ]

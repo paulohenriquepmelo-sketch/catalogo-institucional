@@ -19,6 +19,8 @@ import { radius, spacing, typography } from '@/lib/theme';
 import { ProductRow } from '@/components/ProductRow';
 import { BannerCarousel } from '@/components/BannerCarousel';
 import { CachedImage } from '@/components/CachedImage';
+import Svg, { Defs, LinearGradient, Path, Rect, Stop } from 'react-native-svg';
+import { SantaHat, useThemeDecor } from '@/components/ThemeDecor';
 import {
   createThemedStyles,
   THEME_OPTIONS,
@@ -95,6 +97,7 @@ export default function HomeScreen() {
   );
   // Imagem do topo: a da campanha do site (ou a arte do tema na prévia).
   const theme = useAppTheme();
+  const decor = useThemeDecor();
   const heroUri = useLocalImageUri(theme.heroImage);
   // Tamanho real do mix, arredondado para baixo na centena ("Mais de 2.500").
   const catalogSizeLabel = useMemo(() => {
@@ -162,7 +165,7 @@ export default function HomeScreen() {
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.categories}
       >
-        {shortcuts.map((shortcut) => (
+        {shortcuts.map((shortcut, index) => (
           <Pressable
             key={shortcut.label}
             onPress={() =>
@@ -173,12 +176,31 @@ export default function HomeScreen() {
             }
             style={styles.categoryCard}
           >
-            <AppIcon name={shortcut.icon} size={28} color={colors.primaryDark} />
+            <View>
+              <AppIcon name={shortcut.icon} size={28} color={colors.primaryDark} />
+              {index === 0 && decor?.card === 'santa-hat' ? (
+                <View style={styles.iconHat} pointerEvents="none">
+                  <SantaHat size={18} />
+                </View>
+              ) : null}
+            </View>
             <Text style={styles.categoryLabel} numberOfLines={2}>
               {shortcut.label}
             </Text>
           </Pressable>
         ))}
+        {theme.id === 'natal' ? (
+          // Coleção da data (produtos de Natal), no fim dos atalhos.
+          <Pressable
+            onPress={() => router.push('/segmento/natal')}
+            style={[styles.categoryCard, styles.categoryCardSeason]}
+          >
+            <AppIcon name="tree" size={30} color={colors.accent} fill={colors.accent} />
+            <Text style={[styles.categoryLabel, styles.categoryLabelActive]} numberOfLines={2}>
+              NATAL
+            </Text>
+          </Pressable>
+        ) : null}
         <Pressable
           onPress={() => router.navigate('/(tabs)/catalogo')}
           style={[styles.categoryCard, styles.categoryCardActive]}
@@ -306,11 +328,15 @@ function HeroBanner({ uri, catalogSizeLabel }: { uri?: string; catalogSizeLabel:
       <View onLayout={(event) => setWidth(event.nativeEvent.layout.width)}>
         <Image
           source={uri ? { uri } : LOCAL_HERO}
-          style={[styles.heroImage, { aspectRatio: ratio }]}
+          // Natal: a arte fica espelhada (árvore à direita, céu livre à
+          // esquerda para o texto), como no esboço.
+          style={[styles.heroImage, { aspectRatio: ratio }, theme.id === 'natal' && styles.heroMirror]}
           resizeMode="cover"
           fadeDuration={0}
         />
-        {width > 0 ? (
+        {width > 0 && theme.id !== 'padrao' ? (
+          <ThemedHeroCopy width={width} height={width / ratio} />
+        ) : width > 0 ? (
           <View style={centered ? styles.heroCopyCenter : styles.heroCopy} pointerEvents="none">
             <Text style={[styles.heroRibbon, styles.heroRibbonDark, { fontSize }, centered && styles.heroRibbonCenter]}>
               {theme.eyebrow.toUpperCase()}
@@ -327,11 +353,22 @@ function HeroBanner({ uri, catalogSizeLabel }: { uri?: string; catalogSizeLabel:
           </View>
         ) : null}
       </View>
-      <View style={styles.heroBenefits}>
-        <Benefit icon="truck" label={'Entrega no Norte\ne Serrana do ES'} />
-        <Benefit icon="cube" label={catalogSizeLabel} />
-        <Benefit icon="pricetags" label={'Preço de atacado\npara revenda'} />
-      </View>
+      {theme.id === 'padrao' ? (
+        <View style={styles.heroBenefits}>
+          <Benefit icon="truck" label={'Entrega no Norte\ne Serrana do ES'} />
+          <Benefit icon="cube" label={catalogSizeLabel} />
+          <Benefit icon="pricetags" label={'Preço de atacado\npara revenda'} />
+        </View>
+      ) : (
+        // Temas: faixa com subtítulo e divisórias (esboço de Natal).
+        <View style={styles.themedBenefits}>
+          <Benefit icon="truck" label={'Entrega no Norte\ne Serrana do ES'} sub={'Mais agilidade para\no seu negócio.'} />
+          <View style={styles.benefitDivider} />
+          <Benefit icon="cube" label={catalogSizeLabel} sub={'As melhores marcas\nem um só lugar.'} hat />
+          <View style={styles.benefitDivider} />
+          <Benefit icon="pricetags" label={'Preço de atacado\npara revenda'} sub={'Mais margem para\no seu negócio.'} />
+        </View>
+      )}
     </View>
   );
 }
@@ -373,12 +410,153 @@ function ThemePreviewPicker() {
   );
 }
 
-function Benefit({ icon, label }: { icon: AppIconName; label: string }) {
+// Presentinho (caixa vermelha com fita dourada) dos títulos de seção no Natal.
+function GiftBox({ size = 26 }: { size?: number }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 32 32">
+      <Rect x={4} y={12} width={24} height={17} rx={2} fill="#c62828" />
+      <Rect x={2.5} y={8} width={27} height={6} rx={1.5} fill="#e53935" />
+      <Rect x={14} y={8} width={4} height={21} fill="#e0a526" />
+      <Path d="M16 8 C 11 2, 6 5, 9 8 Z M16 8 C 21 2, 26 5, 23 8 Z" fill="#e0a526" />
+    </Svg>
+  );
+}
+
+// Artes escuras (texto claro) e claras (texto na cor escura do tema).
+const DARK_ARTS = new Set(['natal', 'ano-novo', 'black-friday']);
+
+/**
+ * Texto do topo nos temas de data, no estilo do esboço de Natal: frase
+ * pequena, a última palavra grande em destaque, a frase principal e o botão
+ * "Aproveite agora" (abre as Ofertas). No Natal, texto à esquerda e etiqueta
+ * de presente perto da árvore; nos outros temas, centralizado.
+ */
+function ThemedHeroCopy({ width, height }: { width: number; height: number }) {
+  const styles = useStyles();
+  const theme = useAppTheme();
+  const colors = useThemeColors();
+  const natal = theme.id === 'natal';
+  const dark = DARK_ARTS.has(theme.id);
+  const words = theme.eyebrow.trim().split(/\s+/);
+  const highlight = (words.length > 1 ? words.pop() : words[0])?.toUpperCase() ?? '';
+  const lead = words.length ? words.join(' ').toUpperCase() : '';
+  const ink = dark ? '#ffffff' : colors.primaryDark;
+  const gold = dark ? '#f3c24f' : colors.accent;
+  const u = width / 100; // 1% da largura: tamanhos proporcionais à tela
+
+  return (
+    <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
+      {dark ? (
+        // Sombra suave do lado do texto, para ler bem sobre a arte.
+        <Svg width={width} height={height} style={StyleSheet.absoluteFill} pointerEvents="none">
+          <Defs>
+            <LinearGradient id="shade" x1="0" y1="0" x2={natal ? '1' : '0'} y2={natal ? '0' : '1'}>
+              <Stop offset="0" stopColor="#081326" stopOpacity={natal ? 0.72 : 0.35} />
+              <Stop offset={natal ? '0.62' : '1'} stopColor="#081326" stopOpacity={natal ? 0 : 0.35} />
+            </LinearGradient>
+          </Defs>
+          <Rect width={width} height={height} fill="url(#shade)" />
+        </Svg>
+      ) : null}
+      <View
+        style={[
+          styles.themedCopy,
+          natal
+            ? { left: 6 * u, top: 10 * u, width: 60 * u, alignItems: 'flex-start' }
+            : { left: 12 * u, right: 12 * u, top: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' },
+        ]}
+        pointerEvents="box-none"
+      >
+        {lead ? (
+          <Text style={[styles.themedLead, { color: ink, fontSize: 3.4 * u, textAlign: natal ? 'left' : 'center' }]}>
+            {lead}
+          </Text>
+        ) : null}
+        <Text
+          style={[styles.themedHighlight, { color: gold, fontSize: 7.4 * u, textAlign: natal ? 'left' : 'center' }]}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+        >
+          {highlight}
+        </Text>
+        <Svg width={34 * u} height={2.2 * u}>
+          <Path
+            d={`M 0 ${1.4 * u} Q ${17 * u} ${-0.4 * u} ${34 * u} ${1.1 * u}`}
+            stroke={dark ? '#c62828' : colors.accent}
+            strokeWidth={0.9 * u}
+            strokeLinecap="round"
+            fill="none"
+          />
+        </Svg>
+        <Text style={[styles.themedTitle, { color: ink, fontSize: 3.7 * u, textAlign: natal ? 'left' : 'center' }]}>
+          {theme.title.toUpperCase()}
+        </Text>
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => router.navigate('/(tabs)/ofertas')}
+          style={({ pressed }) => [
+            styles.themedCta,
+            { backgroundColor: colors.accent, paddingHorizontal: 4 * u, paddingVertical: 1.8 * u },
+            pressed && { opacity: 0.85 },
+          ]}
+        >
+          <Text style={[styles.themedCtaText, { fontSize: 3.2 * u }]}>APROVEITE AGORA</Text>
+          <AppIcon name="chevron-forward" size={3.8 * u} color="#fff" />
+        </Pressable>
+      </View>
+      {natal ? <GiftTag u={u} /> : null}
+    </View>
+  );
+}
+
+// Etiqueta de presente (kraft, com laço vermelho) do esboço de Natal.
+function GiftTag({ u }: { u: number }) {
   const styles = useStyles();
   return (
-    <View style={styles.benefit}>
-      <AppIcon name={icon} size={26} color="#fff" />
-      <Text style={styles.benefitText}>{label}</Text>
+    <View
+      style={[styles.giftTag, { right: 4 * u, top: 3 * u, width: 22 * u, transform: [{ rotate: '12deg' }] }]}
+      pointerEvents="none"
+    >
+      <Svg width={12 * u} height={7 * u} style={styles.giftBow}>
+        <Path
+          d={`M ${6 * u} ${4 * u} C ${2 * u} ${0} ${0} ${3 * u} ${1 * u} ${5 * u} C ${2.5 * u} ${6.5 * u} ${5 * u} ${5 * u} ${6 * u} ${4 * u} C ${7 * u} ${5 * u} ${9.5 * u} ${6.5 * u} ${11 * u} ${5 * u} C ${12 * u} ${3 * u} ${10 * u} ${0} ${6 * u} ${4 * u} Z`}
+          fill="#c62828"
+        />
+      </Svg>
+      <View style={[styles.giftCard, { paddingVertical: 2.4 * u, paddingHorizontal: 1.5 * u }]}>
+        <Text style={[styles.giftText, { fontSize: 2.6 * u }]}>NATAL QUE MOVIMENTA SEU NEGÓCIO</Text>
+      </View>
+    </View>
+  );
+}
+
+function Benefit({
+  icon,
+  label,
+  sub,
+  hat = false,
+}: {
+  icon: AppIconName;
+  label: string;
+  sub?: string;
+  hat?: boolean;
+}) {
+  const styles = useStyles();
+  const decor = useThemeDecor();
+  return (
+    <View style={sub ? styles.benefitThemed : styles.benefit}>
+      <View>
+        <AppIcon name={icon} size={sub ? 22 : 26} color="#fff" />
+        {hat && decor?.card === 'santa-hat' ? (
+          <View style={styles.iconHat} pointerEvents="none">
+            <SantaHat size={16} />
+          </View>
+        ) : null}
+      </View>
+      <View style={sub ? styles.benefitCopy : null}>
+        <Text style={styles.benefitText}>{label}</Text>
+        {sub ? <Text style={styles.benefitSub}>{sub}</Text> : null}
+      </View>
     </View>
   );
 }
@@ -437,9 +615,17 @@ function SectionTitle({
 }) {
   const styles = useStyles();
   const colors = useThemeColors();
+  const decor = useThemeDecor();
   return (
     <View style={styles.sectionTitle}>
-      <AppIcon name={icon} size={29} color={colors.primary} />
+      <View>
+        <AppIcon name={icon} size={29} color={colors.primary} />
+        {decor?.card === 'santa-hat' ? (
+          <View style={styles.iconHat} pointerEvents="none">
+            <SantaHat size={18} />
+          </View>
+        ) : null}
+      </View>
       <View style={styles.sectionTitleCopy}>
         <View style={styles.sectionTitleLine}>
           <Text style={styles.sectionHeading}>{title}</Text>
@@ -451,6 +637,11 @@ function SectionTitle({
         <Text style={styles.seeAllText}>Ver todas</Text>
         <AppIcon name="chevron-forward" size={18} color={colors.primaryDark} />
       </Pressable>
+      {decor?.card === 'santa-hat' ? (
+        <View style={styles.sectionGift} pointerEvents="none">
+          <GiftBox size={26} />
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -537,6 +728,37 @@ const useStyles = createThemedStyles((colors) => ({
     overflow: 'hidden',
   },
   heroRibbonCenter: { textAlign: 'center' },
+  heroMirror: { transform: [{ scaleX: -1 }] },
+  themedCopy: { position: 'absolute', gap: 4 },
+  themedLead: { fontWeight: '700', letterSpacing: 1.5 },
+  themedHighlight: {
+    fontWeight: '900',
+    letterSpacing: 0.5,
+    textShadowColor: 'rgba(0,0,0,0.35)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
+  },
+  themedTitle: { fontWeight: '800', lineHeight: undefined },
+  themedCta: {
+    marginTop: 6,
+    borderRadius: 999,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    alignSelf: 'auto',
+  },
+  themedCtaText: { color: '#fff', fontWeight: '800', letterSpacing: 0.5 },
+  giftTag: { position: 'absolute', alignItems: 'center' },
+  giftBow: { marginBottom: -6, zIndex: 1 },
+  giftCard: {
+    width: '100%',
+    backgroundColor: '#e9cf9f',
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#c9a86a',
+    alignItems: 'center',
+  },
+  giftText: { color: '#8b1d1d', fontWeight: '900', textAlign: 'center', lineHeight: undefined },
   heroRibbonDark: { backgroundColor: colors.primaryDark },
   heroRibbonAccent: { backgroundColor: colors.accent },
   heroBenefits: {
@@ -544,6 +766,15 @@ const useStyles = createThemedStyles((colors) => ({
     paddingHorizontal: spacing.md, paddingVertical: spacing.sm, gap: spacing.xs,
   },
   benefit: { flexDirection: 'row', alignItems: 'center', gap: 6, maxWidth: '32%' },
+  themedBenefits: {
+    flexDirection: 'row', alignItems: 'center', backgroundColor: colors.header,
+    paddingHorizontal: spacing.sm, paddingVertical: spacing.sm,
+  },
+  benefitThemed: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 3 },
+  benefitCopy: { flex: 1 },
+  benefitSub: { color: 'rgba(255,255,255,0.72)', fontSize: 8.5, lineHeight: 11, marginTop: 1 },
+  benefitDivider: { width: 1, alignSelf: 'stretch', backgroundColor: 'rgba(255,255,255,0.22)' },
+  iconHat: { position: 'absolute', top: -9, right: -8, transform: [{ rotate: '18deg' }] },
   benefitText: { color: '#fff', fontSize: 10, lineHeight: 13, fontWeight: '600' },
   categories: { paddingHorizontal: spacing.sm, paddingVertical: spacing.sm, gap: spacing.sm },
   categoryCard: {
@@ -552,6 +783,7 @@ const useStyles = createThemedStyles((colors) => ({
     justifyContent: 'center', gap: 8, padding: 6,
   },
   categoryCardActive: { borderColor: colors.accent, borderWidth: 1.5 },
+  categoryCardSeason: { backgroundColor: '#fdecec', borderColor: '#f6c9c9' },
   categoryLabel: { color: colors.primaryDark, fontSize: 11, fontWeight: '700', textAlign: 'center' },
   categoryLabelActive: { color: colors.accent },
   section: { marginBottom: spacing.md },
@@ -587,6 +819,7 @@ const useStyles = createThemedStyles((colors) => ({
     alignItems: 'center', gap: spacing.sm, paddingHorizontal: spacing.md,
   },
   sectionTitleCopy: { flex: 1 },
+  sectionGift: { position: 'absolute', right: -4, top: -10, transform: [{ rotate: '10deg' }] },
   sectionTitleLine: { flexDirection: 'row', alignItems: 'center', gap: 7 },
   sectionHeading: { color: colors.primaryDark, fontSize: 16, fontWeight: '900' },
   sectionSubtitle: { color: '#587092', fontSize: 11, marginTop: 2 },

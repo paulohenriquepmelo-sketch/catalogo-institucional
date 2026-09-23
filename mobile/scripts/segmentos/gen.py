@@ -10,7 +10,7 @@ src=open(sys.argv[1]).read()
 header=src[:src.index('export const SEGMENT_RULES')]
 out=[header+'export const SEGMENT_RULES: SegmentRule[] = [']
 for s in SEGMENTS:
-    out += ['  {', f"    id: {q(s['id'])},", f"    name: {q(s['name'])},", f"    note: {q(s['note'])},", f"    icon: {q(ICONS[s['id']])},", '    groups: [']
+    out += ['  {', f"    id: {q(s['id'])},", f"    name: {q(s['name'])},", f"    note: {q(s['note'])},", f"    icon: {q(s.get('icon') if s['id'] not in ICONS else ICONS[s['id']])},"] + (["    hidden: true,"] if s.get('hidden') else []) + ['    groups: [']
     for g in s['groups']:
         out += ['      {', f"        name: {q(g['name'])},"] + [f"        {k}: {arr(g.get(k, []))}," for k in ('categories','keywords','exclude')] + [f"        minSize: {g.get('min_size', 0)},", '      },']
     out += ['    ],', '  },']

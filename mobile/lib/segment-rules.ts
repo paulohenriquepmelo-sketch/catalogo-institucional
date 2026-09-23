@@ -34,6 +34,8 @@ export type SegmentRule = {
   name: string;
   note: string;
   icon: AppIconName;
+  /** Coleção de data: não aparece na aba Segmentos (abre pelo atalho do tema). */
+  hidden?: boolean;
   groups: SegmentGroupRule[];
 };
 
@@ -809,6 +811,50 @@ export const SEGMENT_RULES: SegmentRule[] = [
         name: 'Luvas, toucas e proteção',
         categories: [],
         keywords: ['luva', 'touca', 'mascara', 'avental'],
+        exclude: [],
+        minSize: 0,
+      },
+    ],
+  },
+  {
+    id: 'natal',
+    name: 'Especial de Natal',
+    note: 'Produtos para a ceia, presentes e festas',
+    icon: 'tree',
+    hidden: true,
+    groups: [
+      {
+        name: 'Panetones e chocotones',
+        categories: [],
+        keywords: ['panettone', 'panetone', 'chocotone'],
+        exclude: [],
+        minSize: 0,
+      },
+      {
+        name: 'Cestas natalinas',
+        categories: [],
+        keywords: ['cesta natalina', 'cesta 0'],
+        exclude: ['garrafa', 'litrao'],
+        minSize: 0,
+      },
+      {
+        name: 'Bombons e chocolates para presente',
+        categories: [],
+        keywords: ['bombom', 'trufa', 'caixa de bombom'],
+        exclude: ['bala'],
+        minSize: 0,
+      },
+      {
+        name: 'Bebidas para as festas',
+        categories: [],
+        keywords: ['espumante', 'sidra', 'vinho', 'suco de uva', 'suco uva', 'champagne', 'frisante'],
+        exclude: ['porta', 'cesta'],
+        minSize: 0,
+      },
+      {
+        name: 'Caixas e embalagens de presente',
+        categories: [],
+        keywords: ['caixa natal', 'presente', 'embalagem presente'],
         exclude: [],
         minSize: 0,
       },
