@@ -6,6 +6,14 @@ import {
   ArrowLeft,
   ArrowRight,
   BottleWine,
+  Candy,
+  Croissant,
+  Hamburger,
+  IceCreamCone,
+  Pizza,
+  Soup,
+  Store,
+  UtensilsCrossed,
   Bell,
   BadgeInfo,
   Building2,
@@ -42,7 +50,9 @@ export type AppIconName =
   | 'arrow-forward'
   | 'basket'
   | 'beer'
+  | 'bread'
   | 'business'
+  | 'candy'
   | 'cafe'
   | 'chevron-down'
   | 'chevron-forward'
@@ -50,11 +60,13 @@ export type AppIconName =
   | 'cloud-offline'
   | 'close-circle'
   | 'cube'
+  | 'fast-food'
   | 'flask'
   | 'grid'
   | 'handshake'
   | 'headset'
   | 'home'
+  | 'ice-cream'
   | 'image'
   | 'information-circle'
   | 'mail'
@@ -63,11 +75,15 @@ export type AppIconName =
   | 'people'
   | 'percent'
   | 'pricetag'
+  | 'pizza'
   | 'pricetags'
+  | 'restaurant'
   | 'search'
   | 'shield-checkmark'
+  | 'soup'
   | 'sparkles'
   | 'spray'
+  | 'store'
   | 'time'
   | 'truck';
 
@@ -77,7 +93,9 @@ const icons: Record<AppIconName, ComponentType<LucideProps>> = {
   'arrow-forward': ArrowRight,
   basket: ShoppingBasket,
   beer: BottleWine,
+  bread: Croissant,
   business: Building2,
+  candy: Candy,
   cafe: CupSoda,
   'chevron-down': ChevronDown,
   'chevron-forward': ChevronRight,
@@ -85,11 +103,13 @@ const icons: Record<AppIconName, ComponentType<LucideProps>> = {
   'cloud-offline': CloudOff,
   'close-circle': XCircle,
   cube: Package,
+  'fast-food': Hamburger,
   flask: FlaskConical,
   grid: Grid2X2,
   handshake: Handshake,
   headset: Headphones,
   home: House,
+  'ice-cream': IceCreamCone,
   image: ImageIcon,
   'information-circle': BadgeInfo,
   mail: Mail,
@@ -98,11 +118,15 @@ const icons: Record<AppIconName, ComponentType<LucideProps>> = {
   people: Handshake,
   percent: Percent,
   pricetag: Tag,
+  pizza: Pizza,
   pricetags: Tags,
+  restaurant: UtensilsCrossed,
   search: Search,
   'shield-checkmark': ShieldCheck,
+  soup: Soup,
   sparkles: Sparkles,
   spray: SprayCan,
+  store: Store,
   time: Clock,
   truck: Truck,
 };

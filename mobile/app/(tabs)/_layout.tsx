@@ -41,6 +41,13 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
+        name="segmentos"
+        options={{
+          title: 'Segmentos',
+          tabBarIcon: ({ color, size }) => <AppIcon name="store" color={color} size={size} />,
+        }}
+      />
+      <Tabs.Screen
         name="ofertas"
         options={{
           title: 'Ofertas',

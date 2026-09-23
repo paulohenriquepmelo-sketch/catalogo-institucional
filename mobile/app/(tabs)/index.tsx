@@ -53,7 +53,7 @@ function countdown(end?: string, now = Date.now()) {
 }
 
 // Abas pré-carregadas em segundo plano, da mais usada para a menos usada.
-const PRELOAD_TABS = ['catalogo', 'ofertas', 'novidades', 'marcas'] as const;
+const PRELOAD_TABS = ['catalogo', 'segmentos', 'ofertas', 'novidades', 'marcas'] as const;
 
 export default function HomeScreen() {
   const { config, products, refreshing, refresh, offline } = useCatalog();

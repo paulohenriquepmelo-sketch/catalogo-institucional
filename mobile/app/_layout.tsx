@@ -41,6 +41,7 @@ function RootNavigator() {
     >
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="produto/[id]" />
+      <Stack.Screen name="segmento/[id]" />
       <Stack.Screen name="notificacoes" />
     </Stack>
   );
