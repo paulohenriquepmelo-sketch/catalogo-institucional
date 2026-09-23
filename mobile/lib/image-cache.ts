@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system/legacy';
+import { isOnline, isUnmetered, onNetworkChange, useIsOnline } from '@/lib/network';
 
 /**
  * Armazenamento PERMANENTE de imagens no aparelho.
@@ -9,9 +10,11 @@ import * as FileSystem from 'expo-file-system/legacy';
  * guarda a relação URL → arquivo local, para o catálogo continuar visível
  * sem internet.
  *
- * Desempenho: somente imagens que entram na janela visível são enfileiradas,
- * com no máximo dois downloads simultâneos. O card atual não redesenha ao
- * terminar de salvar; o arquivo local passa a ser usado na próxima montagem.
+ * Desempenho: imagens que entram na janela visível são enfileiradas primeiro,
+ * com no máximo dois downloads simultâneos. No Wi-Fi, o restante do catálogo
+ * é baixado em segundo plano (fila "completa"), para tudo aparecer offline.
+ * O card atual não redesenha ao terminar de salvar; o arquivo local passa a
+ * ser usado na próxima montagem.
  */
 
 const MANIFEST_KEY = '@catalogo/images-manifest';
@@ -30,6 +33,10 @@ const MAX_QUEUED_IMAGE_DOWNLOADS = 24;
 const downloadQueue: string[] = [];
 const queuedUrls = new Set<string>();
 let activeDownloads = 0;
+
+// Fila do catálogo inteiro, usada só em Wi-Fi e sempre depois da fila acima
+// (o que está na tela tem prioridade). São ~2.400 fotos, ~120 MB no total.
+let bulkQueue: string[] = [];
 
 // Nome de arquivo estável e curto derivado da URL (FNV-1a).
 function fileNameFor(url: string) {
@@ -81,15 +88,30 @@ async function saveManifest() {
 
 function scheduleManifestSave() {
   if (manifestSaveTimer) return;
+  // 3 s: durante o download completo, o manifesto não é regravado a cada foto.
   manifestSaveTimer = setTimeout(() => {
     manifestSaveTimer = null;
     void saveManifest();
-  }, 1_000);
+  }, 3_000);
+}
+
+function nextDownload(): string | undefined {
+  if (downloadQueue.length) return downloadQueue.shift();
+  if (!isUnmetered()) return undefined;
+  while (bulkQueue.length) {
+    const url = bulkQueue.shift()!;
+    if (!manifest[url] && !queuedUrls.has(url)) {
+      queuedUrls.add(url);
+      return url;
+    }
+  }
+  return undefined;
 }
 
 function pumpDownloadQueue() {
-  while (activeDownloads < IMAGE_DOWNLOAD_CONCURRENCY && downloadQueue.length) {
-    const url = downloadQueue.shift();
+  if (!isOnline()) return;
+  while (activeDownloads < IMAGE_DOWNLOAD_CONCURRENCY) {
+    const url = nextDownload();
     if (!url) return;
     activeDownloads += 1;
 
@@ -112,8 +134,25 @@ function pumpDownloadQueue() {
   }
 }
 
+// Retoma os downloads quando a internet (ou o Wi-Fi) volta.
+onNetworkChange(pumpDownloadQueue);
+
+/**
+ * Agenda o download de todas as imagens do catálogo que ainda não estão no
+ * aparelho. Só baixa em Wi-Fi; no 4G/5G a lista fica guardada e o download
+ * começa sozinho quando o Wi-Fi voltar.
+ */
+export function prefetchAllImages(urls: (string | undefined)[]) {
+  void loadImageManifest().then(() => {
+    bulkQueue = Array.from(
+      new Set(urls.filter((url): url is string => Boolean(url && /^https?:/i.test(url)))),
+    ).filter((url) => !manifest[url]);
+    pumpDownloadQueue();
+  });
+}
+
 function cacheImageOnDemand(url: string) {
-  if (!/^https?:/i.test(url)) return;
+  if (!/^https?:/i.test(url) || !isOnline()) return;
   void loadImageManifest().then(() => {
     if (manifest[url] || queuedUrls.has(url)) return;
     if (downloadQueue.length >= MAX_QUEUED_IMAGE_DOWNLOADS) return;
@@ -132,14 +171,18 @@ export function localUriFor(url?: string): string | undefined {
 
 /**
  * Devolve o caminho local quando a imagem já está salva; senão a URL remota.
+ * Sem internet e sem arquivo salvo, devolve `undefined` em vez de tentar a
+ * URL remota (que só falharia e redesenharia a tela à toa).
  * O salvamento ocorre em segundo plano sem redesenhar o card atual.
  */
 export function useLocalImageUri(url?: string): string | undefined {
+  const online = useIsOnline();
   useEffect(() => {
-    if (url) cacheImageOnDemand(url);
-  }, [url]);
+    if (url && online) cacheImageOnDemand(url);
+  }, [url, online]);
 
-  return url ? localUriFor(url) ?? url : undefined;
+  if (!url) return undefined;
+  return localUriFor(url) ?? (online || !/^https?:/i.test(url) ? url : undefined);
 }
 
 /** Apaga arquivos de imagens que não fazem mais parte do catálogo. */

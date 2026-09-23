@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as FileSystem from 'expo-file-system/legacy';
 
 // Mesma API pública que o site do catálogo usa (sites-project). O app não
 // tem nenhum modo "editor" — só lê o que já foi publicado, então qualquer
@@ -134,6 +135,10 @@ export type CatalogSyncResponse = {
 const CACHE_CONFIG_KEY = '@catalogo/config-cache';
 const CACHE_PRODUCTS_KEY = '@catalogo/products-cache';
 const CACHE_SYNC_REVISION_KEY = '@catalogo/sync-revision';
+// O catálogo completo (~2 MB) fica num arquivo, não no AsyncStorage: no
+// Android cada registro do AsyncStorage tem limite de ~2 MB e, perto disso,
+// a leitura falha e o app abria offline sem nenhum produto salvo.
+const PRODUCTS_FILE = `${FileSystem.documentDirectory ?? ''}catalogo-produtos.json`;
 const PAGE_LIMIT = 200;
 const SYNC_PAGE_LIMIT = 150;
 // Segurança contra um catálogo enorme fazer o app buscar páginas para
@@ -180,9 +185,42 @@ function normalizeConfig(config: CatalogConfig): CatalogConfig {
 // em memória em vez de cair no catch e devolver cache velho.
 async function writeCache(key: string, value: unknown): Promise<void> {
   try {
+    if (key === CACHE_PRODUCTS_KEY) {
+      await writeProductsFile(JSON.stringify(value));
+      return;
+    }
     await AsyncStorage.setItem(key, JSON.stringify(value));
   } catch {
     // Silencioso de propósito: cache é otimização, não requisito.
+  }
+}
+
+// Grava num arquivo temporário e só então troca pelo definitivo: se o app
+// fechar no meio da gravação, o catálogo anterior continua inteiro.
+async function writeProductsFile(json: string) {
+  const temp = `${PRODUCTS_FILE}.tmp`;
+  await FileSystem.writeAsStringAsync(temp, json);
+  await FileSystem.deleteAsync(PRODUCTS_FILE, { idempotent: true });
+  await FileSystem.moveAsync({ from: temp, to: PRODUCTS_FILE });
+}
+
+async function readProductsRaw(): Promise<string | null> {
+  try {
+    const info = await FileSystem.getInfoAsync(PRODUCTS_FILE);
+    if (info.exists) return await FileSystem.readAsStringAsync(PRODUCTS_FILE);
+  } catch {
+    // Arquivo ilegível: tenta o formato antigo abaixo.
+  }
+  // Versões anteriores do app guardavam no AsyncStorage. Migra uma vez para
+  // o arquivo e libera o registro antigo.
+  try {
+    const legacy = await AsyncStorage.getItem(CACHE_PRODUCTS_KEY);
+    if (!legacy) return null;
+    await writeProductsFile(legacy);
+    await AsyncStorage.removeItem(CACHE_PRODUCTS_KEY);
+    return legacy;
+  } catch {
+    return null;
   }
 }
 
@@ -385,7 +423,7 @@ export async function fetchCatalogChanges(
 
 export async function readCachedProducts(): Promise<Product[] | null> {
   try {
-    const raw = await AsyncStorage.getItem(CACHE_PRODUCTS_KEY);
+    const raw = await readProductsRaw();
     if (!raw) return null;
     const parsed = JSON.parse(raw) as { items: Product[] };
     if (!Array.isArray(parsed?.items)) return null;
@@ -397,7 +435,7 @@ export async function readCachedProducts(): Promise<Product[] | null> {
 
 export async function getCacheAge(): Promise<number | null> {
   try {
-    const raw = await AsyncStorage.getItem(CACHE_PRODUCTS_KEY);
+    const raw = await readProductsRaw();
     if (!raw) return null;
     const { savedAt } = JSON.parse(raw) as { savedAt: number };
     return Date.now() - savedAt;

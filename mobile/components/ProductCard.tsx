@@ -57,8 +57,11 @@ export const ProductCard = memo(function ProductCard({
           />
         ) : (
           <View style={styles.placeholder}>
-            <AppIcon name="cube" size={32} color="#8b9ab3" />
-            <Text style={styles.placeholderText}>Imagem não cadastrada</Text>
+            <AppIcon name={product.image ? 'cloud-offline' : 'cube'} size={32} color="#8b9ab3" />
+            <Text style={styles.placeholderText}>
+              {/* Tem foto no catálogo, mas ela ainda não foi salva e estamos offline. */}
+              {product.image && !broken ? 'Foto disponível com internet' : 'Imagem não cadastrada'}
+            </Text>
           </View>
         )}
 

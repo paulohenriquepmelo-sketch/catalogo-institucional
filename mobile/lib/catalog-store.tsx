@@ -6,11 +6,12 @@ import {
   persistCatalogSnapshot, persistSyncRevision, readCachedConfig, readCachedProducts,
   readCachedSyncRevision, type CatalogChange, type CatalogConfig, type Product,
 } from './api';
-import { loadImageManifest, pruneImages } from './image-cache';
+import { loadImageManifest, prefetchAllImages, pruneImages } from './image-cache';
+import { isOnline, onNetworkChange } from './network';
 
 type CatalogState = {
   config: CatalogConfig | null; products: Product[]; loading: boolean;
-  refreshing: boolean; error: string | null; offline: boolean; syncing: boolean;
+  refreshing: boolean; error: string | null; offline: boolean;
   loadingLabel: string; loadingProgress: number | null; refresh: () => Promise<void>;
 };
 
@@ -63,7 +64,6 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [syncing, setSyncing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [offline, setOffline] = useState(false);
   const [loadingLabel, setLoadingLabel] = useState('Carregando catálogo…');
@@ -87,7 +87,6 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
     const controller = new AbortController();
     abortController.current = controller;
     if (initial) { setLoading(true); setLoadingLabel('Baixando produtos…'); }
-    else setSyncing(true);
     try {
       const [configResult, productsResult] = await Promise.all([
         fetchConfig(controller.signal),
@@ -110,14 +109,17 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
         setError(caught instanceof Error ? caught.message : 'Não foi possível carregar o catálogo.');
       }
     } finally {
-      setLoading(false); setSyncing(false); setRefreshing(false);
+      setLoading(false); setRefreshing(false);
     }
   }, [pruneLater]);
 
   const syncIncremental = useCallback(async (manual = false) => {
+    // Sem internet não adianta tentar: marca offline na hora, sem esperar
+    // uma requisição falhar e sem redesenhar as telas a cada minuto.
+    if (!isOnline()) { setOffline(true); setRefreshing(false); return; }
     if (runningRef.current) return runningRef.current;
     const operation = (async () => {
-      if (manual) setRefreshing(true); else setSyncing(true);
+      if (manual) setRefreshing(true);
       const controller = new AbortController();
       abortController.current = controller;
       try {
@@ -164,7 +166,7 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
       } catch (caught) {
         if (!(caught instanceof Error && caught.name === 'AbortError')) setOffline(true);
       } finally {
-        setSyncing(false); setRefreshing(false);
+        setRefreshing(false);
       }
     })();
     runningRef.current = operation;
@@ -189,19 +191,33 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
     const subscription = AppState.addEventListener('change', (state) => {
       if (state === 'active') void syncIncremental(false);
     });
+    // Caiu a internet: mostra o aviso na hora. Voltou: sincroniza sozinho.
+    const stopNetwork = onNetworkChange(() => {
+      if (isOnline()) void syncIncremental(false); else setOffline(true);
+    });
     const timer = setInterval(() => {
       if (AppState.currentState === 'active') void syncIncremental(false);
     }, 60_000);
     return () => {
-      cancelled = true; subscription.remove(); clearInterval(timer); abortController.current?.abort();
+      cancelled = true; subscription.remove(); stopNetwork(); clearInterval(timer); abortController.current?.abort();
     };
   }, [syncIncremental]);
 
+  // Com o catálogo em mãos, baixa em segundo plano as fotos que faltam no
+  // aparelho (só em Wi-Fi), para tudo aparecer também sem internet.
+  useEffect(() => {
+    if (!products.length) return;
+    const timer = setTimeout(() => prefetchAllImages(catalogImages(config, products)), 5_000);
+    return () => clearTimeout(timer);
+  }, [config, products]);
+
   const refresh = useCallback(() => syncIncremental(true), [syncIncremental]);
+  // A sincronização de fundo (a cada minuto) não tem estado aqui de propósito:
+  // se tivesse, redesenharia todas as telas abertas duas vezes a cada rodada.
   const value = useMemo(() => ({
-    config, products, loading, refreshing, error, offline, syncing,
+    config, products, loading, refreshing, error, offline,
     loadingLabel, loadingProgress: null, refresh,
-  }), [config, products, loading, refreshing, error, offline, syncing, loadingLabel, refresh]);
+  }), [config, products, loading, refreshing, error, offline, loadingLabel, refresh]);
   const searchValue = useMemo(() => ({ searchQuery, setSearchQuery }), [searchQuery]);
   return (
     <CatalogContext.Provider value={value}>
