@@ -1,5 +1,7 @@
-import { useMemo, useState } from 'react';
-import { useLocalSearchParams } from 'expo-router';
+import { useEffect, useMemo, useState } from 'react';
+import { useLocalSearchParams, useNavigation } from 'expo-router';
+import type { ParamListBase } from 'expo-router/react-navigation';
+import type { NativeStackNavigationProp } from 'expo-router/native-stack';
 import {
   Image,
   Linking,
@@ -28,10 +30,25 @@ export default function ProdutoScreen() {
 
   const imageUri = useLocalImageUri(product?.image);
 
+  // Os "produtos parecidos" só entram depois da animação de abertura: assim a
+  // tela aparece na hora e a transição não engasga montando outra lista.
+  const navigation = useNavigation<NativeStackNavigationProp<ParamListBase>>();
+  const [transitionDone, setTransitionDone] = useState(false);
+  useEffect(() => {
+    const finish = () => setTransitionDone(true);
+    // Rede de segurança caso o evento de fim de transição não chegue.
+    const fallback = setTimeout(finish, 450);
+    const unsubscribe = navigation.addListener('transitionEnd', finish);
+    return () => {
+      clearTimeout(fallback);
+      unsubscribe();
+    };
+  }, [navigation]);
+
   const similar = useMemo(() => {
-    if (!product) return [];
+    if (!product || !transitionDone) return [];
     return similarProducts(products, product);
-  }, [products, product]);
+  }, [products, product, transitionDone]);
 
   if (!product) {
     return (

@@ -469,26 +469,32 @@ export function publishedBrands(brands: Brand[]): Brand[] {
 // um pouco a mais, e só entra se pontuar mais que 1 (marca sozinha não
 // basta). Mantém "itens similares" idênticos entre app e site.
 export function similarProducts(items: Product[], product: Product): Product[] {
-  return items
-    .filter((p) => p.id !== product.id && p.published !== false)
-    .map((p) => ({
-      p,
-      score:
-        (p.department === product.department &&
-        p.section === product.section &&
-        p.category === product.category
-          ? 8
-          : 0) +
-        (p.brand === product.brand ? 1 : 0) +
-        (p.department === product.department && p.section === product.section
-          ? 3
-          : 0) +
-        (p.segment === product.segment && p.segment !== 'Sem classificação'
-          ? 2
-          : 0),
-    }))
-    .filter((x) => x.score > 1)
-    .sort((a, b) => b.score - a.score || a.p.name.localeCompare(b.p.name, 'pt-BR'))
-    .slice(0, 3)
-    .map((x) => x.p);
+  // Uma passada só, guardando os 3 melhores. Ordenar o catálogo inteiro
+  // (milhares de itens, com localeCompare) travava a abertura do produto.
+  const best: { p: Product; score: number }[] = [];
+  const beats = (a: { p: Product; score: number }, b: { p: Product; score: number }) =>
+    a.score > b.score ||
+    (a.score === b.score && a.p.name.localeCompare(b.p.name, 'pt-BR') < 0);
+
+  for (const p of items) {
+    if (p.id === product.id || p.published === false) continue;
+    const sameSection = p.department === product.department && p.section === product.section;
+    const score =
+      (sameSection && p.category === product.category ? 8 : 0) +
+      (p.brand === product.brand ? 1 : 0) +
+      (sameSection ? 3 : 0) +
+      (p.segment === product.segment && p.segment !== 'Sem classificação' ? 2 : 0);
+    if (score <= 1) continue;
+    // Descarta cedo quem nem empata com o 3º colocado: evita o localeCompare.
+    if (best.length === 3 && score < best[2].score) continue;
+
+    const entry = { p, score };
+    let i = best.length;
+    while (i > 0 && beats(entry, best[i - 1])) i -= 1;
+    if (i < 3) {
+      best.splice(i, 0, entry);
+      if (best.length > 3) best.pop();
+    }
+  }
+  return best.map((x) => x.p);
 }
