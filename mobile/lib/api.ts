@@ -107,7 +107,13 @@ export type CatalogConfig = {
 
 // Toda busca informa se o que voltou veio da rede ou do cache local, para a
 // tela conseguir mostrar corretamente o aviso "sem conexão".
-export type FetchResult<T> = { data: T; fromCache: boolean; revision?: number };
+export type FetchResult<T> = {
+  data: T;
+  fromCache: boolean;
+  revision?: number;
+  /** Download interrompido no meio: os dados servem, mas não estão completos. */
+  partial?: boolean;
+};
 
 type ConfigResponse = { config: CatalogConfig; revision: number };
 type ProductsPageResponse = {
@@ -115,21 +121,6 @@ type ProductsPageResponse = {
   nextCursor: number;
   done: boolean;
   revision: number;
-};
-
-export type CatalogChange =
-  | { action: 'upsert'; product: Product; publishedAt: string }
-  | { action: 'delete'; productId: number; publishedAt: string };
-
-export type CatalogSyncResponse = {
-  revision: number;
-  publishedAt: string;
-  reset?: boolean;
-  restart?: boolean;
-  config?: CatalogConfig;
-  items: CatalogChange[];
-  nextCursor: number;
-  done: boolean;
 };
 
 const CACHE_CONFIG_KEY = '@catalogo/config-cache';
@@ -140,7 +131,6 @@ const CACHE_SYNC_REVISION_KEY = '@catalogo/sync-revision';
 // a leitura falha e o app abria offline sem nenhum produto salvo.
 const PRODUCTS_FILE = `${FileSystem.documentDirectory ?? ''}catalogo-produtos.json`;
 const PAGE_LIMIT = 200;
-const SYNC_PAGE_LIMIT = 150;
 // Segurança contra um catálogo enorme fazer o app buscar páginas para
 // sempre: 60 páginas de 200 cobrem 12.000 produtos, bem acima do catálogo
 // atual (~2.500).
@@ -273,7 +263,7 @@ export async function fetchConfig(
     const data = await getJson<ConfigResponse>('/api/config', signal);
     const config = normalizeConfig(data.config);
     scheduleCacheWrite(CACHE_CONFIG_KEY, { config, savedAt: Date.now() });
-    return { data: config, fromCache: false };
+    return { data: config, fromCache: false, revision: data.revision };
   } catch (error) {
     const cached = await readCachedConfig();
     if (cached) return { data: cached, fromCache: true };
@@ -361,7 +351,7 @@ export async function fetchAllProducts(
     }
     if (all.length > 0) {
       // Parcial, porém melhor que nada — e de propósito NÃO vai para o cache.
-      return { data: all, fromCache: false, revision };
+      return { data: all, fromCache: false, revision, partial: true };
     }
     throw new Error('Não foi possível carregar o catálogo.');
   } catch (error) {
@@ -373,17 +363,8 @@ export async function fetchAllProducts(
   }
 }
 
-export function persistCatalogSnapshot(products: Product[], revision: number) {
-  scheduleCacheWrite(CACHE_PRODUCTS_KEY, { items: products, savedAt: Date.now() });
-  persistSyncRevision(revision);
-}
-
 export function persistSyncRevision(revision: number) {
   scheduleCacheWrite(CACHE_SYNC_REVISION_KEY, revision);
-}
-
-export function persistCatalogConfig(config: CatalogConfig) {
-  scheduleCacheWrite(CACHE_CONFIG_KEY, { config, savedAt: Date.now() });
 }
 
 export async function readCachedSyncRevision(): Promise<number> {
@@ -395,30 +376,6 @@ export async function readCachedSyncRevision(): Promise<number> {
   } catch {
     return 0;
   }
-}
-
-export async function fetchCatalogChanges(
-  since: number,
-  cursor = 0,
-  target?: number,
-  signal?: AbortSignal,
-): Promise<CatalogSyncResponse> {
-  const query = new URLSearchParams({
-    since: String(since),
-    cursor: String(cursor),
-    limit: String(SYNC_PAGE_LIMIT),
-  });
-  if (target !== undefined) query.set('target', String(target));
-  const data = await getJson<CatalogSyncResponse>(`/api/sync?${query}`, signal);
-  return {
-    ...data,
-    config: data.config ? normalizeConfig(data.config) : undefined,
-    items: (data.items ?? []).map((change) =>
-      change.action === 'upsert'
-        ? { ...change, product: normalizeProduct(change.product) }
-        : change,
-    ),
-  };
 }
 
 export async function readCachedProducts(): Promise<Product[] | null> {

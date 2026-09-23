@@ -2,9 +2,8 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import type { ReactNode } from 'react';
 import { AppState } from 'react-native';
 import {
-  fetchAllProducts, fetchCatalogChanges, fetchConfig, persistCatalogConfig,
-  persistCatalogSnapshot, persistSyncRevision, readCachedConfig, readCachedProducts,
-  readCachedSyncRevision, type CatalogChange, type CatalogConfig, type Product,
+  fetchAllProducts, fetchConfig, persistSyncRevision, readCachedConfig, readCachedProducts,
+  readCachedSyncRevision, type CatalogConfig, type Product,
 } from './api';
 import { loadImageManifest, prefetchAllImages, pruneImages } from './image-cache';
 import { isOnline, onNetworkChange } from './network';
@@ -17,7 +16,6 @@ type CatalogState = {
 
 const CatalogContext = createContext<CatalogState | null>(null);
 const CatalogSearchContext = createContext<{ searchQuery: string; setSearchQuery: (query: string) => void } | null>(null);
-const DISCONTINUED_RETENTION_MS = 30 * 86_400_000;
 
 export function isDiscontinued(product: Product, now = Date.now()) {
   const until = Date.parse(product.discontinuedUntil ?? '');
@@ -26,29 +24,6 @@ export function isDiscontinued(product: Product, now = Date.now()) {
 
 export function removeExpiredDiscontinued(items: Product[], now = Date.now()) {
   return items.filter((product) => product.published !== false || isDiscontinued(product, now));
-}
-
-export function applyCatalogChanges(current: Product[], changes: CatalogChange[], now = Date.now()) {
-  const productsById = new Map(current.map((product) => [product.id, product]));
-  for (const change of changes) {
-    if (change.action === 'upsert') {
-      productsById.set(change.product.id, {
-        ...change.product, published: true, discontinuedAt: undefined, discontinuedUntil: undefined,
-      });
-      continue;
-    }
-    const existing = productsById.get(change.productId);
-    if (!existing) continue;
-    const discontinuedAt = change.publishedAt || new Date(now).toISOString();
-    const publishedTime = Date.parse(discontinuedAt);
-    productsById.set(change.productId, {
-      ...existing, published: false, discontinuedAt,
-      discontinuedUntil: new Date(
-        (Number.isFinite(publishedTime) ? publishedTime : now) + DISCONTINUED_RETENTION_MS,
-      ).toISOString(),
-    });
-  }
-  return removeExpiredDiscontinued([...productsById.values()], now);
 }
 
 function catalogImages(config: CatalogConfig | null, products: Product[]) {
@@ -88,17 +63,24 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
     abortController.current = controller;
     if (initial) { setLoading(true); setLoadingLabel('Baixando produtos…'); }
     try {
-      const [configResult, productsResult] = await Promise.all([
-        fetchConfig(controller.signal),
-        fetchAllProducts(controller.signal, (count) => {
-          if (initial) setLoadingLabel(`Baixando produtos… ${count}`);
-        }),
-      ]);
+      // Configuração primeiro: a versão anotada é a de ANTES dos produtos. Se
+      // alguém publicar durante o download, a próxima checagem vê a versão
+      // nova e baixa de novo, em vez de ficar com um catálogo misturado.
+      const configResult = await fetchConfig(controller.signal);
+      const productsResult = await fetchAllProducts(controller.signal, (count) => {
+        if (initial) setLoadingLabel(`Baixando produtos… ${count}`);
+      });
       if (controller.signal.aborted) return;
       const next = removeExpiredDiscontinued(productsResult.data);
       setConfig(configResult.data); configRef.current = configResult.data;
       if (next.length > 0) { setProducts(next); productsRef.current = next; }
-      if (productsResult.revision) syncRevisionRef.current = productsResult.revision;
+      // A versão só é anotada com o catálogo completo: se veio parcial, a
+      // próxima checagem ainda vê diferença e tenta baixar de novo.
+      const complete = !configResult.fromCache && !productsResult.fromCache && !productsResult.partial;
+      if (complete && configResult.revision) {
+        syncRevisionRef.current = configResult.revision;
+        persistSyncRevision(configResult.revision);
+      }
       setOffline(configResult.fromCache || productsResult.fromCache);
       setError(null);
       pruneLater(configResult.data, next);
@@ -123,46 +105,27 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
       const controller = new AbortController();
       abortController.current = controller;
       try {
-        const since = syncRevisionRef.current;
-        if (since <= 0) { await loadFull(!productsRef.current.length); return; }
-        let cursor = 0;
-        let target: number | undefined;
-        let changes: CatalogChange[] = [];
-        let nextConfig: CatalogConfig | undefined;
-        let attempts = 0;
-        while (true) {
-          const page = await fetchCatalogChanges(since, cursor, target, controller.signal);
-          if (page.reset) { await loadFull(false); return; }
-          if (page.restart) {
-            if (++attempts > 2) throw new Error('O catálogo mudou durante a sincronização.');
-            cursor = 0; target = undefined; changes = []; nextConfig = undefined;
-            continue;
-          }
-          target = page.revision;
-          if (page.config) nextConfig = page.config;
-          changes.push(...page.items);
-          if (page.done) break;
-          cursor = page.nextCursor;
+        if (syncRevisionRef.current <= 0 || !productsRef.current.length) {
+          await loadFull(!productsRef.current.length);
+          return;
         }
-        const withoutExpired = removeExpiredDiscontinued(productsRef.current);
-        const expiredChanged = withoutExpired.length !== productsRef.current.length;
-        const nextProducts = changes.length
-          ? applyCatalogChanges(withoutExpired, changes)
-          : withoutExpired;
-        const productsChanged = changes.length > 0 || expiredChanged;
-        const resolvedConfig = nextConfig ?? configRef.current;
-        if (productsChanged) {
-          productsRef.current = nextProducts;
-          setProducts(nextProducts);
+        // Checagem barata: só a configuração (1 leitura no R2, poucos KB),
+        // que traz o número da versão publicada. O catálogo inteiro (~2 MB,
+        // 13 páginas) só é baixado de novo quando esse número muda, ou seja,
+        // quando algo é publicado no editor.
+        const configResult = await fetchConfig(controller.signal);
+        if (configResult.fromCache) { setOffline(true); return; }
+        if (configResult.revision !== syncRevisionRef.current) {
+          await loadFull(false);
+          return;
         }
-        if (nextConfig) {
-          configRef.current = nextConfig; setConfig(nextConfig); persistCatalogConfig(nextConfig);
-        }
-        syncRevisionRef.current = target ?? since;
-        if (productsChanged) persistCatalogSnapshot(nextProducts, syncRevisionRef.current);
-        else persistSyncRevision(syncRevisionRef.current);
         setOffline(false); setError(null);
-        if (productsChanged || nextConfig) pruneLater(resolvedConfig, nextProducts);
+        // Nada publicado: só retira itens descontinuados cujo prazo venceu.
+        const withoutExpired = removeExpiredDiscontinued(productsRef.current);
+        if (withoutExpired.length !== productsRef.current.length) {
+          productsRef.current = withoutExpired;
+          setProducts(withoutExpired);
+        }
       } catch (caught) {
         if (!(caught instanceof Error && caught.name === 'AbortError')) setOffline(true);
       } finally {
@@ -171,7 +134,7 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
     })();
     runningRef.current = operation;
     try { await operation; } finally { runningRef.current = null; }
-  }, [loadFull, pruneLater]);
+  }, [loadFull]);
 
   useEffect(() => {
     let cancelled = false;
