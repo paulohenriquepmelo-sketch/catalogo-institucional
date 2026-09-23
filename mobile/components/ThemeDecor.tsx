@@ -10,10 +10,12 @@ import { useAppTheme, type AppThemeId } from '@/lib/app-theme';
  * enfeite nenhum.
  */
 
-type Bulb = 'bulb' | 'star' | 'heart' | 'confetti' | 'balloon';
+type Bulb = 'bulb' | 'glow' | 'star' | 'heart' | 'confetti' | 'balloon';
 
 type Decor = {
   bulb: Bulb;
+  /** Corda do pisca-pisca: fio simples ou guirlanda de pinheiro com fita. */
+  rope?: 'wire' | 'pine';
   lights: string[];
   card: 'santa-hat' | AppIconName;
   tab?: 'santa-hat' | AppIconName;
@@ -21,8 +23,10 @@ type Decor = {
 
 const DECOR: Partial<Record<AppThemeId, Decor>> = {
   natal: {
-    bulb: 'bulb',
-    lights: ['#e53935', '#43a047', '#fdd835', '#1e88e5'],
+    // Como no esboço: luzes quentes sobre guirlanda de pinheiro com fita.
+    bulb: 'glow',
+    rope: 'pine',
+    lights: ['#ffd36b', '#ffe7a3', '#ffc14d'],
     card: 'santa-hat',
     tab: 'santa-hat',
   },
@@ -119,6 +123,16 @@ function BulbShape({ kind, color, size }: { kind: Bulb; color: string; size: num
           <Rect x={7} y={3} width={10} height={18} rx={2} fill={color} transform="rotate(25 12 12)" />
         </Svg>
       );
+    case 'glow':
+      // Luz quente com brilho em volta (halo).
+      return (
+        <Svg width={size * 2} height={size * 2} viewBox="0 0 24 24">
+          <Circle cx={12} cy={12} r={11} fill={color} opacity={0.18} />
+          <Circle cx={12} cy={12} r={7} fill={color} opacity={0.35} />
+          <Circle cx={12} cy={12} r={4.2} fill={color} />
+          <Circle cx={12} cy={12} r={2.2} fill="#fffbe8" />
+        </Svg>
+      );
     case 'balloon':
       return (
         <Svg width={size} height={size * 1.4} viewBox="0 0 24 34">
@@ -163,40 +177,69 @@ export const ThemeGarland = memo(function ThemeGarland() {
     return () => loop.stop();
   }, [decor, reduceMotion, clock]);
 
-  const spacing = 30;
-  const count = Math.max(6, Math.floor(width / spacing));
+  const pine = decor?.rope === 'pine';
+  const step = pine ? 30 : 30;
+  const count = Math.max(6, Math.floor(width / step));
   const bulbs = useMemo(
     () =>
       Array.from({ length: count }, (_, i) => {
         const x = (i + 0.5) * (width / count);
         // O fio "cai" entre os pontos de apoio (a cada 4 lâmpadas).
-        const sag = Math.sin(((i % 4) / 4) * Math.PI) * 5;
+        const sag = pine ? Math.sin(x / 26) * 3 + 7 : Math.sin(((i % 4) / 4) * Math.PI) * 5;
         return { i, x, y: sag };
       }),
-    [count, width],
+    [count, width, pine],
   );
+  const pinePaths = useMemo(() => (pine ? buildPineRope(width) : null), [pine, width]);
   if (!decor) return null;
 
   const wire = `M 0 2 ${bulbs.map((b) => `L ${b.x.toFixed(1)} ${(b.y + 2).toFixed(1)}`).join(' ')} L ${width} 2`;
-  const size = decor.bulb === 'balloon' ? 11 : 12;
+  const size = decor.bulb === 'balloon' ? 11 : decor.bulb === 'glow' ? 10 : 12;
+  // Três grupos que se revezam (mais natural que só pares/ímpares).
+  const ranges = [
+    [1, 0.35, 0.7, 1],
+    [0.35, 1, 0.55, 0.35],
+    [0.7, 0.5, 1, 0.7],
+  ];
 
   return (
-    <View style={styles.garland} pointerEvents="none">
-      <Svg width={width} height={10} style={StyleSheet.absoluteFill}>
-        <Path d={wire} stroke="#1b2a1b" strokeWidth={1.2} fill="none" opacity={0.7} />
-      </Svg>
+    <View style={pine ? styles.garlandPine : styles.garland} pointerEvents="none">
+      {pinePaths ? (
+        <Svg width={width} height={28} style={StyleSheet.absoluteFill}>
+          {/* Fundo verde, galhos escuros, fita, e os galhos claros por cima
+              (a fita some entre os galhos, dando profundidade). */}
+          <Path d={pinePaths.core} stroke="#123320" strokeWidth={7} strokeLinecap="round" fill="none" />
+          <Path d={pinePaths.needles[0]} stroke={PINE_GREENS[0]} strokeWidth={1.8} strokeLinecap="round" fill="none" />
+          <Path d={pinePaths.needles[1]} stroke={PINE_GREENS[1]} strokeWidth={1.8} strokeLinecap="round" fill="none" />
+          <Path d={pinePaths.ribbon} stroke="#c62828" strokeWidth={3.4} strokeLinecap="round" fill="none" />
+          <Path d={pinePaths.ribbon} stroke="#ff6b6b" strokeWidth={1} strokeLinecap="round" fill="none" opacity={0.6} />
+          <Path d={pinePaths.needles[2]} stroke={PINE_GREENS[2]} strokeWidth={1.4} strokeLinecap="round" fill="none" opacity={0.85} />
+        </Svg>
+      ) : (
+        <Svg width={width} height={10} style={StyleSheet.absoluteFill}>
+          <Path d={wire} stroke="#1b2a1b" strokeWidth={1.2} fill="none" opacity={0.7} />
+        </Svg>
+      )}
       {bulbs.map((b) => {
-        // Lâmpadas pares e ímpares se revezam, como um pisca-pisca de verdade.
+        const range = ranges[b.i % 3];
         const opacity = reduceMotion
           ? 1
+          : clock.interpolate({ inputRange: [0, 0.33, 0.66, 1], outputRange: range });
+        const scale = reduceMotion || decor.bulb !== 'glow'
+          ? 1
           : clock.interpolate({
-              inputRange: [0, 0.5, 1],
-              outputRange: b.i % 2 === 0 ? [1, 0.25, 1] : [0.25, 1, 0.25],
+              inputRange: [0, 0.33, 0.66, 1],
+              outputRange: range.map((v) => 0.8 + v * 0.3),
             });
+        const half = decor.bulb === 'glow' ? size : size / 2;
         return (
           <Animated.View
             key={b.i}
-            style={[styles.bulb, { left: b.x - size / 2, top: b.y, opacity }]}
+            style={[
+              styles.bulb,
+              { left: b.x - half, top: b.y - (decor.bulb === 'glow' ? half - 2 : 0), opacity },
+              decor.bulb === 'glow' ? { transform: [{ scale }] } : null,
+            ]}
           >
             <BulbShape kind={decor.bulb} color={decor.lights[b.i % decor.lights.length]} size={size} />
           </Animated.View>
@@ -205,6 +248,32 @@ export const ThemeGarland = memo(function ThemeGarland() {
     </View>
   );
 });
+
+const PINE_GREENS = ['#173f24', '#23572f', '#347a42'];
+
+// Guirlanda de pinheiro: agulhas curtas ao longo de uma onda suave, em três
+// tons de verde (um caminho por tom = só 3 figuras), e a fita vermelha.
+function buildPineRope(width: number) {
+  const needles = ['', '', ''];
+  const center = (x: number) => 9 + Math.sin(x / 26) * 3;
+  let core = '';
+  for (let x = 0; x <= width; x += 6) core += `${x === 0 ? 'M' : 'L'} ${x} ${center(x).toFixed(1)} `;
+  for (let x = -4, k = 0; x < width + 4; x += 2, k++) {
+    const y = center(x);
+    const tone = k % 3;
+    const dx = 4 + (k % 4);
+    const up = 6 + (k % 4);
+    needles[tone] += `M ${x.toFixed(1)} ${y.toFixed(1)} l ${dx} ${-up} `;
+    needles[(tone + 1) % 3] += `M ${x.toFixed(1)} ${y.toFixed(1)} l ${-dx} ${up - 1} `;
+    needles[(tone + 2) % 3] += `M ${x.toFixed(1)} ${y.toFixed(1)} l ${dx + 1} ${up} `;
+  }
+  let ribbon = '';
+  for (let x = 0; x <= width; x += 6) {
+    const y = center(x) + Math.sin(x / 11) * 3;
+    ribbon += `${x === 0 ? 'M' : 'L'} ${x} ${y.toFixed(1)} `;
+  }
+  return { core, needles, ribbon };
+}
 
 /** Enfeite no canto do card de produto (gorro no Natal, ícone nos outros). */
 export function CardOrnament() {
@@ -253,6 +322,7 @@ export function LogoOrnament() {
 const styles = StyleSheet.create({
   // O cabeçalho tem 12 px de margem lateral (spacing.md): o fio vai de ponta a ponta.
   garland: { height: 22, marginTop: 4, marginBottom: -6, marginHorizontal: -12 },
+  garlandPine: { height: 28, marginTop: 6, marginBottom: -8, marginHorizontal: -12 },
   bulb: { position: 'absolute' },
   cardHat: { position: 'absolute', top: 0, right: 0, transform: [{ rotate: '18deg' }] },
   cardIcon: {
