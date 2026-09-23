@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { router, useNavigation } from 'expo-router';
 import type { NavigationProp, ParamListBase } from 'expo-router/react-navigation';
 import {
-  ImageBackground,
+  Image,
   Linking,
   Pressable,
   RefreshControl,
@@ -129,25 +129,7 @@ export default function HomeScreen() {
         </View>
       ) : null}
 
-      <ImageBackground
-        // Mesma imagem do topo do site (campanha do editor); sem campanha ou
-        // sem internet e sem cópia salva, usa a imagem do próprio app.
-        source={heroUri ? { uri: heroUri } : require('../../assets/hero-laurencini.png')}
-        style={styles.hero}
-        imageStyle={styles.heroImage}
-      >
-        <View style={styles.heroShade} />
-        <View style={styles.heroCopy}>
-          <Text style={styles.heroEyebrow}>ATACADO E DISTRIBUIÇÃO</Text>
-          <Text style={styles.heroTitle}>MAIS QUE PRODUTOS,</Text>
-          <Text style={styles.heroHighlight}>PARCERIA PARA{`\n`}O SEU NEGÓCIO.</Text>
-        </View>
-        <View style={styles.heroBenefits}>
-          <Benefit icon="truck" label={'Entrega no Norte\ne Serrana do ES'} />
-          <Benefit icon="cube" label={catalogSizeLabel} />
-          <Benefit icon="pricetags" label={'Preço de atacado\npara revenda'} />
-        </View>
-      </ImageBackground>
+      <HeroBanner uri={heroUri} catalogSizeLabel={catalogSizeLabel} />
 
       {/* Banners publicados no editor do site — antes o componente existia
           mas não era usado em lugar nenhum, então nada do que era publicado
@@ -264,6 +246,66 @@ export default function HomeScreen() {
   );
 }
 
+const LOCAL_HERO = require('../../assets/hero-laurencini.png');
+const LOCAL_HERO_SIZE = Image.resolveAssetSource(LOCAL_HERO);
+
+/**
+ * Topo da Início: a imagem do site INTEIRA (sem corte), com a frase à
+ * direita, sobre o céu, em faixas no mesmo estilo da faixa da própria arte.
+ * Os destaques ficam numa faixa logo abaixo, para não cobrir a imagem.
+ */
+function HeroBanner({ uri, catalogSizeLabel }: { uri?: string; catalogSizeLabel: string }) {
+  // Proporção lida da própria imagem: se a campanha mudar, o quadro acompanha.
+  const [ratio, setRatio] = useState(3);
+  const [width, setWidth] = useState(0);
+  useEffect(() => {
+    if (!uri) {
+      setRatio(LOCAL_HERO_SIZE.width / LOCAL_HERO_SIZE.height);
+      return;
+    }
+    let active = true;
+    Image.getSize(
+      uri,
+      (w, h) => active && h > 0 && setRatio(w / h),
+      () => undefined,
+    );
+    return () => {
+      active = false;
+    };
+  }, [uri]);
+
+  // Texto proporcional à largura do quadro (celular, tablet), com limites.
+  const fontSize = Math.min(22, Math.max(10, width * 0.03));
+
+  return (
+    <View style={styles.heroCard}>
+      <View onLayout={(event) => setWidth(event.nativeEvent.layout.width)}>
+        <Image
+          source={uri ? { uri } : LOCAL_HERO}
+          style={[styles.heroImage, { aspectRatio: ratio }]}
+          resizeMode="cover"
+          fadeDuration={0}
+        />
+        {width > 0 ? (
+          <View style={styles.heroCopy} pointerEvents="none">
+            <Text style={[styles.heroRibbon, styles.heroRibbonDark, { fontSize }]}>
+              MAIS QUE PRODUTOS,
+            </Text>
+            <Text style={[styles.heroRibbon, styles.heroRibbonAccent, { fontSize: fontSize * 1.08 }]}>
+              PARCERIA PARA{`\n`}O SEU NEGÓCIO.
+            </Text>
+          </View>
+        ) : null}
+      </View>
+      <View style={styles.heroBenefits}>
+        <Benefit icon="truck" label={'Entrega no Norte\ne Serrana do ES'} />
+        <Benefit icon="cube" label={catalogSizeLabel} />
+        <Benefit icon="pricetags" label={'Preço de atacado\npara revenda'} />
+      </View>
+    </View>
+  );
+}
+
 function Benefit({ icon, label }: { icon: AppIconName; label: string }) {
   return (
     <View style={styles.benefit}>
@@ -349,20 +391,37 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff3cd', padding: spacing.sm, paddingHorizontal: spacing.lg,
   },
   offlineText: { ...typography.small, color: '#7a5b00', flex: 1 },
-  hero: { height: 232, margin: spacing.sm, marginBottom: 6, justifyContent: 'space-between' },
-  heroImage: { borderRadius: radius.lg },
-  heroShade: {
-    ...StyleSheet.absoluteFill,
+  heroCard: {
+    margin: spacing.sm,
+    marginBottom: 6,
     borderRadius: radius.lg,
-    backgroundColor: 'rgba(0,31,77,0.22)',
+    overflow: 'hidden',
+    backgroundColor: colors.primaryDark,
   },
-  heroCopy: { paddingHorizontal: spacing.xl, paddingTop: spacing.lg, width: '72%' },
-  heroEyebrow: { color: '#fff', fontSize: 10, fontWeight: '700', letterSpacing: 3 },
-  heroTitle: { color: '#fff', fontSize: 22, fontWeight: '900', marginTop: 8 },
-  heroHighlight: { color: '#41b8ff', fontSize: 25, lineHeight: 28, fontWeight: '900' },
+  heroImage: { width: '100%' },
+  // Canto superior direito: é céu nas duas artes (site e app).
+  heroCopy: {
+    position: 'absolute',
+    top: '7%',
+    right: '3%',
+    width: '46%',
+    alignItems: 'flex-end',
+    gap: 4,
+  },
+  heroRibbon: {
+    color: '#fff',
+    fontWeight: '900',
+    textAlign: 'right',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  heroRibbonDark: { backgroundColor: colors.primaryDark },
+  heroRibbonAccent: { backgroundColor: colors.accent },
   heroBenefits: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingHorizontal: spacing.lg, paddingBottom: spacing.md,
+    paddingHorizontal: spacing.md, paddingVertical: spacing.sm, gap: spacing.xs,
   },
   benefit: { flexDirection: 'row', alignItems: 'center', gap: 6, maxWidth: '32%' },
   benefitText: { color: '#fff', fontSize: 10, lineHeight: 13, fontWeight: '600' },
