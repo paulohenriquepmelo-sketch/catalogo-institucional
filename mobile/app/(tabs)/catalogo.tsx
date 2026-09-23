@@ -119,11 +119,15 @@ export default function CatalogoScreen() {
       .filter((p) => p.published !== false || isDiscontinued(p))
       .map((product) => ({
         product,
+        // O id no fim desempata produtos com o mesmo nome e categoria (há
+        // alguns no catálogo): sem ele, a posição desses "gêmeos" dependia da
+        // ordem em que chegaram e podia trocar a cada atualização.
         sortKey: sortKeyOf(
           product.department,
           product.section,
           product.category,
           product.name,
+          String(product.id),
         ),
         haystack: normalize(
           [

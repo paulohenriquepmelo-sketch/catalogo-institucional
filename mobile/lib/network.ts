@@ -1,4 +1,3 @@
-import { useSyncExternalStore } from 'react';
 import NetInfo, { type NetInfoState } from '@react-native-community/netinfo';
 
 /**
@@ -6,7 +5,7 @@ import NetInfo, { type NetInfoState } from '@react-native-community/netinfo';
  *
  * Com isto o app sabe na hora que está sem internet: não fica esperando uma
  * requisição falhar (até 30 s) nem tentando baixar imagens que não vão
- * chegar. Componentes só redesenham quando a conexão realmente muda.
+ * chegar.
  */
 
 type NetworkSnapshot = {
@@ -27,11 +26,35 @@ function fromState(state: NetInfoState): NetworkSnapshot {
   return { online, unmetered: online && !expensive };
 }
 
+// Ao entrar/sair do modo avião ou com sinal fraco, o sistema costuma
+// oscilar (online → offline → online) em menos de um segundo. Só aceitamos a
+// mudança depois que ela se mantém por um instante; assim o app não
+// redesenha e não tenta sincronizar a cada piscada da conexão.
+const SETTLE_MS = 1_500;
+let pending: ReturnType<typeof setTimeout> | null = null;
+let firstReading = true;
+
 NetInfo.addEventListener((state) => {
   const next = fromState(state);
-  if (next.online === snapshot.online && next.unmetered === snapshot.unmetered) return;
-  snapshot = next;
-  listeners.forEach((listener) => listener());
+  if (pending) clearTimeout(pending);
+  pending = null;
+  if (next.online === snapshot.online && next.unmetered === snapshot.unmetered) {
+    firstReading = false;
+    return;
+  }
+  const apply = () => {
+    pending = null;
+    snapshot = next;
+    listeners.forEach((listener) => listener());
+  };
+  // A primeira leitura (app abrindo) vale na hora: se já abriu sem internet,
+  // nenhuma tela deve tentar a rede nesse meio-tempo.
+  if (firstReading) {
+    firstReading = false;
+    apply();
+    return;
+  }
+  pending = setTimeout(apply, SETTLE_MS);
 });
 
 export function isOnline() {
@@ -48,9 +71,4 @@ export function onNetworkChange(listener: () => void) {
   return () => {
     listeners.delete(listener);
   };
-}
-
-/** `true` quando há internet; a tela redesenha quando isso muda. */
-export function useIsOnline() {
-  return useSyncExternalStore(onNetworkChange, isOnline);
 }

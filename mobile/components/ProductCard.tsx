@@ -11,6 +11,7 @@ import {
 import { AppIcon } from '@/components/AppIcon';
 import { router } from 'expo-router';
 import { useLocalImageUri } from '@/lib/image-cache';
+import { isOnline } from '@/lib/network';
 import { colors, radius, spacing, typography } from '@/lib/theme';
 import type { Product } from '@/lib/api';
 import { isDiscontinued } from '@/lib/catalog-store';
@@ -60,7 +61,9 @@ export const ProductCard = memo(function ProductCard({
             <AppIcon name={product.image ? 'cloud-offline' : 'cube'} size={32} color="#8b9ab3" />
             <Text style={styles.placeholderText}>
               {/* Tem foto no catálogo, mas ela ainda não foi salva e estamos offline. */}
-              {product.image && !broken ? 'Foto disponível com internet' : 'Imagem não cadastrada'}
+              {product.image && (!broken || !isOnline())
+                ? 'Foto disponível com internet'
+                : 'Imagem não cadastrada'}
             </Text>
           </View>
         )}

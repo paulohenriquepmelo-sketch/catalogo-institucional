@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system/legacy';
-import { isOnline, isUnmetered, onNetworkChange, useIsOnline } from '@/lib/network';
+import { isOnline, isUnmetered, onNetworkChange } from '@/lib/network';
 
 /**
  * Armazenamento PERMANENTE de imagens no aparelho.
@@ -176,13 +176,15 @@ export function localUriFor(url?: string): string | undefined {
  * O salvamento ocorre em segundo plano sem redesenhar o card atual.
  */
 export function useLocalImageUri(url?: string): string | undefined {
-  const online = useIsOnline();
   useEffect(() => {
-    if (url && online) cacheImageOnDemand(url);
-  }, [url, online]);
+    if (url) cacheImageOnDemand(url);
+  }, [url]);
 
   if (!url) return undefined;
-  return localUriFor(url) ?? (online || !/^https?:/i.test(url) ? url : undefined);
+  // A conexão é lida na hora de desenhar, sem "escutar" mudanças: se cada
+  // card reagisse à troca de conexão, centenas redesenhariam juntos e as
+  // fotos já na tela sumiriam/voltariam. Uma foto que já apareceu continua.
+  return localUriFor(url) ?? (isOnline() || !/^https?:/i.test(url) ? url : undefined);
 }
 
 /** Apaga arquivos de imagens que não fazem mais parte do catálogo. */
