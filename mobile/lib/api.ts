@@ -465,32 +465,60 @@ export function publishedBrands(brands: Brand[]): Brand[] {
 // — mesma seção/categoria pesa mais que só a marca, segmento em comum some
 // um pouco a mais, e só entra se pontuar mais que 1 (marca sozinha não
 // basta). Mantém "itens similares" idênticos entre app e site.
-export function similarProducts(items: Product[], product: Product): Product[] {
-  // Uma passada só, guardando os 3 melhores. Ordenar o catálogo inteiro
+// Palavras do nome que identificam o produto (sem números, medidas e siglas
+// curtas), guardadas por produto para não refazer a cada abertura.
+const nameWordsCache = new WeakMap<Product, Set<string>>();
+function nameWords(product: Product) {
+  let words = nameWordsCache.get(product);
+  if (!words) {
+    words = new Set(
+      product.name
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .split(/[^a-z]+/)
+        .filter((word) => word.length >= 3),
+    );
+    nameWordsCache.set(product, words);
+  }
+  return words;
+}
+
+export function similarProducts(items: Product[], product: Product, limit = 8): Product[] {
+  // Uma passada só, guardando os melhores. Ordenar o catálogo inteiro
   // (milhares de itens, com localeCompare) travava a abertura do produto.
   const best: { p: Product; score: number }[] = [];
   const beats = (a: { p: Product; score: number }, b: { p: Product; score: number }) =>
     a.score > b.score ||
     (a.score === b.score && a.p.name.localeCompare(b.p.name, 'pt-BR') < 0);
+  const words = nameWords(product);
 
   for (const p of items) {
     if (p.id === product.id || p.published === false) continue;
     const sameSection = p.department === product.department && p.section === product.section;
-    const score =
+    let score =
       (sameSection && p.category === product.category ? 8 : 0) +
       (p.brand === product.brand ? 1 : 0) +
       (sameSection ? 3 : 0) +
       (p.segment === product.segment && p.segment !== 'Sem classificação' ? 2 : 0);
     if (score <= 1) continue;
-    // Descarta cedo quem nem empata com o 3º colocado: evita o localeCompare.
-    if (best.length === 3 && score < best[2].score) continue;
+    // Mesma linha de produto (outros sabores/tamanhos) vem antes: +1 por
+    // palavra do nome em comum, até 4.
+    let shared = 0;
+    for (const word of nameWords(p)) if (words.has(word) && ++shared === 4) break;
+    // Só marca/segmento em comum não basta (o segmento do site às vezes erra):
+    // precisa ser da mesma seção ou ter algo em comum no nome.
+    if (!sameSection && shared === 0) continue;
+    score += shared;
+    // Descarta cedo quem nem empata com o último colocado: evita o localeCompare.
+    if (best.length === limit && score < best[limit - 1].score) continue;
 
     const entry = { p, score };
     let i = best.length;
     while (i > 0 && beats(entry, best[i - 1])) i -= 1;
-    if (i < 3) {
+    if (i < limit) {
       best.splice(i, 0, entry);
-      if (best.length > 3) best.pop();
+      if (best.length > limit) best.pop();
     }
   }
   return best.map((x) => x.p);
