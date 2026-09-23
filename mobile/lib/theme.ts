@@ -13,6 +13,12 @@ export const defaultColors = {
   header: '#034598',
   /** Fundo claro de apoio (ícones, faixas suaves). */
   soft: '#eef2fb',
+  // Tons específicos da Início e do Catálogo (no Padrão, os valores originais).
+  offerTint: '#fff2f2',
+  offerTimer: '#ed172a',
+  newsTint: '#eef7ff',
+  newsBadge: '#159ee9',
+  iconTint: '#e7f0fb',
   background: '#ffffff',
   surface: '#ffffff',
   border: '#e2e6f0',

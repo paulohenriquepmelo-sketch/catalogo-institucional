@@ -557,7 +557,7 @@ const useStyles = createThemedStyles((colors) => ({
   section: { marginBottom: spacing.md },
   offerCallout: {
     marginHorizontal: spacing.sm, marginBottom: spacing.sm, padding: spacing.sm,
-    borderRadius: radius.md, backgroundColor: colors.soft, flexDirection: 'row',
+    borderRadius: radius.md, backgroundColor: colors.offerTint, flexDirection: 'row',
     alignItems: 'center', gap: spacing.sm, flexWrap: 'wrap',
   },
   percentSeal: {
@@ -570,7 +570,7 @@ const useStyles = createThemedStyles((colors) => ({
   offerFootnote: { color: '#60708d', fontSize: 11, marginTop: 2 },
   timerPanel: {
     flexGrow: 1, minWidth: 300, minHeight: 68, borderRadius: radius.md,
-    backgroundColor: colors.accent, flexDirection: 'row', alignItems: 'center',
+    backgroundColor: colors.offerTimer, flexDirection: 'row', alignItems: 'center',
     justifyContent: 'space-around', paddingHorizontal: spacing.sm,
   },
   timerIntro: { alignItems: 'center', marginRight: 4 },
@@ -583,7 +583,7 @@ const useStyles = createThemedStyles((colors) => ({
   timeLabel: { color: '#fff', fontSize: 9, marginTop: 2 },
   sectionTitle: {
     minHeight: 66, marginHorizontal: spacing.sm, marginBottom: spacing.sm,
-    borderRadius: radius.md, backgroundColor: colors.soft, flexDirection: 'row',
+    borderRadius: radius.md, backgroundColor: colors.newsTint, flexDirection: 'row',
     alignItems: 'center', gap: spacing.sm, paddingHorizontal: spacing.md,
   },
   sectionTitleCopy: { flex: 1 },
@@ -591,7 +591,7 @@ const useStyles = createThemedStyles((colors) => ({
   sectionHeading: { color: colors.primaryDark, fontSize: 16, fontWeight: '900' },
   sectionSubtitle: { color: '#587092', fontSize: 11, marginTop: 2 },
   newBadge: {
-    color: '#fff', backgroundColor: colors.primary, borderRadius: radius.pill,
+    color: '#fff', backgroundColor: colors.newsBadge, borderRadius: radius.pill,
     paddingHorizontal: 9, paddingVertical: 2, fontSize: 9, fontWeight: '800', overflow: 'hidden',
   },
   seeAll: { flexDirection: 'row', alignItems: 'center' },
@@ -605,7 +605,7 @@ const useStyles = createThemedStyles((colors) => ({
   brandLogo: { width: '100%', height: '100%' },
   brandFallback: { color: colors.primary, fontWeight: '800', textAlign: 'center' },
   brandNext: {
-    width: 50, height: 68, borderRadius: 25, backgroundColor: colors.soft,
+    width: 50, height: 68, borderRadius: 25, backgroundColor: colors.iconTint,
     alignItems: 'center', justifyContent: 'center', marginLeft: spacing.xs,
   },
   clientBanner: {

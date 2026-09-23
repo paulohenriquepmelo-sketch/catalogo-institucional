@@ -1,5 +1,7 @@
 import { Tabs } from 'expo-router';
+import { View } from 'react-native';
 import { AppIcon } from '@/components/AppIcon';
+import { TabOrnament } from '@/components/ThemeDecor';
 import { useThemeColors } from '@/lib/app-theme';
 
 export default function TabsLayout() {
@@ -28,7 +30,10 @@ export default function TabsLayout() {
         options={{
           title: 'Início',
           tabBarIcon: ({ color, size, focused }) => (
-            <AppIcon name="home" color={color} size={size} fill={focused ? color : 'none'} />
+            <View>
+              <AppIcon name="home" color={color} size={size} fill={focused ? color : 'none'} />
+              <TabOrnament />
+            </View>
           ),
         }}
       />
@@ -37,7 +42,10 @@ export default function TabsLayout() {
         options={{
           title: 'Catálogo',
           tabBarIcon: ({ color, size, focused }) => (
-            <AppIcon name="grid" color={color} size={size} />
+            <View>
+              <AppIcon name="grid" color={color} size={size} />
+              <TabOrnament />
+            </View>
           ),
         }}
       />
@@ -45,7 +53,12 @@ export default function TabsLayout() {
         name="segmentos"
         options={{
           title: 'Segmentos',
-          tabBarIcon: ({ color, size }) => <AppIcon name="store" color={color} size={size} />,
+          tabBarIcon: ({ color, size }) => (
+            <View>
+              <AppIcon name="store" color={color} size={size} />
+              <TabOrnament />
+            </View>
+          ),
         }}
       />
       <Tabs.Screen
@@ -53,7 +66,10 @@ export default function TabsLayout() {
         options={{
           title: 'Ofertas',
           tabBarIcon: ({ color, size, focused }) => (
-            <AppIcon name="percent" color={color} size={size} />
+            <View>
+              <AppIcon name="percent" color={color} size={size} />
+              <TabOrnament />
+            </View>
           ),
         }}
       />
@@ -62,7 +78,10 @@ export default function TabsLayout() {
         options={{
           title: 'Novidades',
           tabBarIcon: ({ color, size, focused }) => (
-            <AppIcon name="cube" color={color} size={size} />
+            <View>
+              <AppIcon name="cube" color={color} size={size} />
+              <TabOrnament />
+            </View>
           ),
         }}
       />
@@ -71,7 +90,10 @@ export default function TabsLayout() {
         options={{
           title: 'Marcas',
           tabBarIcon: ({ color, size, focused }) => (
-            <AppIcon name="pricetag" color={color} size={size} />
+            <View>
+              <AppIcon name="pricetag" color={color} size={size} />
+              <TabOrnament />
+            </View>
           ),
         }}
       />

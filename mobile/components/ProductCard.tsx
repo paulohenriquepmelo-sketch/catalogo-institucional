@@ -16,6 +16,7 @@ import { radius, spacing, typography } from '@/lib/theme';
 import type { Product } from '@/lib/api';
 import { isDiscontinued } from '@/lib/catalog-store';
 import { createThemedStyles, useAppTheme } from '@/lib/app-theme';
+import { CardOrnament } from '@/components/ThemeDecor';
 
 // memo: numa lista longa, sem isto todo card visível redesenha sempre que
 // a tela pai re-renderiza.
@@ -78,6 +79,8 @@ export const ProductCard = memo(function ProductCard({
             <Text style={styles.badgeText}>{offer!.discount}% OFF</Text>
           </View>
         ) : null}
+
+        <CardOrnament />
 
         {discontinued ? (
           <View style={styles.discontinuedBadge}>

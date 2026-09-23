@@ -11,6 +11,7 @@ import {
 } from '@/lib/notifications';
 import { radius, spacing } from '@/lib/theme';
 import { createThemedStyles, useThemeColors } from '@/lib/app-theme';
+import { LogoOrnament, ThemeGarland } from '@/components/ThemeDecor';
 
 export function AppHeader({
   canGoBack = false,
@@ -50,6 +51,7 @@ export function AppHeader({
 
         <View style={styles.logoCircle}>
           <Image source={require('../assets/brand-mark.png')} style={styles.logoMark} resizeMode="contain" />
+          <LogoOrnament />
         </View>
 
         <View style={styles.brandText}>
@@ -94,6 +96,7 @@ export function AppHeader({
           style={styles.searchInput}
         />
       </View>
+      <ThemeGarland />
     </View>
   );
 }

@@ -463,7 +463,7 @@ const useStyles = createThemedStyles((colors) => ({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     borderRadius: radius.md,
-    backgroundColor: colors.soft,
+    backgroundColor: colors.offerTint,
     borderWidth: 1,
     borderColor: '#ffe2e2',
     alignSelf: 'flex-start',
