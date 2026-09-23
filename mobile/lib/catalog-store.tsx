@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import type { ReactNode } from 'react';
 import { AppState } from 'react-native';
 import {
-  campaignBackground, fetchAllProducts, fetchConfig, persistSyncRevision, readCachedConfig, readCachedProducts,
+  BASE_URL, campaignBackground, fetchAllProducts, fetchConfig, persistSyncRevision, readCachedConfig, readCachedProducts,
   readCachedSyncRevision, type CatalogConfig, type Product,
 } from './api';
 import { loadImageManifest, prefetchAllImages, pruneImages } from './image-cache';
@@ -32,8 +32,13 @@ function catalogImages(config: CatalogConfig | null, products: Product[]) {
   return [
     ...(config?.brands ?? []).map((brand) => brand.logo),
     ...(config?.banners ?? []).map((banner) => banner.image),
-    // Fundo do topo da Início: salvo no aparelho para aparecer offline.
+    // Fundo do topo da Início, salvo no aparelho para aparecer offline: a
+    // foto da marca (Padrão) e a arte do tema da campanha ativa.
     campaignBackground(config),
+    typeof config?.campaign?.image === 'string' ? config.campaign.image : undefined,
+    config?.campaign?.enabled !== false && config?.campaign?.theme
+      ? `${BASE_URL}/themes/${String(config.campaign.theme)}.png`
+      : undefined,
     ...products.map((product) => product.image),
   ];
 }

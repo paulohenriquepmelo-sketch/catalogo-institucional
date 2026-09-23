@@ -183,9 +183,12 @@ export function AppThemeProvider({ children }: { children: ReactNode }) {
   const campaignId = campaign?.enabled === false ? undefined : String(campaign?.theme ?? '');
   const eyebrow = typeof campaign?.eyebrow === 'string' ? campaign.eyebrow : '';
   const title = typeof campaign?.title === 'string' ? campaign.title : '';
-  const campaignImage = campaignBackground(config);
-  // Modo "theme" da campanha usa a arte do tema (centro livre).
-  const campaignUsesThemeArt = campaign?.mode === 'theme';
+  // Foto da marca: a imagem enviada na campanha do site (galpão com os
+  // caminhões). É a imagem do Padrão; sem ela, fica a imagem do próprio app.
+  const brandPhoto =
+    typeof campaign?.image === 'string' && campaign.image ? campaign.image : undefined;
+  // Carrossel de campanha: usa o 1º slide como foto da marca.
+  const campaignImage = campaign?.mode === 'carousel' ? campaignBackground(config) : brandPhoto;
   // Seletor de prévia: só existe no modo de desenvolvimento (Expo Go). No APK
   // final __DEV__ é false e o tema vem sempre da campanha do site.
   const [preview, setPreview] = useState<AppThemeId | null>(null);
@@ -194,8 +197,8 @@ export function AppThemeProvider({ children }: { children: ReactNode }) {
   const theme = useMemo<AppTheme>(() => {
     const id = activePreview ?? campaignId;
     if (!id || !(id in SEASONAL)) {
-      // Padrão: na prévia usa a imagem do app; senão, a da campanha (se houver).
-      return { ...PADRAO, heroImage: activePreview ? undefined : campaignImage };
+      // Padrão: sempre a foto da marca (a mesma do site), frase à direita.
+      return { ...PADRAO, heroImage: campaignImage };
     }
     const seasonal = SEASONAL[id as keyof typeof SEASONAL];
     const fromCampaign = !activePreview;
@@ -208,10 +211,12 @@ export function AppThemeProvider({ children }: { children: ReactNode }) {
       // usa o do tema.
       eyebrow: (fromCampaign && eyebrow.trim()) || seasonal.eyebrow,
       title: (fromCampaign && title.trim()) || seasonal.title,
-      heroImage: fromCampaign ? campaignImage : `${BASE_URL}/themes/${id}.png`,
-      heroTextPosition: fromCampaign && !campaignUsesThemeArt ? 'right' : 'center',
+      // Tema de data: sempre a arte do tema (enfeites nas laterais, frase no
+      // centro), para cada data ter a sua cara.
+      heroImage: `${BASE_URL}/themes/${id}.png`,
+      heroTextPosition: 'center',
     };
-  }, [activePreview, campaignId, eyebrow, title, campaignImage, campaignUsesThemeArt]);
+  }, [activePreview, campaignId, eyebrow, title, campaignImage]);
 
   const value = useMemo(() => ({ theme, preview: activePreview, setPreview }), [theme, activePreview]);
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
