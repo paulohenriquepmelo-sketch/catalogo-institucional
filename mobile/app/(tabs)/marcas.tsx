@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from 'react';
 import { useRouter } from 'expo-router';
 import {
+  ActivityIndicator,
   FlatList,
   Platform,
   Pressable,
@@ -14,6 +15,7 @@ import { AppIcon } from '@/components/AppIcon';
 import { CachedImage } from '@/components/CachedImage';
 import { useCatalog } from '@/lib/catalog-store';
 import { publishedBrands } from '@/lib/api';
+import { useAfterFirstFrame } from '@/lib/useAfterFirstFrame';
 import { useResponsiveLayout } from '@/lib/useResponsiveLayout';
 import { colors, radius, spacing, typography } from '@/lib/theme';
 
@@ -21,8 +23,10 @@ export default function MarcasScreen() {
   const router = useRouter();
   const { config, products, refreshing, refresh } = useCatalog();
   const { columns } = useResponsiveLayout();
+  const ready = useAfterFirstFrame();
 
   const brands = useMemo(() => {
+    if (!ready) return [];
     const list = publishedBrands(config?.brands ?? []);
     const counts = new Map<string, number>();
     for (const p of products) {
@@ -32,7 +36,7 @@ export default function MarcasScreen() {
     return list
       .map((b) => ({ ...b, count: counts.get(b.name) ?? 0 }))
       .sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0) || a.name.localeCompare(b.name));
-  }, [config?.brands, products]);
+  }, [ready, config?.brands, products]);
   const renderBrand = useCallback<ListRenderItem<(typeof brands)[number]>>(
     ({ item }) => (
       <Pressable
@@ -57,7 +61,9 @@ export default function MarcasScreen() {
       <View style={styles.header}>
         <Text style={styles.title}>Marcas</Text>
         <Text style={styles.subtitle}>
-          {brands.length} {brands.length === 1 ? 'marca parceira' : 'marcas parceiras'}
+          {ready
+            ? `${brands.length} ${brands.length === 1 ? 'marca parceira' : 'marcas parceiras'}`
+            : 'Carregando…'}
         </Text>
       </View>
       <FlatList
@@ -77,10 +83,16 @@ export default function MarcasScreen() {
         }
         renderItem={renderBrand}
         ListEmptyComponent={
-          <View style={styles.empty}>
-            <AppIcon name="pricetags" size={32} color={colors.textMuted} />
-            <Text style={styles.emptyText}>Nenhuma marca cadastrada.</Text>
-          </View>
+          ready ? (
+            <View style={styles.empty}>
+              <AppIcon name="pricetags" size={32} color={colors.textMuted} />
+              <Text style={styles.emptyText}>Nenhuma marca cadastrada.</Text>
+            </View>
+          ) : (
+            <View style={styles.empty}>
+              <ActivityIndicator color={colors.primary} />
+            </View>
+          )
         }
       />
     </View>

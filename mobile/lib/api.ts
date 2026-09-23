@@ -436,15 +436,17 @@ export function newProducts(
   limit?: number,
 ): Product[] {
   const earliest = Date.now() - days * 86_400_000;
-  const list = products
-    .filter((p) => p.published !== false)
-    .filter((p) => {
-      if (p.details?.showAsNew === true) return true;
-      if (p.details?.showAsNew === false) return false;
-      const created = Date.parse(p.createdAt ?? '');
-      return Number.isFinite(created) && created >= earliest;
-    })
-    .sort((a, b) => Date.parse(b.createdAt ?? '') - Date.parse(a.createdAt ?? ''));
+  // A data é convertida uma vez por produto, não a cada comparação da ordenação.
+  const rows: { p: Product; created: number }[] = [];
+  for (const p of products) {
+    if (p.published === false || p.details?.showAsNew === false) continue;
+    const created = Date.parse(p.createdAt ?? '');
+    if (p.details?.showAsNew === true || (Number.isFinite(created) && created >= earliest)) {
+      rows.push({ p, created });
+    }
+  }
+  rows.sort((a, b) => b.created - a.created);
+  const list = rows.map((r) => r.p);
   return typeof limit === 'number' ? list.slice(0, limit) : list;
 }
 

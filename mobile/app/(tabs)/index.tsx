@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { router } from 'expo-router';
+import { router, useNavigation } from 'expo-router';
+import type { NavigationProp, ParamListBase } from 'expo-router/react-navigation';
 import {
   ImageBackground,
   Linking,
@@ -51,8 +52,24 @@ function countdown(end?: string, now = Date.now()) {
   return [days, hours, minutes, seconds].map((value) => String(value).padStart(2, '0'));
 }
 
+// Abas pré-carregadas em segundo plano, da mais usada para a menos usada.
+const PRELOAD_TABS = ['catalogo', 'ofertas', 'novidades', 'marcas'] as const;
+
 export default function HomeScreen() {
   const { config, products, refreshing, refresh, offline } = useCatalog();
+
+  // Monta as outras abas em segundo plano, uma de cada vez, depois que o
+  // catálogo chegou e a Início já está na tela. Quando o usuário toca numa
+  // aba, a lista dela já está pronta e a troca é instantânea.
+  const navigation = useNavigation<NavigationProp<ParamListBase>>();
+  const hasProducts = products.length > 0;
+  useEffect(() => {
+    if (!hasProducts) return;
+    const timers = PRELOAD_TABS.map((name, i) =>
+      setTimeout(() => navigation.preload(name), 1_200 + i * 500),
+    );
+    return () => timers.forEach(clearTimeout);
+  }, [navigation, hasProducts]);
 
   const offers = useMemo(
     () => activeOffers(products, config?.offers.limit ?? 12),

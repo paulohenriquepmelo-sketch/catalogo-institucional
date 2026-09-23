@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
+  ActivityIndicator,
   FlatList,
   Platform,
   RefreshControl,
@@ -11,6 +12,7 @@ import {
 import { AppIcon } from '@/components/AppIcon';
 import { useCatalog } from '@/lib/catalog-store';
 import { activeOffers, offerTimeLabel } from '@/lib/api';
+import { useAfterFirstFrame } from '@/lib/useAfterFirstFrame';
 import { useResponsiveLayout } from '@/lib/useResponsiveLayout';
 import { colors, spacing, typography } from '@/lib/theme';
 import { ProductCard } from '@/components/ProductCard';
@@ -18,6 +20,7 @@ import { ProductCard } from '@/components/ProductCard';
 export default function OfertasScreen() {
   const { config, products, refreshing, refresh } = useCatalog();
   const { columns } = useResponsiveLayout();
+  const ready = useAfterFirstFrame();
   const [now, setNow] = useState(Date.now());
 
   useEffect(() => {
@@ -25,7 +28,7 @@ export default function OfertasScreen() {
     return () => clearInterval(timer);
   }, []);
 
-  const offers = useMemo(() => activeOffers(products), [products]);
+  const offers = useMemo(() => (ready ? activeOffers(products) : []), [ready, products]);
   const renderOffer = useCallback<ListRenderItem<(typeof offers)[number]>>(
     ({ item }) => (
       <View style={styles.gridItem}>
@@ -47,7 +50,9 @@ export default function OfertasScreen() {
       <View style={styles.header}>
         <Text style={styles.title}>{config?.offers.title ?? 'Ofertas'}</Text>
         <Text style={styles.subtitle}>
-          {offers.length} {offers.length === 1 ? 'oferta ativa' : 'ofertas ativas'}
+          {ready
+            ? `${offers.length} ${offers.length === 1 ? 'oferta ativa' : 'ofertas ativas'}`
+            : 'Carregando…'}
         </Text>
       </View>
       <FlatList
@@ -67,10 +72,16 @@ export default function OfertasScreen() {
         }
         renderItem={renderOffer}
         ListEmptyComponent={
-          <View style={styles.empty}>
-            <AppIcon name="pricetag" size={32} color={colors.textMuted} />
-            <Text style={styles.emptyText}>Nenhuma oferta ativa no momento.</Text>
-          </View>
+          ready ? (
+            <View style={styles.empty}>
+              <AppIcon name="pricetag" size={32} color={colors.textMuted} />
+              <Text style={styles.emptyText}>Nenhuma oferta ativa no momento.</Text>
+            </View>
+          ) : (
+            <View style={styles.empty}>
+              <ActivityIndicator color={colors.primary} />
+            </View>
+          )
         }
       />
     </View>

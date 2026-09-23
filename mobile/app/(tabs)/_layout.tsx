@@ -7,6 +7,8 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
+        // Troca de aba com um esmaecer curto, em vez de um corte seco.
+        animation: 'fade',
         tabBarActiveTintColor: colors.accent,
         tabBarInactiveTintColor: colors.textMuted,
         tabBarShowLabel: true,

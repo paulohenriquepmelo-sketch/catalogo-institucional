@@ -1,5 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import {
+  ActivityIndicator,
   FlatList,
   Platform,
   RefreshControl,
@@ -11,6 +12,7 @@ import {
 import { AppIcon } from '@/components/AppIcon';
 import { useCatalog } from '@/lib/catalog-store';
 import { newProducts } from '@/lib/api';
+import { useAfterFirstFrame } from '@/lib/useAfterFirstFrame';
 import { useResponsiveLayout } from '@/lib/useResponsiveLayout';
 import { colors, spacing, typography } from '@/lib/theme';
 import { ProductCard } from '@/components/ProductCard';
@@ -18,10 +20,11 @@ import { ProductCard } from '@/components/ProductCard';
 export default function NovidadesScreen() {
   const { config, products, refreshing, refresh } = useCatalog();
   const { columns } = useResponsiveLayout();
+  const ready = useAfterFirstFrame();
 
   const news = useMemo(
-    () => newProducts(products, config?.newProducts.days ?? 30),
-    [products, config?.newProducts.days],
+    () => (ready ? newProducts(products, config?.newProducts.days ?? 30) : []),
+    [ready, products, config?.newProducts.days],
   );
   const renderProduct = useCallback<ListRenderItem<(typeof news)[number]>>(
     ({ item }) => (
@@ -38,7 +41,9 @@ export default function NovidadesScreen() {
       <View style={styles.header}>
         <Text style={styles.title}>{config?.newProducts.title ?? 'Novidades'}</Text>
         <Text style={styles.subtitle}>
-          {news.length} {news.length === 1 ? 'produto novo' : 'produtos novos'}
+          {ready
+            ? `${news.length} ${news.length === 1 ? 'produto novo' : 'produtos novos'}`
+            : 'Carregando…'}
         </Text>
       </View>
       <FlatList
@@ -58,10 +63,16 @@ export default function NovidadesScreen() {
         }
         renderItem={renderProduct}
         ListEmptyComponent={
-          <View style={styles.empty}>
-            <AppIcon name="sparkles" size={32} color={colors.textMuted} />
-            <Text style={styles.emptyText}>Nenhuma novidade no momento.</Text>
-          </View>
+          ready ? (
+            <View style={styles.empty}>
+              <AppIcon name="sparkles" size={32} color={colors.textMuted} />
+              <Text style={styles.emptyText}>Nenhuma novidade no momento.</Text>
+            </View>
+          ) : (
+            <View style={styles.empty}>
+              <ActivityIndicator color={colors.primary} />
+            </View>
+          )
         }
       />
     </View>

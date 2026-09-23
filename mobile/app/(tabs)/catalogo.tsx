@@ -1,6 +1,7 @@
 import { useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react';
 import { useLocalSearchParams } from 'expo-router';
 import {
+  ActivityIndicator,
   FlatList,
   Platform,
   Pressable,
@@ -14,6 +15,7 @@ import {
 import { AppIcon } from '@/components/AppIcon';
 import { ProductCard } from '@/components/ProductCard';
 import { isDiscontinued, useCatalog, useCatalogSearch } from '@/lib/catalog-store';
+import { useAfterFirstFrame } from '@/lib/useAfterFirstFrame';
 import { useResponsiveLayout } from '@/lib/useResponsiveLayout';
 import { colors, radius, spacing, typography } from '@/lib/theme';
 import type { Product } from '@/lib/api';
@@ -64,6 +66,9 @@ export default function CatalogoScreen() {
   const { products, refreshing, refresh, offline } = useCatalog();
   const { searchQuery, setSearchQuery } = useCatalogSearch();
   const { columns, spacing: adaptiveSpacing } = useResponsiveLayout();
+  // O índice abaixo percorre o catálogo inteiro: fica para o quadro seguinte
+  // à abertura da aba, para o toque responder na hora.
+  const ready = useAfterFirstFrame();
   const params = useLocalSearchParams<{
     query?: string | string[];
     brand?: string | string[];
@@ -109,6 +114,7 @@ export default function CatalogoScreen() {
   // já prontos, e a lista já ordenada por departamento → seção → categoria →
   // nome. Antes isso era refeito a cada tecla digitada, em 2.500 produtos.
   const indexed = useMemo<IndexedProduct[]>(() => {
+    if (!ready) return [];
     const rows = products
       .filter((p) => p.published !== false || isDiscontinued(p))
       .map((product) => ({
@@ -140,7 +146,7 @@ export default function CatalogoScreen() {
       }));
     rows.sort((a, b) => (a.sortKey < b.sortKey ? -1 : a.sortKey > b.sortKey ? 1 : 0));
     return rows;
-  }, [products]);
+  }, [ready, products]);
 
   // --- Filtros em cascata: departamento manda nas seções, seção manda nas
   // categorias, e a marca respeita tudo que já foi escolhido. ---
@@ -311,23 +317,30 @@ export default function CatalogoScreen() {
 
             <View style={styles.resultInfo}>
               <Text style={styles.resultText}>
-                {filtered.length} produto{filtered.length !== 1 ? 's' : ''} encontrado
-                {filtered.length !== 1 ? 's' : ''}
+                {ready
+                  ? `${filtered.length} produto${filtered.length !== 1 ? 's' : ''} encontrado${filtered.length !== 1 ? 's' : ''}`
+                  : 'Carregando produtos…'}
               </Text>
             </View>
           </View>
         }
         ListEmptyComponent={
-          <View style={styles.emptyState}>
-            <AppIcon name="circle-alert" size={48} color={colors.border} />
-            <Text style={styles.emptyTitle}>Nenhum produto encontrado</Text>
-            <Text style={styles.emptyText}>Tente ajustar os filtros ou sua busca</Text>
-            {hasActiveFilters && (
-              <Pressable onPress={handleClearFilters} style={styles.emptyButton}>
-                <Text style={styles.emptyButtonText}>Limpar filtros</Text>
-              </Pressable>
-            )}
-          </View>
+          !ready ? (
+            <View style={styles.emptyState}>
+              <ActivityIndicator color={colors.primary} />
+            </View>
+          ) : (
+            <View style={styles.emptyState}>
+              <AppIcon name="circle-alert" size={48} color={colors.border} />
+              <Text style={styles.emptyTitle}>Nenhum produto encontrado</Text>
+              <Text style={styles.emptyText}>Tente ajustar os filtros ou sua busca</Text>
+              {hasActiveFilters && (
+                <Pressable onPress={handleClearFilters} style={styles.emptyButton}>
+                  <Text style={styles.emptyButtonText}>Limpar filtros</Text>
+                </Pressable>
+              )}
+            </View>
+          )
         }
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={colors.primary} />
