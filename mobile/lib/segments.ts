@@ -13,7 +13,7 @@ export type Segment = {
 
 // Sem acento, minúsculo e com espaços simples. `keepTrailingSpace` preserva o
 // espaço final das palavras-chave ("copo " exige a palavra inteira).
-function normalize(text: string, keepTrailingSpace = false) {
+export function normalize(text: string, keepTrailingSpace = false) {
   const plain = text
     .normalize('NFD')
     .replace(/[̀-ͯ]/g, '')
@@ -28,7 +28,7 @@ function escapeRegExp(text: string) {
 
 // Uma expressão por lista: a palavra precisa começar no início do nome ou
 // logo depois de um caractere que não seja letra/número.
-function wordStartPattern(words: string[]) {
+export function wordStartPattern(words: string[]) {
   const parts = words.map((word) => normalize(word, true)).filter(Boolean).map(escapeRegExp);
   return parts.length ? new RegExp(`(?:^|[^a-z0-9])(?:${parts.join('|')})`) : null;
 }
@@ -39,7 +39,7 @@ const SIZE_PATTERN = /(\d+(?:[.,]\d+)?)\s*(kg|kgs|g|gr|grs|gramas|lt|lts|l|litro
 // Embalagem grande sem tamanho escrito: bag, galão, balde, bombona ou "(GR)".
 const BULK_PATTERN = /(?:^|[^a-z0-9])(?:bag|galao|balde|bombona)(?![a-z])|\(gr\)/;
 
-function sizeOf(name: string): number | null {
+export function sizeOf(name: string): number | null {
   let largest: number | null = null;
   for (const [, amount, unit] of name.matchAll(SIZE_PATTERN)) {
     let value = Number(amount.replace(',', '.'));

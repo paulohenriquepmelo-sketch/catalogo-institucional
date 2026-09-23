@@ -13,10 +13,13 @@ import {
 import { AppIcon } from '@/components/AppIcon';
 import { isDiscontinued, useCatalog } from '@/lib/catalog-store';
 import { similarProducts } from '@/lib/api';
+import { complementProducts } from '@/lib/complements';
 import { useLocalImageUri } from '@/lib/image-cache';
 import { colors, radius, spacing, typography } from '@/lib/theme';
 import { ProductRow } from '@/components/ProductRow';
 import { detailFields } from '@/lib/product-fields';
+
+const RELATED_LIMIT = 8;
 
 export default function ProdutoScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -47,8 +50,16 @@ export default function ProdutoScreen() {
 
   const similar = useMemo(() => {
     if (!product || !transitionDone) return [];
-    return similarProducts(products, product);
+    return similarProducts(products, product, RELATED_LIMIT);
   }, [products, product, transitionDone]);
+
+  // Só quando faltam parecidos: completa com o que acompanha o produto
+  // (macarrão → molho de tomate), numa faixa separada.
+  const complements = useMemo(() => {
+    if (!product || !transitionDone || similar.length >= RELATED_LIMIT) return [];
+    const skip = new Set(similar.map((p) => p.id));
+    return complementProducts(products, product, RELATED_LIMIT - similar.length, skip);
+  }, [products, product, transitionDone, similar]);
 
   if (!product) {
     return (
@@ -156,6 +167,13 @@ export default function ProdutoScreen() {
           <ProductRow products={similar} />
         </View>
       )}
+
+      {complements.length > 0 && (
+        <View style={styles.similarBlock}>
+          <Text style={styles.blockTitle}>Combina com este produto</Text>
+          <ProductRow products={complements} />
+        </View>
+      )}
     </ScrollView>
   );
 }
@@ -223,7 +241,7 @@ const styles = StyleSheet.create({
   detailValue: { ...typography.body, color: colors.text, flex: 1, textAlign: 'right' },
   contactBlock: { marginBottom: spacing.lg },
   contactLink: { ...typography.body, color: colors.primary, fontWeight: '600' },
-  similarBlock: { marginHorizontal: -spacing.lg },
+  similarBlock: { marginHorizontal: -spacing.lg, marginBottom: spacing.lg },
   notFound: {
     flex: 1,
     alignItems: 'center',
