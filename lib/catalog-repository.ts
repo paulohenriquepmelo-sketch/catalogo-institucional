@@ -227,6 +227,28 @@ export async function listCatalogProductsPage(
   return result.results.map((row) => mapProductRow(row, config, includeDrafts));
 }
 
+/**
+ * Editor: só os produtos alterados depois de (`since`, `afterId`), em ordem
+ * de alteração. Com o índice de updated_at, lê apenas as linhas alteradas —
+ * abrir o editor deixa de reler os ~2.500 produtos toda vez.
+ */
+export async function listCatalogProductsChangedSince(
+  since: string,
+  afterId: number,
+  limit: number,
+) {
+  const { config } = await getConfig();
+  const result = await env.DB.prepare(
+    `SELECT * FROM products
+     WHERE updated_at >= ? AND (updated_at > ? OR id > ?)
+     ORDER BY updated_at, id
+     LIMIT ?`,
+  )
+    .bind(since, since, afterId, limit)
+    .all<Record<string, unknown>>();
+  return result.results.map((row) => mapProductRow(row, config, true));
+}
+
 export async function listPublishedProductsPage(cursor: number, limit: number) {
   const snapshot = await readPublishedCatalogSnapshot();
   if (snapshot)
