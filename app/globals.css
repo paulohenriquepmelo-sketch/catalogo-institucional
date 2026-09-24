@@ -5813,3 +5813,59 @@ a:focus-visible {
     align-self: stretch;
   }
 }
+
+/* Itens similares e "Combina com este produto" (até 8): no celular viram uma
+   faixa que rola para o lado, em vez de 8 cards empilhados. */
+@media (max-width: 600px) {
+  .product-dialog .similar-block .similar-grid {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    gap: 12px;
+    padding-bottom: 6px;
+  }
+  .product-dialog .similar-block .similar-grid > * {
+    flex: 0 0 68%;
+    scroll-snap-align: start;
+  }
+}
+
+/* Grupos do segmento (insumos, embalagens, revenda...) na janela do segmento. */
+.segment-group-chips {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 0 12px;
+}
+.segment-group-chips button {
+  flex: 0 0 auto;
+  border: 1px solid #d7deea;
+  background: #fff;
+  color: inherit;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.segment-group-chips button:hover {
+  border-color: var(--primary, #263f85);
+}
+.segment-group-chips button.active {
+  background: var(--primary, #263f85);
+  border-color: var(--primary, #263f85);
+  color: #fff;
+}
+.segment-group-chips button:focus-visible {
+  outline: 2px solid var(--primary, #263f85);
+  outline-offset: 2px;
+}
+
+/* Editor: resumo dos segmentos (só leitura). */
+.segment-overview-groups {
+  margin: 4px 0 0;
+  padding-left: 18px;
+  font-size: 13px;
+  line-height: 1.5;
+}

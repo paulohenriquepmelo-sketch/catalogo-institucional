@@ -10,8 +10,11 @@ import {
 } from '@/components/ui/dialog';
 import { detailFields, type Product } from '@/lib/catalog-data';
 import { similarProducts } from '@/lib/catalog-discovery';
-import type { CSSProperties } from 'react';
+import { complementProducts } from '@/lib/complements';
+import { useMemo, type CSSProperties } from 'react';
 import { ProductCard } from './product-card';
+
+const RELATED_LIMIT = 8;
 
 export function ProductDetailsDialog({
   selected,
@@ -26,7 +29,21 @@ export function ProductDetailsDialog({
   email: string;
   style?: CSSProperties;
 }) {
-  const similar = selected ? similarProducts(items, selected) : [];
+  // Até 8 parecidos (mesma linha de produto primeiro, como no app). Se
+  // faltarem, completa com o que acompanha o item (macarrão → molho...).
+  const { similar, complements } = useMemo(() => {
+    if (!selected) return { similar: [], complements: [] };
+    const found = similarProducts(items, selected, RELATED_LIMIT);
+    return {
+      similar: found,
+      complements: complementProducts(
+        items,
+        selected,
+        RELATED_LIMIT - found.length,
+        new Set(found.map((p) => p.id)),
+      ),
+    };
+  }, [items, selected]);
   return (
     <Dialog open={!!selected} onOpenChange={(open) => !open && onSelect(null)}>
       <DialogContent className="product-dialog" style={style}>
@@ -104,6 +121,17 @@ export function ProductDetailsDialog({
                 <p>Ainda não há itens similares publicados.</p>
               )}
             </div>
+            {complements.length > 0 && (
+              <div className="similar-block">
+                <span className="eyebrow">Para usar junto ou na mesma receita</span>
+                <h3>Combina com este produto</h3>
+                <div className="similar-grid">
+                  {complements.map((p) => (
+                    <ProductCard key={p.id} product={p} onOpen={onSelect} />
+                  ))}
+                </div>
+              </div>
+            )}
           </>
         )}
       </DialogContent>

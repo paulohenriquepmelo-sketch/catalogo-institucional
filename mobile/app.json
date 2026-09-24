@@ -1,0 +1,46 @@
+{
+  "expo": {
+    "name": "Catálogo Laurencini",
+    "slug": "catalogo-laurencini-app",
+    "version": "1.1.0",
+    "orientation": "default",
+    "icon": "./assets/icon.png",
+    "scheme": "catalogolaurencini",
+    "userInterfaceStyle": "light",
+    "android": {
+      "package": "br.com.laurencini.catalogo",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "permissions": [
+        "INTERNET",
+        "ACCESS_NETWORK_STATE"
+      ],
+      "versionCode": 2
+    },
+    "plugins": [
+      "expo-router",
+      "expo-asset",
+      "expo-font",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff",
+          "imageWidth": 200
+        }
+      ],
+      "expo-status-bar"
+    ],
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "878e1f9e-ed41-4600-b947-4e15488933f3"
+      }
+    }
+  }
+}

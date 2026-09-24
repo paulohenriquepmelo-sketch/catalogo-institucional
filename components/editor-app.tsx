@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { classifySegment } from '@/lib/segment-classifier';
+import { buildSegments } from '@/lib/segments';
 import { defaultConfig, type CatalogConfig } from '@/lib/catalog-config';
 import { detailFields, productIssues, type Product } from '@/lib/catalog-data';
 import { api, loadProducts } from '@/lib/client-api';
@@ -174,9 +174,13 @@ export function EditorApp({ userName }: { userName: string }) {
         productIssues(p).length > 0 ||
         p.segment === 'Sem classificação'),
   );
-  const analysis = useMemo(
-    () => classifySegment(draft, savedConfig.segments),
-    [draft, savedConfig],
+  // Segmentos das regras novas (as mesmas do app e do site) para este produto.
+  const draftSegments = useMemo(
+    () =>
+      buildSegments([{ ...draft, published: true } as Product])
+        .filter((s) => s.products.length > 0)
+        .map((s) => `${s.rule.name} (${s.groups.map((g) => g.name).join(', ')})`),
+    [draft],
   );
   async function saveProduct() {
     if (busy || uploads || loading)
@@ -686,13 +690,17 @@ export function EditorApp({ userName }: { userName: string }) {
                   />
                   <div className="ai-segment-card">
                     <span>
-                      <Sparkles /> Classificação por regras
+                      <Sparkles /> Segmentos (mesmas regras do app e do site)
                     </span>
-                    <strong>{analysis.segment}</strong>
+                    <strong>
+                      {draftSegments.length
+                        ? `${draftSegments.length} segmento${draftSegments.length > 1 ? 's' : ''}`
+                        : 'Nenhum segmento'}
+                    </strong>
                     <small>
-                      {analysis.review
-                        ? 'Revisar: faltam sinais ou há empate.'
-                        : `Sinais: ${analysis.signals.join(', ')}`}
+                      {draftSegments.length
+                        ? draftSegments.join(' · ')
+                        : 'Confira o nome e a categoria: nenhuma regra reconheceu este produto.'}
                     </small>
                   </div>
                   <div className="wide">

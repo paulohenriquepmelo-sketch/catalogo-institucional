@@ -18,6 +18,7 @@ export function CollectionProducts({
   name,
   logo,
   items,
+  groups,
   email,
   style,
 }: {
@@ -25,16 +26,35 @@ export function CollectionProducts({
   name: string;
   logo?: string;
   items: Product[];
+  /**
+   * Segmentos: os produtos já vêm separados por grupo (insumos, embalagens,
+   * revenda...). Sem grupos, a lista é filtrada pelo campo `kind` do produto.
+   */
+  groups?: { name: string; products: Product[] }[];
   email: string;
   style?: CSSProperties;
 }) {
   const [productQuery, setProductQuery] = useState('');
   const [productLimit, setProductLimit] = useState(12);
   const [selected, setSelected] = useState<Product | null>(null);
+  const [groupIndex, setGroupIndex] = useState(-1);
+  // "Todos": cada produto uma vez só, na ordem dos grupos.
+  const allGroupProducts = useMemo(() => {
+    if (!groups) return null;
+    const seen = new Set<number>();
+    return groups.flatMap((g) => g.products).filter((p) => !seen.has(p.id) && seen.add(p.id));
+  }, [groups]);
+  const groupProducts = useMemo(
+    () =>
+      groups && groupIndex >= 0 ? (groups[groupIndex]?.products ?? []) : allGroupProducts,
+    [groups, groupIndex, allGroupProducts],
+  );
   const products = useMemo(
     () =>
-      discover(items, { ...emptyFilters, [kind]: name, query: productQuery }),
-    [items, kind, name, productQuery],
+      groupProducts
+        ? discover(groupProducts, { ...emptyFilters, query: productQuery })
+        : discover(items, { ...emptyFilters, [kind]: name, query: productQuery }),
+    [groupProducts, items, kind, name, productQuery],
   );
   return (
     <DialogContent className="brand-products-dialog" style={style}>
@@ -50,6 +70,34 @@ export function CollectionProducts({
           </DialogDescription>
         </div>
       </DialogHeader>
+      {groups && groups.length > 0 && (
+        <div className="segment-group-chips" role="tablist" aria-label="Grupos do segmento">
+          {[
+            { name: 'Todos', count: allGroupProducts?.length ?? 0 },
+            ...groups.map((g) => ({ name: g.name, count: g.products.length })),
+          ].map(
+            (chip, i) => {
+              const index = i - 1;
+              const active = index === groupIndex;
+              return (
+                <button
+                  key={chip.name}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  className={active ? 'active' : undefined}
+                  onClick={() => {
+                    setGroupIndex(index);
+                    setProductLimit(12);
+                  }}
+                >
+                  {chip.name} ({chip.count})
+                </button>
+              );
+            },
+          )}
+        </div>
+      )}
       <div className="brand-products-toolbar">
         <Input
           aria-label={
