@@ -1369,7 +1369,9 @@
 .public-catalog {
   --laurencini-blue: #263f85;
   --laurencini-blue-dark: #172f6f;
-  --laurencini-red: #ef312f;
+  /* Um pouco mais escuro que o vermelho do logo: texto branco sobre ele e
+     ele como texto sobre branco passam de 4,5:1 (WCAG AA). */
+  --laurencini-red: #d92826;
   --laurencini-ice: #f5f7fb;
   color: #15213d;
   background: var(--laurencini-ice);
@@ -1785,7 +1787,7 @@
 
 .product-dialog .primary-action:hover {
   border-color: #ef312f;
-  background: #ef312f;
+  background: var(--laurencini-red, #d92826);
 }
 
 @media (max-width: 820px) {
@@ -1986,7 +1988,7 @@
     .catalog-search-dialog
   )
   .product-brand {
-  color: #ef312f !important;
+  color: var(--laurencini-red, #d92826) !important;
 }
 
 .public-catalog .offer-card,
@@ -2293,7 +2295,7 @@
 .public-catalog .catalog-page-link:hover,
 .public-catalog .catalog-page-link:focus-visible {
   border-color: #ef312f;
-  background: #ef312f;
+  background: var(--laurencini-red, #d92826);
   transform: translateY(-1px);
 }
 
@@ -2306,10 +2308,13 @@
 }
 
 .public-catalog .full-catalog-intro .eyebrow {
-  color: #fff;
+  color: #fff !important;
 }
 
+/* !important: as regras gerais de título/destaque do catálogo pintavam o h1
+   de escuro e o sobretítulo de vermelho sobre este fundo azul. */
 .public-catalog .full-catalog-intro h1 {
+  color: #fff !important;
   margin: 6px 0 8px;
   font-size: clamp(32px, 4vw, 54px);
   font-weight: 700;

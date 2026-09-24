@@ -488,7 +488,7 @@ export function CatalogApp({
           )}
           <a href="/api/app-download" download className="app-download-link">
             <Download className="size-4" aria-hidden="true" />
-            Baixa o APP
+            Baixe o app
           </a>
           {showEditorLink && (
             <a href="/editor" className="editor-link">

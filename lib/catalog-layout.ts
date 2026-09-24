@@ -28,7 +28,8 @@ export function validateLayout(value: unknown): CatalogLayout {
   return {
     logoWidth: layout.logoWidth,
     productImageHeight: layout.productImageHeight,
-    productImageFit: layout.productImageFit,
+    // As fotos nunca são cortadas: um "cover" salvo antes vira "contain".
+    productImageFit: 'contain',
   };
 }
 export function catalogLayoutStyle(layout?: CatalogLayout): CSSProperties {
@@ -36,6 +37,6 @@ export function catalogLayoutStyle(layout?: CatalogLayout): CSSProperties {
   return {
     '--logo-width': `${values.logoWidth}px`,
     '--product-photo-height': `${values.productImageHeight}px`,
-    '--product-photo-fit': values.productImageFit,
+    '--product-photo-fit': 'contain',
   } as CSSProperties;
 }
