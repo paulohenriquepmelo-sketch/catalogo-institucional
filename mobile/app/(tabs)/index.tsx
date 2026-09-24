@@ -283,7 +283,7 @@ function HeroBanner({ uri, catalogSizeLabel }: { uri?: string; catalogSizeLabel:
         <Image
           source={uri ? { uri } : LOCAL_HERO}
           style={[styles.heroImage, { aspectRatio: ratio }]}
-          resizeMode="cover"
+          resizeMode="contain"
           fadeDuration={0}
         />
         {width > 0 ? (

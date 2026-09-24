@@ -88,7 +88,7 @@ function BannerSlider({
           ]}
           onPress={() => banner.link && Linking.openURL(banner.link)}
         >
-          <CachedImage uri={banner.image} style={styles.image} resizeMode="cover" />
+          <CachedImage uri={banner.image} style={styles.image} resizeMode="contain" />
           {(banner.title || banner.description) && (
             <View style={styles.caption}>
               {banner.title ? (
@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     padding: spacing.md,
-    backgroundColor: 'rgba(23,47,111,0.55)',
+    backgroundColor: 'rgba(23,47,111,0.82)',
   },
   captionTitle: { ...typography.subtitle, color: '#fff' },
   captionText: { ...typography.small, color: '#fff' },

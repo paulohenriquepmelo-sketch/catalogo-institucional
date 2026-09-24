@@ -4,7 +4,9 @@
 export const colors = {
   primary: '#263f85',
   primaryDark: '#172f6f',
-  accent: '#ef312f',
+  // Um pouco mais escuro que o vermelho do logo para passar de 4,5:1
+  // como texto sobre branco e com texto branco por cima (WCAG AA).
+  accent: '#d92826',
   background: '#ffffff',
   surface: '#ffffff',
   border: '#e2e6f0',
