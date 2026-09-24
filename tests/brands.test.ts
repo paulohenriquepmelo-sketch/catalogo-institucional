@@ -23,7 +23,9 @@ import {
   catalogLayoutStyle,
 } from '../lib/catalog-layout';
 import { CatalogSegments } from '../components/catalog-segments';
-import { segmentIcon } from '../lib/segment-icons';
+import { segmentIcon, segmentIconById } from '../lib/segment-icons';
+import { buildSegments } from '../lib/segments';
+import { SEGMENT_RULES } from '../lib/segment-rules';
 
 void test('brand buttons open dialogs without anchor navigation or global catalog scrolling', () => {
   const brand = products[0].brand;
@@ -57,32 +59,39 @@ void test('brand buttons open dialogs without anchor navigation or global catalo
 });
 
 void test('segments use distinct activity icons and open the same collection popup without scrolling', () => {
+  // Produtos com nomes/categorias reais do catálogo, para as regras reconhecerem.
+  const real = [
+    { name: 'FAR TRIGO PROFISSIONAL D.BENTA 25KG', category: 'DONA BENTA' },
+    { name: 'CATCHUP CALCUTA GALAO 3,4KG', category: '1.1-FOOD SERVICE' },
+    { name: 'SACOLA PAPEL 7,5KG COMPAPEL 26,5X39', category: 'SACOLAS/ BOBINAS/ SACOS PP' },
+    { name: 'CERVEJA HEINEKEN LATA 473 ML', category: '4.1-CERVEJAS' },
+  ].map((row, i) => ({ ...products[0], ...row, id: 9000 + i, published: true }));
   const html = renderToStaticMarkup(
-    createElement(CatalogSegments, {
-      segments: defaultConfig.segments,
-      items: products,
-      email: '',
-    }),
+    createElement(CatalogSegments, { items: real, email: '' }),
   );
-  assert.equal(
-    (html.match(/aria-haspopup="dialog"/g) ?? []).length,
-    defaultConfig.segments.length,
+  // Segmentos com as regras do app: só os que têm produto, sem as coleções de data.
+  const visible = buildSegments(real).filter(
+    (s) => !s.rule.hidden && s.products.length > 0,
   );
+  assert.ok(visible.length > 0);
+  assert.equal((html.match(/aria-haspopup="dialog"/g) ?? []).length, visible.length);
   assert.match(html, /Ver produtos do segmento/);
   assert.match(html, /aria-label="Carrossel de segmentos"/);
   assert.match(html, /aria-label="Voltar segmentos"/);
   assert.doesNotMatch(html, /Pausar|Continuar|Retomar/);
   assert.equal(
     (html.match(/data-slot="carousel-item"/g) ?? []).length,
-    defaultConfig.segments.length,
+    visible.length,
   );
+  const listed = SEGMENT_RULES.filter((r) => !r.hidden);
   assert.equal(
-    new Set(defaultConfig.segments.map((s) => segmentIcon(s.name))).size,
-    9,
+    new Set(listed.map((r) => segmentIconById(r.icon, r.name))).size,
+    listed.length,
   );
   assert.ok(segmentIcon('Segmento personalizado'));
   const source = readFileSync('components/catalog-segments.tsx', 'utf8');
   assert.match(source, /kind="segment"/);
+  assert.match(source, /groups=\{segment\.groups\}/);
   assert.doesNotMatch(source, /scrollIntoView|window\.location/);
   assert.doesNotMatch(
     readFileSync('components/catalog-app.tsx', 'utf8'),

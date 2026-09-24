@@ -1,6 +1,6 @@
 'use client';
 /* oxlint-disable next/no-img-element -- Product thumbnails use the existing optimized WebP upload pipeline. */
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Field, Choice, Toggle, Panel, UploadField } from './editor-controls';
 import { ArrowDown, ArrowUp, Plus, Trash2 } from 'lucide-react';
@@ -10,6 +10,7 @@ import type { Block, CatalogConfig } from '@/lib/catalog-config';
 import { ColorEditor } from './color-editor';
 import { resolveColors } from '@/lib/catalog-colors';
 import type { Product } from '@/lib/catalog-data';
+import { buildSegments } from '@/lib/segments';
 
 export type EditorView =
   | 'overview'
@@ -478,8 +479,8 @@ export function ConfigEditor({
   if (view === 'segments')
     return (
       <Panel
-        title="Segmentos automáticos"
-        note="A análise usa palavras-chave do cadastro: categoria tem peso 3, nome e descrição peso 2, outros campos peso 1. Empates ou falta de sinais ficam como “Sem classificação”. São sugestões de segmento para revisão, não uma IA generativa."
+        title="Segmentos de clientes"
+        note="Os segmentos seguem as mesmas regras do app mobile: um produto pode estar em vários segmentos, e cada segmento é dividido em grupos (insumos, embalagens, revenda...). Nos negócios de alimentação, os insumos são food service (embalagens grandes). As contagens abaixo usam os produtos publicados; para mudar uma regra, peça o ajuste ao desenvolvimento."
       >
         <div className="settings-row">
           <Field
@@ -505,66 +506,7 @@ export function ConfigEditor({
             }
           />
         </div>
-        <div className="settings-grid">
-          {config.segments.map((segment, i) => (
-            <article className="settings-card" key={i}>
-              <Field
-                label="Nome do segmento"
-                value={segment.name}
-                onChange={(name) =>
-                  change(
-                    'segments',
-                    config.segments.map((s, n) =>
-                      n === i ? { ...s, name } : s,
-                    ),
-                  )
-                }
-              />
-              <Field
-                label="Descrição pública"
-                value={segment.note}
-                onChange={(note) =>
-                  change(
-                    'segments',
-                    config.segments.map((s, n) =>
-                      n === i ? { ...s, note } : s,
-                    ),
-                  )
-                }
-              />
-              <Field
-                label="Palavras-chave (uma por linha)"
-                multiline
-                value={segment.keywords.join('\n')}
-                onChange={(words) =>
-                  change(
-                    'segments',
-                    config.segments.map((s, n) =>
-                      n === i ? { ...s, keywords: words.split('\n') } : s,
-                    ),
-                  )
-                }
-              />
-              <Button
-                variant="destructive"
-                onClick={() => remove('segments', i)}
-              >
-                <Trash2 /> Remover segmento
-              </Button>
-            </article>
-          ))}
-        </div>
-        <Button
-          variant="outline"
-          onClick={() =>
-            change('segments', [
-              ...config.segments,
-              { name: '', note: '', keywords: [] },
-            ])
-          }
-        >
-          <Plus /> Adicionar segmento
-        </Button>
+        <SegmentsOverview products={products} />
       </Panel>
     );
   if (view === 'banners')
@@ -863,5 +805,49 @@ export function ConfigEditor({
           ))}
       </div>
     </Panel>
+  );
+}
+
+// Resumo (só leitura) dos segmentos: regras compartilhadas com o app mobile.
+function SegmentsOverview({ products }: { products: Product[] }) {
+  const segments = useMemo(() => buildSegments(products), [products]);
+  const unclassified = useMemo(() => {
+    const inSegment = new Set(segments.flatMap((s) => s.products.map((p) => p.id)));
+    return products.filter((p) => p.published !== false && !inSegment.has(p.id));
+  }, [segments, products]);
+  return (
+    <>
+      <div className="settings-grid">
+        {segments.map((segment) => (
+          <article className="settings-card" key={segment.rule.id}>
+            <h4>
+              {segment.rule.name}
+              {segment.rule.hidden ? ' · coleção de data' : ''}
+            </h4>
+            <p>{segment.rule.note}</p>
+            <p>
+              <strong>{segment.products.length}</strong> produtos publicados
+            </p>
+            <ul className="segment-overview-groups">
+              {segment.rule.groups.map((group) => {
+                const found = segment.groups.find((g) => g.name === group.name);
+                return (
+                  <li key={group.name}>
+                    {group.name}: <strong>{found?.products.length ?? 0}</strong>
+                    {group.minSize ? ` (embalagem a partir de ${group.minSize} g/ml)` : ''}
+                  </li>
+                );
+              })}
+            </ul>
+          </article>
+        ))}
+      </div>
+      <p>
+        Produtos publicados sem segmento: <strong>{unclassified.length}</strong>
+        {unclassified.length > 0 && unclassified.length <= 10
+          ? ` (${unclassified.map((p) => p.name).join(', ')})`
+          : ''}
+      </p>
+    </>
   );
 }

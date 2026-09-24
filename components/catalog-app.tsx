@@ -409,7 +409,6 @@ export function CatalogApp({
             <p>{block.body}</p>
           </div>
           <CatalogSegments
-            segments={config.segments}
             items={items}
             email={config.email}
             style={style}

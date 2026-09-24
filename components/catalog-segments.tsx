@@ -1,51 +1,56 @@
 'use client';
-import { useState, type CSSProperties } from 'react';
+import { useMemo, useState, type CSSProperties } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import { CarouselItem } from '@/components/ui/carousel';
 import { DiscoveryCarousel } from './discovery-carousel';
 import { CollectionProducts } from './collection-products';
-import { segmentIcon } from '@/lib/segment-icons';
+import { segmentIconById } from '@/lib/segment-icons';
 import type { Product } from '@/lib/catalog-data';
-import type { SegmentRule } from '@/lib/catalog-config';
+import { buildSegments, type Segment } from '@/lib/segments';
+
+/**
+ * Segmentos de clientes com as mesmas regras do app mobile: um produto pode
+ * estar em vários segmentos, e cada segmento é dividido em grupos (insumos,
+ * embalagens, revenda...). Calculado no navegador a partir dos produtos
+ * publicados — nenhuma consulta extra ao servidor.
+ */
 export function CatalogSegments({
-  segments,
   items,
   email,
   style,
 }: {
-  segments: SegmentRule[];
   items: Product[];
   email: string;
   style?: CSSProperties;
 }) {
-  const [segment, setSegment] = useState<SegmentRule | null>(null);
-  const counts = items.reduce<Record<string, number>>((result, p) => {
-    result[p.segment] = (result[p.segment] ?? 0) + 1;
-    return result;
-  }, {});
+  const segments = useMemo(
+    () => buildSegments(items).filter((s) => !s.rule.hidden && s.products.length > 0),
+    [items],
+  );
+  const [segment, setSegment] = useState<Segment | null>(null);
   return (
     <Dialog open={!!segment} onOpenChange={(open) => !open && setSegment(null)}>
       {!!segments.length && (
         <DiscoveryCarousel kind="segment" count={segments.length}>
           {segments.map((s, i) => {
-            const Icon = segmentIcon(s.name);
+            const Icon = segmentIconById(s.rule.icon, s.rule.name);
             return (
               <CarouselItem
-                key={s.name}
+                key={s.rule.id}
                 aria-label={`${i + 1} de ${segments.length}`}
                 aria-roledescription="item"
               >
                 <DialogTrigger
-                  aria-label={`Ver produtos do segmento ${s.name}`}
+                  aria-label={`Ver produtos do segmento ${s.rule.name}`}
                   onClick={() => setSegment(s)}
                 >
                   <span>{String(i + 1).padStart(2, '0')}</span>
                   <Icon className="size-8" aria-hidden="true" />
-                  <strong>{s.name}</strong>
-                  <small>{s.note}</small>
+                  <strong>{s.rule.name}</strong>
+                  <small>{s.rule.note}</small>
                   <em>
-                    {counts[s.name] ?? 0} produtos{' '}
+                    {s.products.length} produtos{' '}
                     <ArrowRight className="size-4" aria-hidden="true" />
                   </em>
                 </DialogTrigger>
@@ -57,10 +62,11 @@ export function CatalogSegments({
       {!segments.length && <p>Nenhum segmento cadastrado.</p>}
       {segment && (
         <CollectionProducts
-          key={segment.name}
+          key={segment.rule.id}
           kind="segment"
-          name={segment.name}
+          name={segment.rule.name}
           items={items}
+          groups={segment.groups}
           email={email}
           style={style}
         />
