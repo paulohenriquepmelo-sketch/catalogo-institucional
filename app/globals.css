@@ -422,7 +422,7 @@ a {
 .product-image {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   transition: transform 0.55s cubic-bezier(0.2, 0.75, 0.2, 1);
 }
 .product-card:hover .product-image {
@@ -587,7 +587,7 @@ footer p {
   width: 100%;
   height: 100%;
   min-height: 440px;
-  object-fit: cover;
+  object-fit: contain;
 }
 .dialog-product-info {
   padding: 48px 42px;
@@ -1476,7 +1476,7 @@ footer p {
 .editor-product-list img {
   width: 52px;
   height: 52px;
-  object-fit: cover;
+  object-fit: contain;
   background: #ddd8ce;
 }
 .editor-product-list button > span {
@@ -1611,7 +1611,7 @@ footer p {
 .image-editor img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
 }
 .image-editor > span {
   display: flex;
@@ -1792,7 +1792,7 @@ footer p {
 .mini-grid img {
   width: 100%;
   aspect-ratio: 1;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 @media (max-width: 1100px) {
@@ -2116,7 +2116,7 @@ footer p {
   width: 100%;
   height: 100%;
   max-height: 470px;
-  object-fit: cover;
+  object-fit: contain;
 }
 .banner-controls {
   display: flex;
@@ -2933,7 +2933,7 @@ a:focus-visible {
   height: 100%;
 }
 .campaign-image {
-  object-fit: cover;
+  object-fit: contain;
   object-position: var(--campaign-position);
 }
 .campaign-overlay {
@@ -3032,7 +3032,8 @@ a:focus-visible {
 .campaign-theme-grid img {
   width: 100%;
   height: 90px;
-  object-fit: cover;
+  object-fit: contain;
+  background: #f3f5fa;
 }
 .campaign-theme-grid span {
   display: flex;
@@ -3996,9 +3997,13 @@ a:focus-visible {
   border: 0;
   accent-color: #244d35;
 }
-.size-setting small {
+.size-setting small,
+.editor-field-note {
   font-size: 11px;
   color: #566151;
+}
+.editor-field-note {
+  margin: 12px 0 0;
 }
 .logo-size-preview {
   margin-top: 20px;
@@ -5287,7 +5292,7 @@ a:focus-visible {
   position: absolute;
   inset: 0 0 auto;
   height: 6px;
-  background: #ef312f;
+  background: var(--laurencini-red, #d92826);
 }
 
 .editor-login-card {
@@ -5327,7 +5332,7 @@ a:focus-visible {
 }
 
 .editor-login-kicker {
-  color: #ef312f !important;
+  color: var(--laurencini-red, #d92826) !important;
   font-weight: 850;
 }
 
@@ -5354,7 +5359,7 @@ a:focus-visible {
 
 .editor-login-card button:hover {
   border-color: #ef312f;
-  background: #ef312f;
+  background: var(--laurencini-red, #d92826);
 }
 
 .editor-login-card a {
@@ -5386,7 +5391,7 @@ a:focus-visible {
   position: absolute;
   inset: 0 0 auto;
   height: 5px;
-  background: #ef312f;
+  background: var(--laurencini-red, #d92826);
 }
 
 .editor-sidebar .brand-lockup {
@@ -5438,7 +5443,7 @@ a:focus-visible {
   inset: 7px auto 7px 0;
   width: 3px;
   border-radius: 2px;
-  background: #ef312f;
+  background: var(--laurencini-red, #d92826);
 }
 
 .editor-user {
@@ -5526,7 +5531,7 @@ a:focus-visible {
 
 .editor-shell button:not([data-slot='switch']):not([role='switch']):hover {
   border-color: #ef312f !important;
-  background: #ef312f !important;
+  background: var(--laurencini-red, #d92826) !important;
 }
 
 .editor-shell
@@ -5712,7 +5717,7 @@ a:focus-visible {
 
 .logo-picker-dialog .logo-picker-results article > button:hover {
   border-color: #ef312f;
-  background: #ef312f;
+  background: var(--laurencini-red, #d92826);
 }
 
 .logo-picker-dialog :is(input, select, textarea):focus {
@@ -5789,7 +5794,7 @@ a:focus-visible {
 }
 
 /* Public Android app download beside the catalog navigation links. */
-.public-catalog .main-nav .app-download-link {
+.public-catalog .main-nav a.app-download-link {
   display: inline-flex;
   min-height: 36px;
   padding: 8px 13px;
@@ -5803,9 +5808,18 @@ a:focus-visible {
   white-space: nowrap;
 }
 
-.public-catalog .main-nav .app-download-link:hover {
-  color: #fff;
+.public-catalog .main-nav a.app-download-link:hover,
+.public-catalog .main-nav a.app-download-link:focus-visible {
+  color: var(--on-accent, #fff);
   background: var(--accent);
+}
+
+.public-catalog .main-nav a.app-download-link {
+  color: var(--on-primary, #fff);
+}
+
+.public-catalog .main-nav a.app-download-link::after {
+  display: none;
 }
 
 @media (max-width: 900px) {
@@ -5817,15 +5831,23 @@ a:focus-visible {
 /* Itens similares e "Combina com este produto" (até 8): no celular viram uma
    faixa que rola para o lado, em vez de 8 cards empilhados. */
 @media (max-width: 600px) {
+  /* Sem isto a faixa alarga a janela inteira além da tela. */
+  .product-dialog > *,
+  .product-dialog .similar-block {
+    min-width: 0;
+    max-width: 100%;
+  }
+  /* !important: marketing-polish.css força display:grid na janela. */
   .product-dialog .similar-block .similar-grid {
-    display: flex;
+    display: flex !important;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
     gap: 12px;
     padding-bottom: 6px;
   }
   .product-dialog .similar-block .similar-grid > * {
-    flex: 0 0 68%;
+    flex: 0 0 68% !important;
+    min-width: 0;
     scroll-snap-align: start;
   }
 }
@@ -5868,4 +5890,16 @@ a:focus-visible {
   padding-left: 18px;
   font-size: 13px;
   line-height: 1.5;
+}
+
+/* A Manrope tem o espaço estreito; em nomes em caixa alta e negrito as
+   palavras pareciam grudadas ("ABSSYMNOITE"). */
+:is(
+    .public-catalog,
+    .product-dialog,
+    .brand-products-dialog,
+    .catalog-search-dialog
+  )
+  .product-name {
+  word-spacing: 0.14em;
 }

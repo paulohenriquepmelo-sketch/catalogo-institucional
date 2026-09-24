@@ -48,7 +48,7 @@ const request = (
     body: JSON.stringify(body),
   });
 
-test('classification, accent-insensitive search and conservative similarities', () => {
+void test('classification, accent-insensitive search and conservative similarities', () => {
   assert.equal(
     classifySegment({
       ...products[0],
@@ -124,7 +124,7 @@ test('classification, accent-insensitive search and conservative similarities', 
     0,
   );
 });
-test('configuration and media validation reject unsafe or inconsistent input', () => {
+void test('configuration and media validation reject unsafe or inconsistent input', () => {
   assert.deepEqual(validateConfig(clone()), defaultConfig);
   assert.throws(() => imageUrl('javascript:alert(1)'));
   assert.throws(() => imageUrl('data:image/svg+xml,<svg/>'));
@@ -144,7 +144,7 @@ test('configuration and media validation reject unsafe or inconsistent input', (
   invalidShowcase.offers.interval = 2;
   assert.throws(() => validateConfig(invalidShowcase), /animação/);
 });
-test('persistent workflow: migrations, seeded records, drafts, revisions, ACL, uploads', async () => {
+void test('persistent workflow: migrations, seeded records, drafts, revisions, ACL, uploads', async () => {
   const settings = await getConfig();
   assert.equal(settings.revision, 1);
   assert.ok(settings.config.blocks.some((block) => block.type === 'offers'));

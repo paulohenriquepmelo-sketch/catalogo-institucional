@@ -241,6 +241,23 @@ export function catalogColorStyle(
     ),
     '--new-section-background': c.newSectionBackground,
     '--new-section-text': safeInk(c.newSectionText, c.newSectionBackground),
+    // Destaques (sobretítulos) legíveis sobre o fundo de cada vitrine.
+    '--segment-section-highlight': readableAccent(
+      config.accent,
+      c.segmentSectionBackground,
+    ),
+    '--brand-section-highlight': readableAccent(
+      config.accent,
+      c.brandSectionBackground,
+    ),
+    '--offer-section-highlight': readableAccent(
+      config.accent,
+      c.offerSectionBackground,
+    ),
+    '--new-section-highlight': readableAccent(
+      config.accent,
+      c.newSectionBackground,
+    ),
     '--theme-panel': c.themePanel,
     '--theme-text': c.themeText,
     '--theme-heading': c.themeHeading,

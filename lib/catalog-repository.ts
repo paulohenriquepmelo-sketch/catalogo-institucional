@@ -345,7 +345,8 @@ export async function publishCatalog() {
   const { config, revision } = await getConfig();
   const products = await listProductsForSnapshot(config);
   const latestProductUpdate = products.reduce(
-    (latest, product) => Math.max(latest, Date.parse(product.updatedAt) || 0),
+    (latest, product) =>
+      Math.max(latest, Date.parse(product.updatedAt ?? '') || 0),
     0,
   );
   const publishedAt = new Date(

@@ -34,9 +34,9 @@
 }
 
 .public-catalog .banner-controls button:hover:not(:disabled) {
-  border-color: #ef312f !important;
+  border-color: var(--laurencini-red, #d92826) !important;
   color: #ffffff !important;
-  background: #ef312f !important;
+  background: var(--laurencini-red, #d92826) !important;
 }
 
 .public-catalog .banner-controls button:disabled {
@@ -85,9 +85,9 @@
 ) button:hover:not(:disabled),
 .product-dialog .catalog-carousel-controls button:hover:not(:disabled),
 .brand-products-dialog .catalog-carousel-controls button:hover:not(:disabled) {
-  border-color: #ef312f !important;
+  border-color: var(--laurencini-red, #d92826) !important;
   color: #ffffff !important;
-  background: #ef312f !important;
+  background: var(--laurencini-red, #d92826) !important;
 }
 
 .public-catalog :is(
@@ -128,58 +128,69 @@
 }
 
 .public-catalog .campaign-controls button:hover:not(:disabled) {
-  border-color: #ef312f !important;
-  background: #ef312f !important;
+  border-color: var(--laurencini-red, #d92826) !important;
+  background: var(--laurencini-red, #d92826) !important;
 }
 
 /* --------------------------------------------------------------------------
  * SECTION CONTRAST
+ * Cada vitrine usa a cor de texto e de destaque calculadas para o próprio
+ * fundo (lib/catalog-colors.ts), então continua legível quando o editor troca
+ * o fundo da seção.
  * -------------------------------------------------------------------------- */
 .public-catalog .offers-showcase,
-.public-catalog .segments-section {
-  color: #ffffff !important;
-}
-
 .public-catalog .offers-showcase :is(
   .product-showcase-heading,
   .product-showcase-heading h2,
-  .product-showcase-heading p
-),
+  .product-showcase-heading p,
+  .discovery-carousel-toolbar
+) {
+  color: var(--offer-section-text, #ffffff) !important;
+}
+
+.public-catalog .segments-section,
 .public-catalog .segments-section :is(
   .section-heading,
   .section-heading h2,
   .section-heading p,
   .discovery-carousel-toolbar
 ) {
-  color: #ffffff !important;
+  color: var(--segment-section-text, #ffffff) !important;
 }
 
-.public-catalog .offers-showcase .product-showcase-heading .eyebrow,
-.public-catalog .segments-section .eyebrow {
-  color: #ff7775 !important;
-}
-
-.public-catalog :is(.new-products-showcase, .brands-section) {
-  color: #203770 !important;
-}
-
+.public-catalog .new-products-showcase,
 .public-catalog .new-products-showcase :is(
   .product-showcase-heading,
   .product-showcase-heading h2,
   .product-showcase-heading p,
   .discovery-carousel-toolbar
-),
+) {
+  color: var(--new-section-text, #203770) !important;
+}
+
+.public-catalog .brands-section,
 .public-catalog .brands-section :is(
   h2,
   p,
   .discovery-carousel-toolbar
 ) {
-  color: #203770 !important;
+  color: var(--brand-section-text, #203770) !important;
 }
 
-.public-catalog .new-products-showcase .product-showcase-heading .eyebrow,
+.public-catalog .offers-showcase .product-showcase-heading .eyebrow {
+  color: var(--offer-section-highlight, #ff7775) !important;
+}
+
+.public-catalog .segments-section .eyebrow {
+  color: var(--segment-section-highlight, #ff7775) !important;
+}
+
+.public-catalog .new-products-showcase .product-showcase-heading .eyebrow {
+  color: var(--new-section-highlight, #d92826) !important;
+}
+
 .public-catalog .brands-section > .eyebrow {
-  color: #ef312f !important;
+  color: var(--brand-section-highlight, #d92826) !important;
 }
 
 /* Product cards stay neutral regardless of the section background. */
@@ -218,7 +229,7 @@
   .offers-showcase,
   .new-products-showcase
 ) .product-card .product-brand {
-  color: #ef312f !important;
+  color: var(--laurencini-red, #d92826) !important;
 }
 
 .public-catalog :is(
@@ -246,5 +257,5 @@
 }
 
 .public-catalog .banner-copy .eyebrow {
-  color: #ef312f !important;
+  color: var(--laurencini-red, #d92826) !important;
 }

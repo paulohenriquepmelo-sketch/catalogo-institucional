@@ -1,8 +1,6 @@
 'use client';
 /* oxlint-disable next/no-img-element -- Preview the exact saved logo. */
 import { Input } from '@/components/ui/input';
-import { useId } from 'react';
-import { NativeSelect } from '@/components/ui/native-select';
 import { defaultLayout } from '@/lib/catalog-layout';
 import type { CatalogConfig } from '@/lib/catalog-config';
 
@@ -14,7 +12,6 @@ export function LayoutEditor({
   onChange: (config: CatalogConfig) => void;
 }) {
   const layout = { ...defaultLayout, ...config.layout };
-  const fitId = useId();
   return (
     <section className="size-settings">
       <h2>Tamanho da logo e das fotos</h2>
@@ -46,29 +43,10 @@ export function LayoutEditor({
           </small>
         </label>
       ))}
-      <label className="editor-field" htmlFor={fitId}>
-        <span>Enquadramento das fotos</span>
-        <NativeSelect
-          id={fitId}
-          value={layout.productImageFit}
-          onChange={(e) =>
-            onChange({
-              ...config,
-              layout: {
-                ...layout,
-                productImageFit: e.target.value as 'contain' | 'cover',
-              },
-            })
-          }
-        >
-          <option value="contain">
-            Mostrar o produto inteiro (sem cortar)
-          </option>
-          <option value="cover">
-            Preencher a área (pode cortar as bordas)
-          </option>
-        </NativeSelect>
-      </label>
+      <p className="editor-field-note">
+        As fotos dos produtos aparecem sempre inteiras, sem cortar, ajustadas
+        dentro da área.
+      </p>
       {config.logo && (
         <div className="logo-size-preview">
           <img
