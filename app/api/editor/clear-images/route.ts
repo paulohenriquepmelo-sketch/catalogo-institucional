@@ -48,9 +48,11 @@ export async function POST(request: Request) {
       : stored.brands,
   };
   const results = await env.DB.batch([
+    // updated_at também muda: o editor carrega só os produtos alterados
+    // desde a última vez e precisa enxergar esta limpeza.
     env.DB.prepare(
-      "UPDATE products SET image='' WHERE image IS NOT NULL AND image <> ''",
-    ),
+      "UPDATE products SET image='',updated_at=? WHERE image IS NOT NULL AND image <> ''",
+    ).bind(new Date().toISOString()),
     env.DB.prepare(
       "UPDATE brands SET logo_url=NULL WHERE logo_url IS NOT NULL AND logo_url <> ''",
     ),

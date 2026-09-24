@@ -5,6 +5,7 @@ import {
 } from '@/lib/editor-access';
 import {
   listCatalogProducts,
+  listCatalogProductsChangedSince,
   listCatalogProductsPage,
   getPublishedCatalogSnapshot,
   saveCatalogProduct,
@@ -15,6 +16,32 @@ export async function GET(request: Request) {
   if (editor && !(await getEditorUser()))
     return Response.json({ error: 'Acesso restrito.' }, { status: 403 });
   try {
+    // Editor: só o que mudou desde a última carga (cache no navegador).
+    const since = parameters.get('since');
+    if (editor && since !== null) {
+      const afterId = Number(parameters.get('afterId') ?? 0);
+      const limit = Number(parameters.get('limit') ?? 200);
+      if (
+        since.length > 40 ||
+        !Number.isInteger(afterId) ||
+        afterId < 0 ||
+        !Number.isInteger(limit) ||
+        limit < 1 ||
+        limit > 250
+      )
+        return Response.json({ error: 'Página inválida.' }, { status: 400 });
+      const items = await listCatalogProductsChangedSince(since, afterId, limit);
+      const last = items.at(-1);
+      return Response.json(
+        {
+          items,
+          since: last?.updatedAt ?? since,
+          afterId: last?.id ?? afterId,
+          done: items.length < limit,
+        },
+        { headers: { 'cache-control': 'no-store' } },
+      );
+    }
     if (parameters.get('paged') === '1') {
       const cursor = Number(parameters.get('cursor') ?? 0);
       const limit = Number(parameters.get('limit') ?? 200);
