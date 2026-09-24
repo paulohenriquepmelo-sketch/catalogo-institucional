@@ -493,58 +493,64 @@ export async function saveCatalogProduct(
 export async function saveConfig(value: unknown, revision: number) {
   await ensurePublishedCatalogSnapshot();
   const config = validateConfig(value);
-  // Only the columns needed to validate brand/taxonomy usage are read here —
-  // a handful of distinct values instead of every column of every product —
-  // to avoid the full `SELECT * FROM products` scan that was blowing past
-  // the D1 free-tier daily row-read limit on every config save.
-  const usedBrands = await env.DB.prepare(
-    `SELECT DISTINCT brand FROM products`,
-  ).all<{ brand: string }>();
-  for (const { brand } of usedBrands.results) {
-    if (!config.brands.some((b) => b.name === brand))
+  const current = await getConfig();
+  if (current.revision !== revision)
+    throw new Error(
+      'A página ou seus vínculos mudaram em outra sessão. Recarregue antes de salvar.',
+    );
+  // Só REMOVER uma marca ou categoria pode deixar produtos sem vínculo. Na
+  // maioria dos salvamentos (cores, banners, campanha, ofertas) nada é
+  // removido e nenhum produto precisa ser lido. Antes, a proteção do UPDATE
+  // cruzava todos os produtos com todas as marcas e categorias: ~350 mil
+  // linhas lidas no D1 por salvamento (o limite gratuito é 5 milhões/dia).
+  const keptBrands = new Set(config.brands.map((b) => b.name));
+  const removedBrands = [
+    ...new Set(current.config.brands.map((b) => b.name)),
+  ].filter((name) => !keptBrands.has(name));
+  const taxonomyKey = (t: { department: string; section: string; category: string }) =>
+    `${t.department}\u0000${t.section}\u0000${t.category}`;
+  const keptTaxonomy = new Set(config.taxonomy.map(taxonomyKey));
+  const removedTaxonomy = current.config.taxonomy.filter(
+    (t) => !keptTaxonomy.has(taxonomyKey(t)),
+  );
+  // Marca da última alteração de produto (1 linha lida, pelo índice de
+  // updated_at). O UPDATE só vale se nenhum produto mudou depois das
+  // verificações abaixo — protege contra salvar e cadastrar ao mesmo tempo.
+  const productsStamp =
+    (
+      await env.DB.prepare(
+        "SELECT COALESCE(MAX(updated_at),'') AS stamp FROM products",
+      ).first<{ stamp: string }>()
+    )?.stamp ?? '';
+  for (let i = 0; i < removedBrands.length; i += 50) {
+    const chunk = removedBrands.slice(i, i + 50);
+    const used = await env.DB.prepare(
+      `SELECT brand FROM products WHERE brand IN (${chunk.map(() => '?').join(',')}) LIMIT 1`,
+    )
+      .bind(...chunk)
+      .first<{ brand: string }>();
+    if (used)
       throw new Error(
-        `A marca ${brand} está em uso. Altere os produtos antes de removê-la.`,
+        `A marca ${used.brand} está em uso. Altere os produtos antes de removê-la.`,
       );
   }
-  const usedTaxonomy = await env.DB.prepare(
-    `SELECT DISTINCT department, section, category FROM products`,
-  ).all<{ department: string; section: string; category: string }>();
-  for (const { department, section, category } of usedTaxonomy.results) {
-    if (
-      !config.taxonomy.some(
-        (t) =>
-          t.department === department &&
-          t.section === section &&
-          t.category === category,
-      )
-    ) {
-      // Only fetch an example product once a conflict is actually found, to
-      // keep the original error message's product-name reference without
-      // reading every product up front.
-      const example = await env.DB.prepare(
-        `SELECT name FROM products WHERE department=? AND section=? AND category=? LIMIT 1`,
-      )
-        .bind(department, section, category)
-        .first<{ name: string }>();
+  for (const { department, section, category } of removedTaxonomy) {
+    const example = await env.DB.prepare(
+      'SELECT name FROM products WHERE department=? AND section=? AND category=? LIMIT 1',
+    )
+      .bind(department, section, category)
+      .first<{ name: string }>();
+    if (example)
       throw new Error(
-        `A categoria de ${example?.name ?? `${department}/${section}/${category}`} está em uso. Mova o produto antes de removê-la.`,
+        `A categoria de ${example.name} está em uso. Mova o produto antes de removê-la.`,
       );
-    }
   }
-  // The CAS revision and product timestamp guards prevent silent overwrites.
+  // The CAS revision and product stamp guards prevent silent overwrites.
   const r = await env.DB.prepare(
     `UPDATE catalog_config SET body=?,revision=revision+1 WHERE id=1 AND revision=?
-      AND NOT EXISTS (SELECT 1 FROM products p WHERE
-        NOT EXISTS (SELECT 1 FROM json_each(?) b WHERE json_extract(b.value,'$.name')=p.brand)
-        OR NOT EXISTS (SELECT 1 FROM json_each(?) t WHERE json_extract(t.value,'$.department')=p.department
-          AND json_extract(t.value,'$.section')=p.section AND json_extract(t.value,'$.category')=p.category))`,
+      AND (SELECT COALESCE(MAX(updated_at),'') FROM products)=?`,
   )
-    .bind(
-      JSON.stringify(config),
-      revision,
-      JSON.stringify(config.brands),
-      JSON.stringify(config.taxonomy),
-    )
+    .bind(JSON.stringify(config), revision, productsStamp)
     .run();
   if (!r.meta.changes)
     throw new Error(

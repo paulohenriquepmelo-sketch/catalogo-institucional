@@ -207,6 +207,33 @@ test('persistent workflow: migrations, seeded records, drafts, revisions, ACL, u
   const removeUsed = clone();
   removeUsed.brands = [];
   await assert.rejects(() => saveConfig(removeUsed, 1), /em uso/);
+  const removeUsedCategory = clone();
+  removeUsedCategory.taxonomy = removeUsedCategory.taxonomy.filter(
+    (t) =>
+      !(
+        t.department === published.department &&
+        t.section === published.section &&
+        t.category === published.category
+      ),
+  );
+  await assert.rejects(() => saveConfig(removeUsedCategory, 1), /em uso/);
+  // Consumo do D1: salvar a configuração não varre os produtos — as
+  // verificações usam índices (antes: ~350 mil linhas lidas por salvamento).
+  for (const [sql, args] of [
+    ['SELECT brand FROM products WHERE brand IN (?) LIMIT 1', ['x']],
+    [
+      'SELECT name FROM products WHERE department=? AND section=? AND category=? LIMIT 1',
+      ['a', 'b', 'c'],
+    ],
+    ["SELECT COALESCE(MAX(updated_at),'') FROM products", []],
+  ] as const) {
+    const plan = database
+      .prepare(`EXPLAIN QUERY PLAN ${sql}`)
+      .all(...args)
+      .map((row) => String((row as { detail: string }).detail))
+      .join(' | ');
+    assert.match(plan, /USING (COVERING )?INDEX/, `${sql} → ${plan}`);
+  }
   const edited = clone();
   edited.name = 'Catálogo de teste';
   edited.banners[0].title = 'Banner editado';
