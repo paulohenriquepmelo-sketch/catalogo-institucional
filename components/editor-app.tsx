@@ -23,7 +23,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { buildSegments } from '@/lib/segments';
 import { defaultConfig, type CatalogConfig } from '@/lib/catalog-config';
-import { detailFields, productIssues, type Product } from '@/lib/catalog-data';
+import {
+  catalogDateKey,
+  expireProductOffer,
+  detailFields,
+  productIssues,
+  type Product,
+} from '@/lib/catalog-data';
 import { api, loadProducts } from '@/lib/client-api';
 import { Field, Choice, Toggle, UploadField, Panel } from './editor-controls';
 import { ConfigEditor, type EditorView } from './config-editor';
@@ -60,10 +66,7 @@ const blank: Product = {
   featured: false,
 };
 const unique = (values: string[]) => [...new Set(values)];
-const dateKey = (date: Date) => {
-  const offset = date.getTimezoneOffset() * 60_000;
-  return new Date(date.getTime() - offset).toISOString().slice(0, 10);
-};
+const dateKey = catalogDateKey;
 export function EditorApp({ userName }: { userName: string }) {
   const [items, setItems] = useState<Product[]>([]);
   const [draft, setDraft] = useState<Product>(blank);
@@ -133,6 +136,30 @@ export function EditorApp({ userName }: { userName: string }) {
     void load();
   }, []);
   useEffect(() => {
+    let lastDate = catalogDateKey();
+    const expire = () => {
+      const today = catalogDateKey();
+      if (today === lastDate) return;
+      lastDate = today;
+      setItems((current) => {
+        const next = current.map((product) =>
+          expireProductOffer(product, today),
+        );
+        return next.some((product, index) => product !== current[index])
+          ? next
+          : current;
+      });
+      setDraft((current) => expireProductOffer(current, today));
+      setBaseline((current) => expireProductOffer(current, today));
+    };
+    const timer = window.setInterval(expire, 1000);
+    window.addEventListener('focus', expire);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener('focus', expire);
+    };
+  }, []);
+  useEffect(() => {
     const guard = (event: BeforeUnloadEvent) => {
       if (dirty || busy || uploads > 0) {
         event.preventDefault();
@@ -179,7 +206,9 @@ export function EditorApp({ userName }: { userName: string }) {
     () =>
       buildSegments([{ ...draft, published: true } as Product])
         .filter((s) => s.products.length > 0)
-        .map((s) => `${s.rule.name} (${s.groups.map((g) => g.name).join(', ')})`),
+        .map(
+          (s) => `${s.rule.name} (${s.groups.map((g) => g.name).join(', ')})`,
+        ),
     [draft],
   );
   async function saveProduct() {
@@ -417,11 +446,7 @@ export function EditorApp({ userName }: { userName: string }) {
               <Eye /> Ver versão publicada
             </a>
             <Button
-              disabled={
-                busy ||
-                uploads > 0 ||
-                productDirty
-              }
+              disabled={busy || uploads > 0 || productDirty}
               onClick={() => void savePage()}
             >
               <Save /> Publicar alterações no site público
@@ -452,9 +477,7 @@ export function EditorApp({ userName }: { userName: string }) {
                   />
                 </span>
               ) : (
-                <span className="brand-mark">
-                  {savedConfig.name.charAt(0)}
-                </span>
+                <span className="brand-mark">{savedConfig.name.charAt(0)}</span>
               )}
             </div>
             <p>Carregando o catálogo…</p>
@@ -569,7 +592,8 @@ export function EditorApp({ userName }: { userName: string }) {
                       <h3>Oferta e promoção</h3>
                       <p>
                         Quando ativa e dentro do prazo, aparece automaticamente
-                        na vitrine de ofertas do catálogo.
+                        na vitrine de ofertas do catálogo. Ao terminar o
+                        período, a opção é desligada e o desconto é removido.
                       </p>
                     </div>
                     <Toggle
@@ -898,4 +922,3 @@ export function EditorApp({ userName }: { userName: string }) {
     </main>
   );
 }
-

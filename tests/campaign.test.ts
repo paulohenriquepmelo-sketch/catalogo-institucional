@@ -64,7 +64,7 @@ void test('public carousels hide play controls and offer countdown becomes preci
     assert.doesNotMatch(source, /<Pause|<Play|Pausar|Retomar|Continuar/);
   }
   const end = '2026-09-10';
-  const endTime = new Date(`${end}T23:59:59`).getTime();
+  const endTime = new Date(`${end}T23:59:59-03:00`).getTime();
   assert.equal(offerTimeLabel(end, endTime - 90_000_000), 'Encerra em 1d 1h');
   assert.equal(
     offerTimeLabel(end, endTime - 18_367_000),

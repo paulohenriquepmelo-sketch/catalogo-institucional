@@ -1,6 +1,7 @@
 import { env } from 'cloudflare:workers';
 import {
   detailFields,
+  expireProductOffer,
   type Product,
   type ProductDetails,
 } from './catalog-data';
@@ -155,10 +156,10 @@ function mapProductRow(
     updatedAt: String(r.updated_at),
     createdAt: String(r.created_at),
   };
-  return {
+  return expireProductOffer({
     ...product,
     segment: classifySegment(product, config.segments).segment,
-  };
+  });
 }
 
 export async function listCatalogProducts(
@@ -463,7 +464,7 @@ export async function saveCatalogProduct(
 ) {
   await ensurePublishedCatalogSnapshot();
   const { config, revision } = context ?? (await getConfig());
-  const p = validateProduct(value, config);
+  const p = expireProductOffer(validateProduct(value, config));
   const previous = Date.parse(p.updatedAt ?? '');
   const now = new Date(
     Math.max(Date.now(), Number.isFinite(previous) ? previous + 1 : 0),
@@ -530,8 +531,11 @@ export async function saveConfig(value: unknown, revision: number) {
   const removedBrands = [
     ...new Set(current.config.brands.map((b) => b.name)),
   ].filter((name) => !keptBrands.has(name));
-  const taxonomyKey = (t: { department: string; section: string; category: string }) =>
-    `${t.department}\u0000${t.section}\u0000${t.category}`;
+  const taxonomyKey = (t: {
+    department: string;
+    section: string;
+    category: string;
+  }) => `${t.department}\u0000${t.section}\u0000${t.category}`;
   const keptTaxonomy = new Set(config.taxonomy.map(taxonomyKey));
   const removedTaxonomy = current.config.taxonomy.filter(
     (t) => !keptTaxonomy.has(taxonomyKey(t)),

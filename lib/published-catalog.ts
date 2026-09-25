@@ -1,6 +1,10 @@
 import { env } from 'cloudflare:workers';
 import type { CatalogConfig } from './catalog-config';
-import type { Product } from './catalog-data';
+import {
+  catalogDateKey,
+  expireProductOffer,
+  type Product,
+} from './catalog-data';
 
 export const PUBLISHED_CATALOG_KEY = 'catalog/published-v1.json';
 
@@ -30,7 +34,13 @@ export async function readPublishedCatalogSnapshot() {
     !Array.isArray(snapshot.products)
   )
     throw new Error('Snapshot publicado inválido.');
-  return snapshot;
+  const today = catalogDateKey();
+  return {
+    ...snapshot,
+    products: snapshot.products.map((product) =>
+      expireProductOffer(product, today),
+    ),
+  };
 }
 
 export async function writePublishedCatalogSnapshot(

@@ -10,17 +10,14 @@ import {
   CarouselPrevious,
   type CarouselApi,
 } from '@/components/ui/carousel';
-import type { Product } from '@/lib/catalog-data';
+import { catalogDateKey, type Product } from '@/lib/catalog-data';
 import type { ProductShowcase } from '@/lib/catalog-config';
 import { ProductCard } from './product-card';
 
-function localDateKey(date = new Date()) {
-  const offset = date.getTimezoneOffset() * 60_000;
-  return new Date(date.getTime() - offset).toISOString().slice(0, 10);
-}
+const localDateKey = catalogDateKey;
 
 export function offerTimeLabel(end: string, now: number) {
-  const endTime = new Date(`${end}T23:59:59`).getTime();
+  const endTime = new Date(`${end}T23:59:59-03:00`).getTime();
   const remaining = Math.max(0, endTime - now);
   if (remaining <= 0) return 'Oferta encerrada';
   const seconds = Math.floor(remaining / 1000);

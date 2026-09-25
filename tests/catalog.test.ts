@@ -32,9 +32,15 @@ import {
   POST as postPublication,
 } from '../app/api/publication/route';
 import { GET as getUpload, POST as postUpload } from '../app/api/uploads/route';
-import { PUBLISHED_CATALOG_KEY } from '../lib/published-catalog';
+import {
+  PUBLISHED_CATALOG_KEY,
+  readPublishedCatalogSnapshot,
+  writePublishedCatalogSnapshot,
+} from '../lib/published-catalog';
 import { database, env as testEnv, setIdentity } from './runtime';
 import { webp } from './image-fixtures';
+
+import { catalogDateKey, expireProductOffer } from '../lib/catalog-data';
 
 const clone = () => structuredClone(defaultConfig);
 const request = (
@@ -47,6 +53,40 @@ const request = (
     headers: { origin, 'content-type': 'application/json' },
     body: JSON.stringify(body),
   });
+
+void test('expired offers lose both their toggle and percentage without modifying the source product', () => {
+  const product = {
+    ...products[0],
+    details: {
+      supplier: 'Fornecedor',
+      showAsNew: true,
+      offer: {
+        enabled: true,
+        discount: 35,
+        startsAt: '2026-09-01',
+        endsAt: '2026-09-25',
+      },
+    },
+  };
+  const endOfDay = catalogDateKey(new Date('2026-09-26T02:59:59.999Z'));
+  assert.equal(endOfDay, '2026-09-25');
+  assert.equal(expireProductOffer(product, endOfDay), product);
+  assert.equal(expireProductOffer(product, '2026-08-31'), product);
+  const nextDay = catalogDateKey(new Date('2026-09-26T03:00:00.000Z'));
+  assert.equal(nextDay, '2026-09-26');
+  const expired = expireProductOffer(product, nextDay);
+  assert.equal(expired.details?.offer?.enabled === true, false);
+  assert.equal(expired.details?.offer?.discount, undefined);
+  assert.equal(expired.details?.supplier, 'Fornecedor');
+  assert.equal(expired.details?.showAsNew, true);
+  assert.equal(expired.updatedAt, product.updatedAt);
+  assert.equal(product.details.offer.discount, 35);
+  assert.equal(expireProductOffer(expired, nextDay), expired);
+  assert.equal(
+    expireProductOffer({ ...product, details: undefined }, nextDay).details,
+    undefined,
+  );
+});
 
 void test('classification, accent-insensitive search and conservative similarities', () => {
   assert.equal(
@@ -189,8 +229,31 @@ void test('persistent workflow: migrations, seeded records, drafts, revisions, A
     () => saveCatalogProduct({ ...seed, id: 0, code: 'TEST-DRAFT' }),
     /código/,
   );
+  const expiredSaved = await saveCatalogProduct({
+    ...saved,
+    details: {
+      ...saved.details,
+      offer: {
+        enabled: true,
+        discount: 35,
+        startsAt: '2000-01-01',
+        endsAt: '2000-01-02',
+      },
+    },
+  });
+  assert.equal(expiredSaved.details?.offer, undefined);
+  assert.equal(
+    (await listCatalogProducts(true)).find((p) => p.id === saved.id)?.details
+      ?.offer,
+    undefined,
+  );
+  const storedExpired = database
+    .prepare('SELECT details FROM products WHERE id=?')
+    .get(saved.id) as { details: string };
+  assert.equal(JSON.parse(storedExpired.details).offer, undefined);
   const published = await saveCatalogProduct({
     ...saved,
+    updatedAt: expiredSaved.updatedAt,
     published: true,
     name: 'Produto de teste',
   });
@@ -382,4 +445,36 @@ void test('persistent workflow: migrations, seeded records, drafts, revisions, A
   database.exec('DELETE FROM products');
   assert.equal((await listCatalogProducts(true)).length, 0);
   assert.equal((await getConfig()).config.name, 'Catálogo de teste');
+});
+
+void test('published snapshots remove expired discounts without requiring republication', async () => {
+  await writePublishedCatalogSnapshot({
+    version: 1,
+    revision: 123,
+    publishedAt: '2000-01-01T00:00:00Z',
+    config: clone(),
+    products: [
+      {
+        ...products[0],
+        details: {
+          offer: {
+            enabled: true,
+            discount: 35,
+            startsAt: '2000-01-01',
+            endsAt: '2000-01-02',
+          },
+        },
+      },
+    ],
+  });
+  const snapshot = await readPublishedCatalogSnapshot();
+  assert.equal(snapshot?.products[0].details?.offer, undefined);
+  assert.equal(snapshot?.revision, 123);
+  const response = await getProducts(
+    new Request('https://catalog.test/api/products'),
+  );
+  assert.equal(response.status, 200);
+  const items = await response.json();
+  assert.ok(Array.isArray(items));
+  assert.equal(items[0].details.offer, undefined);
 });

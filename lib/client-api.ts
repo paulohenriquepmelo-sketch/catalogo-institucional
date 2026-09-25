@@ -1,3 +1,5 @@
+import { catalogDateKey, expireProductOffer } from './catalog-data';
+
 export async function api<T>(
   url: string,
   body?: unknown,
@@ -36,11 +38,14 @@ export async function loadProducts(
       undefined,
       'default',
     );
-    return products.sort(
-      (left, right) =>
-        Number(right.featured) - Number(left.featured) ||
-        left.name.localeCompare(right.name, 'pt-BR'),
-    );
+    const today = catalogDateKey();
+    return products
+      .map((product) => expireProductOffer(product, today))
+      .sort(
+        (left, right) =>
+          Number(right.featured) - Number(left.featured) ||
+          left.name.localeCompare(right.name, 'pt-BR'),
+      );
   }
   return loadEditorProducts();
 }
@@ -48,11 +53,14 @@ export async function loadProducts(
 type EditorProduct = import('./catalog-data').Product;
 
 function sortForEditor(products: EditorProduct[]) {
-  return products.sort(
-    (left, right) =>
-      Number(right.featured) - Number(left.featured) ||
-      left.name.localeCompare(right.name, 'pt-BR'),
-  );
+  const today = catalogDateKey();
+  return products
+    .map((product) => expireProductOffer(product, today))
+    .sort(
+      (left, right) =>
+        Number(right.featured) - Number(left.featured) ||
+        left.name.localeCompare(right.name, 'pt-BR'),
+    );
 }
 
 /**
@@ -85,7 +93,12 @@ async function loadEditorProducts(): Promise<EditorProduct[]> {
         afterId = page.afterId;
         if (page.done) {
           const items = cacheModule.mergeProducts(cache.items, changed);
-          await cacheModule.writeProductCache({ ...cache, since, afterId, items });
+          await cacheModule.writeProductCache({
+            ...cache,
+            since,
+            afterId,
+            items,
+          });
           return sortForEditor(items);
         }
       }

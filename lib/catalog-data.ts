@@ -64,3 +64,30 @@ export function productIssues(p: Product) {
     issues.push('NCM: conferir formato');
   return issues;
 }
+
+const catalogDateFormatter = new Intl.DateTimeFormat('en-US', {
+  timeZone: 'America/Sao_Paulo',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+});
+
+/** Offers remain valid through the end date, in the catalog's Brazilian timezone. */
+export function catalogDateKey(now = new Date()): string {
+  const parts = catalogDateFormatter.formatToParts(now);
+  const part = (type: string) =>
+    parts.find((value) => value.type === type)!.value;
+  return `${part('year')}-${part('month')}-${part('day')}`;
+}
+
+/** Remove the expired discount without changing unrelated product data or revisions. */
+export function expireProductOffer(
+  product: Product,
+  today = catalogDateKey(),
+): Product {
+  const offer = product.details?.offer;
+  if (!offer?.endsAt || offer.endsAt >= today) return product;
+  const details = { ...product.details };
+  delete details.offer;
+  return { ...product, details };
+}
