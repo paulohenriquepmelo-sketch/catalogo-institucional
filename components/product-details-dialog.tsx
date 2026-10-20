@@ -1,18 +1,18 @@
-'use client';
+"use client";
 /* oxlint-disable next/no-img-element -- Display the already optimized uploaded image directly. */
-import { ArrowRight, Package } from 'lucide-react';
+import { ArrowRight, Package } from "lucide-react";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { detailFields, type Product } from '@/lib/catalog-data';
-import { similarProducts } from '@/lib/catalog-discovery';
-import { complementProducts } from '@/lib/complements';
-import { useMemo, type CSSProperties } from 'react';
-import { ProductCard } from './product-card';
+} from "@/components/ui/dialog";
+import { detailFields, type Product } from "@/lib/catalog-data";
+import { similarProducts } from "@/lib/catalog-discovery";
+import { complementProducts } from "@/lib/complements";
+import { useEffect, useMemo, useRef, type CSSProperties } from "react";
+import { ProductCard } from "./product-card";
 
 const RELATED_LIMIT = 8;
 
@@ -44,99 +44,113 @@ export function ProductDetailsDialog({
       ),
     };
   }, [items, selected]);
+  // The content scrolls inside this box so the close button stays visible
+  // outside it. Focusing the box on open keeps the sheet at the top instead of
+  // jumping to the first similar product (the first tabbable element).
+  const scroller = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    scroller.current?.scrollTo({ top: 0 });
+  }, [selected?.id]);
   return (
     <Dialog open={!!selected} onOpenChange={(open) => !open && onSelect(null)}>
-      <DialogContent className="product-dialog" style={style}>
-        {selected && (
-          <>
-            <div className="dialog-product-top">
-              <div className="dialog-product-media">
-                {selected.image ? (
-                  <img src={selected.image} alt={selected.name} />
-                ) : (
-                  <div className="missing-image">
-                    <Package /> Imagem não cadastrada
+      <DialogContent
+        className="product-dialog"
+        style={style}
+        initialFocus={scroller}
+      >
+        <div ref={scroller} className="product-dialog-scroll" tabIndex={-1}>
+          {selected && (
+            <>
+              <div className="dialog-product-top">
+                <div className="dialog-product-media">
+                  {selected.image ? (
+                    <img src={selected.image} alt={selected.name} />
+                  ) : (
+                    <div className="missing-image">
+                      <Package /> Imagem não cadastrada
+                    </div>
+                  )}
+                </div>
+                <div className="dialog-product-info">
+                  <DialogHeader>
+                    <span className="eyebrow">
+                      {selected.brand} · {selected.code}
+                    </span>
+                    <DialogTitle>{selected.name}</DialogTitle>
+                    <DialogDescription>
+                      {selected.description ||
+                        "Consulte os dados de embalagem e identificação deste produto."}
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="path-chip">
+                    {selected.department} / {selected.section} /{" "}
+                    {selected.category}
                   </div>
-                )}
-              </div>
-              <div className="dialog-product-info">
-                <DialogHeader>
-                  <span className="eyebrow">
-                    {selected.brand} · {selected.code}
-                  </span>
-                  <DialogTitle>{selected.name}</DialogTitle>
-                  <DialogDescription>
-                    {selected.description ||
-                      'Consulte os dados de embalagem e identificação deste produto.'}
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="path-chip">
-                  {selected.department} / {selected.section} /{' '}
-                  {selected.category}
-                </div>
-                <p className="segment-label">Segmento: {selected.segment}</p>
-                <ul className="spec-list">
-                  {selected.specs.map((s, i) => (
-                    <li key={`${selected.id}-${i}-${s}`}>{s}</li>
-                  ))}
-                </ul>
-                <dl className="product-specifications">
-                  {detailFields
-                    .filter(
-                      ([key]) => key !== 'supplier' && selected.details?.[key],
-                    )
-                    .map(([key, label]) => (
-                      <div key={key}>
-                        <dt>{label}</dt>
-                        <dd>{selected.details?.[key]}</dd>
-                      </div>
+                  <p className="segment-label">Segmento: {selected.segment}</p>
+                  <ul className="spec-list">
+                    {selected.specs.map((s, i) => (
+                      <li key={`${selected.id}-${i}-${s}`}>{s}</li>
                     ))}
-                </dl>
-                {email ? (
-                  <a
-                    className="primary-action"
-                    href={`mailto:${email}?subject=${encodeURIComponent(`Informações sobre ${selected.name} (${selected.code})`)}`}
-                  >
-                    Solicitar informações <ArrowRight className="size-4" />
-                  </a>
+                  </ul>
+                  <dl className="product-specifications">
+                    {detailFields
+                      .filter(
+                        ([key]) =>
+                          key !== "supplier" && selected.details?.[key],
+                      )
+                      .map(([key, label]) => (
+                        <div key={key}>
+                          <dt>{label}</dt>
+                          <dd>{selected.details?.[key]}</dd>
+                        </div>
+                      ))}
+                  </dl>
+                  {email ? (
+                    <a
+                      className="primary-action"
+                      href={`mailto:${email}?subject=${encodeURIComponent(`Informações sobre ${selected.name} (${selected.code})`)}`}
+                    >
+                      Solicitar informações <ArrowRight className="size-4" />
+                    </a>
+                  ) : (
+                    <p className="contact-empty">
+                      Contato comercial ainda não cadastrado.
+                    </p>
+                  )}
+                </div>
+              </div>
+              <div className="similar-block">
+                <span className="eyebrow">
+                  Mesma seção, categoria ou aplicação
+                </span>
+                <h3>Itens similares</h3>
+                {similar.length ? (
+                  <div className="similar-grid">
+                    {similar.map((p) => (
+                      <ProductCard key={p.id} product={p} onOpen={onSelect} />
+                    ))}
+                  </div>
                 ) : (
-                  <p className="contact-empty">
-                    Contato comercial ainda não cadastrado.
-                  </p>
+                  <p>Ainda não há itens similares publicados.</p>
                 )}
               </div>
-            </div>
-            <div className="similar-block">
-              <span className="eyebrow">
-                Mesma seção, categoria ou aplicação
-              </span>
-              <h3>Itens similares</h3>
-              {similar.length ? (
-                <div className="similar-grid">
-                  {similar.map((p) => (
-                    <ProductCard key={p.id} product={p} onOpen={onSelect} />
-                  ))}
+              {complements.length > 0 && (
+                <div className="similar-block">
+                  <span className="eyebrow">
+                    Para usar junto ou na mesma receita
+                  </span>
+                  <h3>Combina com este produto</h3>
+                  <div className="similar-grid">
+                    {complements.map((p) => (
+                      <ProductCard key={p.id} product={p} onOpen={onSelect} />
+                    ))}
+                  </div>
                 </div>
-              ) : (
-                <p>Ainda não há itens similares publicados.</p>
               )}
-            </div>
-            {complements.length > 0 && (
-              <div className="similar-block">
-                <span className="eyebrow">Para usar junto ou na mesma receita</span>
-                <h3>Combina com este produto</h3>
-                <div className="similar-grid">
-                  {complements.map((p) => (
-                    <ProductCard key={p.id} product={p} onOpen={onSelect} />
-                  ))}
-                </div>
-              </div>
-            )}
-          </>
-        )}
+            </>
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );
 }
-
-
