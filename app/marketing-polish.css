@@ -258,6 +258,9 @@
   .product-card.without-photo
   .product-image-wrap {
   display: grid;
+  /* Linha com altura fixa: sem ela a linha cresce com a foto e o
+     height/max-height da imagem não limitam fotos altas (ficam cortadas). */
+  grid-template: 100% / 100%;
   place-items: center;
   height: clamp(180px, var(--product-photo-height, 210px), 230px);
   overflow: hidden;
