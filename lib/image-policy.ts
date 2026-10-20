@@ -247,3 +247,17 @@ export function productFrame(contentWidth: number, contentHeight: number) {
     height,
   };
 }
+
+// True when the photo already looks like the output of productFrame: square,
+// product centered, margin close to PRODUCT_IMAGE_MARGIN. Lets the bulk tool
+// skip photos framed before instead of re-encoding them again.
+export function isProductFramed(box: ContentBox, width: number, height: number) {
+  const tolerance = Math.max(3, width * 0.015);
+  const inner = Math.max(box.width, box.height);
+  return (
+    Math.abs(width - height) <= 1 &&
+    Math.abs(inner / (1 - 2 * PRODUCT_IMAGE_MARGIN) - width) <= tolerance &&
+    Math.abs(box.x - (width - box.width) / 2) <= tolerance &&
+    Math.abs(box.y - (height - box.height) / 2) <= tolerance
+  );
+}

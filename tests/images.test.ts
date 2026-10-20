@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   imageDimensions,
   inspectImage,
+  isProductFramed,
   productContentBox,
   productFrame,
 } from '../lib/image-policy';
@@ -286,4 +287,17 @@ void test('product conversion crops margins and centers on a white square', asyn
       Object.defineProperty(globalThis, 'document', originalDocument);
     else Reflect.deleteProperty(globalThis, 'document');
   }
+});
+
+void test('framed photos are recognized so the bulk tool can skip them', () => {
+  // Output of productFrame for a tall product: square, centered, 6% margin.
+  const frame = productFrame(400, 1400);
+  const box = { ...frame, transparent: false };
+  assert.equal(isProductFramed(box, frame.side, frame.side), true);
+  // Same product with large or uneven margins still needs framing.
+  assert.equal(
+    isProductFramed({ ...box, x: 100, y: 200, height: 600 }, 1080, 1080),
+    false,
+  );
+  assert.equal(isProductFramed(box, 1080, 1350), false);
 });

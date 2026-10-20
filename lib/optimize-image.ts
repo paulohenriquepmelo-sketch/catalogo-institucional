@@ -4,6 +4,7 @@ import {
   MAX_IMAGE_BYTES,
   MAX_IMAGE_EDGE,
   TARGET_IMAGE_BYTES,
+  isProductFramed,
   productContentBox,
   productFrame,
 } from './image-policy';
@@ -13,6 +14,8 @@ export type OptimizedImage = {
   originalBytes: number;
   width: number;
   height: number;
+  // Product photo was already square and centered; returned untouched.
+  alreadyFramed?: boolean;
 };
 
 export type OptimizeOptions = {
@@ -80,6 +83,17 @@ export async function optimizeImage(
           height,
         )
       : undefined;
+    // Only WebP can be returned as is; other formats still need encoding.
+    if (
+      box &&
+      info.format === 'webp' &&
+      source.size <= TARGET_IMAGE_BYTES &&
+      isProductFramed(box, width, height)
+    )
+      return {
+        ...result(source, info.width, info.height),
+        alreadyFramed: true,
+      };
     let framed = false;
     if (box) {
       // Box was measured on the resized canvas; map it back to source pixels.
