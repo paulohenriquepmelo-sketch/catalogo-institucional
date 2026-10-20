@@ -7,6 +7,9 @@ export type ChatGPTUser = {
   displayName: string;
   email: string;
   fullName: string | null;
+  // 'session': password login cookie signed by this Worker.
+  // 'header': identity injected by a trusted proxy (oai-authenticated-*).
+  source: 'session' | 'header';
 };
 
 export const EDITOR_SESSION_COOKIE = 'catalogo_editor_session';
@@ -14,8 +17,15 @@ const EDITOR_SESSION_TTL_SECONDS = 8 * 60 * 60;
 
 export async function getChatGPTUser(): Promise<ChatGPTUser | null> {
   const requestHeaders = await headers();
-  const userId = requestHeaders.get('oai-authenticated-user-id');
-  const email = requestHeaders.get('oai-authenticated-user-email');
+  // On Cloudflare any client can send oai-authenticated-* headers, so they are
+  // only trusted when a proxy that sets them is explicitly configured.
+  const trustHeaders = env.TRUST_IDENTITY_HEADERS === 'true';
+  const userId = trustHeaders
+    ? requestHeaders.get('oai-authenticated-user-id')
+    : null;
+  const email = trustHeaders
+    ? requestHeaders.get('oai-authenticated-user-email')
+    : null;
   if (!userId || !email) {
     if (await hasValidEditorSession(requestHeaders.get('cookie'))) {
       const sessionEmail = env.EDITOR_ADMIN_EMAIL ?? 'admin@catalogo.local';
@@ -25,6 +35,7 @@ export async function getChatGPTUser(): Promise<ChatGPTUser | null> {
         displayName: sessionName,
         email: sessionEmail,
         fullName: sessionName,
+        source: 'session',
       };
     }
     return null;
@@ -36,7 +47,13 @@ export async function getChatGPTUser(): Promise<ChatGPTUser | null> {
       'percent-encoded-utf-8'
       ? safeDecode(encodedName)
       : null;
-  return { userId, email, fullName, displayName: fullName ?? email };
+  return {
+    userId,
+    email,
+    fullName,
+    displayName: fullName ?? email,
+    source: 'header',
+  };
 }
 
 export async function requireChatGPTUser(

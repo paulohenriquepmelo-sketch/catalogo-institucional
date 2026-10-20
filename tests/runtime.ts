@@ -56,6 +56,8 @@ const files = new Map<
 >();
 export const env = {
   ADMIN_EMAILS: 'admin@example.test',
+  TRUST_IDENTITY_HEADERS: 'true',
+  WORKER_ROLE: 'editor' as 'editor' | 'public',
   DB: {
     prepare,
     async batch(statements: ReturnType<typeof prepare>[]) {
