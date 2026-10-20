@@ -526,3 +526,92 @@ void test('forged identity headers do not grant editor access unless a trusted p
     setIdentity();
   }
 });
+
+void test('login limits attempts per IP and never redirects off the editor origin', async () => {
+  const { POST: login } = await import('../app/api/editor/login/route');
+  const env = testEnv as typeof testEnv & {
+    EDITOR_PASSWORD?: string;
+    LOGIN_LIMITER?: { limit(input: { key: string }): Promise<{ success: boolean }> };
+  };
+  const attempts = new Map<string, number>();
+  env.EDITOR_PASSWORD = 'senha-de-teste';
+  env.LOGIN_LIMITER = {
+    async limit({ key }) {
+      attempts.set(key, (attempts.get(key) ?? 0) + 1);
+      return { success: (attempts.get(key) ?? 0) <= 2 };
+    },
+  };
+  const post = (password: string, returnTo: string, ip = '203.0.113.7') => {
+    const body = new FormData();
+    body.set('password', password);
+    body.set('return_to', returnTo);
+    return login(
+      new Request('https://editor.test/api/editor/login', {
+        method: 'POST',
+        body,
+        headers: { 'cf-connecting-ip': ip },
+      }),
+    );
+  };
+  try {
+    const ok = await post('senha-de-teste', '/\\evil.example');
+    assert.equal(ok.status, 303);
+    assert.equal(ok.headers.get('location'), '/editor');
+    assert.match(ok.headers.get('set-cookie') ?? '', /HttpOnly/);
+    assert.match((await post('errada', '/editor')).headers.get('location')!, /error=1/);
+    // Third attempt from the same IP is blocked even with the right password.
+    const blocked = await post('senha-de-teste', '/editor');
+    assert.match(blocked.headers.get('location')!, /error=limit/);
+    assert.equal(blocked.headers.get('set-cookie'), null);
+    // Another IP is not affected.
+    assert.equal(
+      (await post('senha-de-teste', '/editor', '198.51.100.9')).headers.get('location'),
+      '/editor',
+    );
+  } finally {
+    delete env.EDITOR_PASSWORD;
+    delete env.LOGIN_LIMITER;
+  }
+});
+
+void test('clearing images changes nothing when the configuration changed in another session', async () => {
+  const { POST: clearImages } = await import(
+    '../app/api/editor/clear-images/route'
+  );
+  setIdentity('admin@example.test');
+  const count = () =>
+    (
+      database
+        .prepare("SELECT COUNT(*) AS n FROM products WHERE image <> ''")
+        .get() as { n: number }
+    ).n;
+  // Direct row: earlier tests may leave brands/categories empty.
+  database.exec(
+    "INSERT INTO products (code,name,description,department,section,category,segment,brand,image,created_at,updated_at) VALUES ('CLEAR-IMAGES-TEST','Teste','','D','S','C','Seg','B','/api/uploads?key=images%2Fteste.webp','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z')",
+  );
+  const before = count();
+  assert.ok(before > 0);
+  const batch = testEnv.DB.batch;
+  // Another session saves the configuration between the read and the batch.
+  testEnv.DB.batch = async (statements) => {
+    database.exec('UPDATE catalog_config SET revision=revision+1 WHERE id=1');
+    return batch(statements);
+  };
+  try {
+    const response = await clearImages(
+      new Request('https://editor.test/api/editor/clear-images', {
+        method: 'POST',
+        headers: {
+          origin: 'https://editor.test',
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({ confirm: true }),
+      }),
+    );
+    assert.equal(response.status, 409);
+    assert.equal(count(), before);
+  } finally {
+    testEnv.DB.batch = batch;
+    setIdentity();
+  }
+});

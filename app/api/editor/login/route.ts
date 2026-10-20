@@ -10,13 +10,26 @@ export async function POST(request: Request) {
   const form = await request.formData();
   const password = String(form.get('password') ?? '');
   const returnTo = String(form.get('return_to') ?? '/editor');
+  // Browsers treat a backslash like "/", which could lead off this origin.
   const safeReturnTo =
-    returnTo.startsWith('/') && !returnTo.startsWith('//')
+    returnTo.startsWith('/') &&
+    !returnTo.startsWith('//') &&
+    !/[\\\r\n]/.test(returnTo)
       ? returnTo
       : '/editor';
   const origin = request.headers.get('origin');
   if (origin && origin !== new URL(request.url).origin)
     return new Response('Origem não autorizada.', { status: 403 });
+  // Limit password attempts per client IP before checking the password.
+  const ip = request.headers.get('cf-connecting-ip') ?? 'unknown';
+  if (env.LOGIN_LIMITER && !(await env.LOGIN_LIMITER.limit({ key: ip })).success)
+    return Response.redirect(
+      new URL(
+        `/editor/login?error=limit&return_to=${encodeURIComponent(safeReturnTo)}`,
+        request.url,
+      ),
+      303,
+    );
   if (!env.EDITOR_PASSWORD || password !== env.EDITOR_PASSWORD)
     return Response.redirect(
       new URL(`/editor/login?error=1&return_to=${encodeURIComponent(safeReturnTo)}`, request.url),

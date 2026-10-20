@@ -4,13 +4,15 @@ on:
   push:
     branches:
       - main
+  pull_request:
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: cloudflare-production
+  # PRs não podem cancelar um deploy de produção em andamento.
+  group: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.ref) || 'cloudflare-production' }}
   cancel-in-progress: true
 
 jobs:
@@ -41,10 +43,20 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # Nada é publicado se algum teste falhar.
+      - name: Test
+        run: pnpm test
+
       - name: Build
         run: pnpm build
 
+      # Pull requests só testam e compilam; o deploy acontece no push na main.
+      - name: Stop here on pull requests
+        if: github.event_name == 'pull_request'
+        run: echo "Testes e build ok; deploy apenas na main."
+
       - name: Validate Cloudflare credentials
+        if: github.event_name != 'pull_request'
         shell: bash
         run: |
           if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
@@ -57,7 +69,9 @@ jobs:
           fi
 
       - name: Deploy editor Worker
+        if: github.event_name != 'pull_request'
         run: pnpm exec wrangler deploy --config wrangler.deploy.jsonc --env editor
 
       - name: Deploy public Worker
+        if: github.event_name != 'pull_request'
         run: pnpm exec wrangler deploy --config wrangler.deploy.jsonc --env public

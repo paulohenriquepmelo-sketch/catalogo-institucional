@@ -47,15 +47,18 @@ export async function POST(request: Request) {
         )
       : stored.brands,
   };
+  // Every statement checks the revision read above: if the configuration
+  // changed in another session, nothing is cleared (not only the config).
+  const unchanged = '(SELECT revision FROM catalog_config WHERE id=1)=?';
   const results = await env.DB.batch([
     // updated_at também muda: o editor carrega só os produtos alterados
     // desde a última vez e precisa enxergar esta limpeza.
     env.DB.prepare(
-      "UPDATE products SET image='',updated_at=? WHERE image IS NOT NULL AND image <> ''",
-    ).bind(new Date().toISOString()),
+      `UPDATE products SET image='',updated_at=? WHERE image IS NOT NULL AND image <> '' AND ${unchanged}`,
+    ).bind(new Date().toISOString(), configRow.revision),
     env.DB.prepare(
-      "UPDATE brands SET logo_url=NULL WHERE logo_url IS NOT NULL AND logo_url <> ''",
-    ),
+      `UPDATE brands SET logo_url=NULL WHERE logo_url IS NOT NULL AND logo_url <> '' AND ${unchanged}`,
+    ).bind(configRow.revision),
     env.DB.prepare(
       'UPDATE catalog_config SET body=?,revision=revision+1 WHERE id=1 AND revision=?',
     ).bind(JSON.stringify(nextConfig), configRow.revision),

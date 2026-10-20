@@ -300,3 +300,17 @@
     height: 38px;
   }
 }
+
+/* Tablet/phone: the photo stage has a fixed height. A later rule gives the
+   photo at least 320px, which overflowed the stage and cropped tall photos.
+   A fixed grid track lets height/max-height 100% follow the stage. */
+@media (max-width: 820px) {
+  .product-dialog .dialog-product-media {
+    grid-template: 100% / 100%;
+  }
+
+  .product-dialog .dialog-product-media > img {
+    height: 100%;
+    max-height: 100%;
+  }
+}
