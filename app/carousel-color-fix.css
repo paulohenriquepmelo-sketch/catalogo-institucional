@@ -259,3 +259,44 @@
 .public-catalog .banner-copy .eyebrow {
   color: var(--laurencini-red, #d92826) !important;
 }
+
+/* Product detail: the sheet scrolls inside .product-dialog-scroll, so the close
+   button sits outside the popup (above its top-right corner) and never scrolls
+   away. The popup moves down to leave room for it. */
+.product-dialog {
+  --dialog-close-space: 52px;
+  max-height: min(
+    calc(100dvh - 20px - var(--dialog-close-space)),
+    960px
+  ) !important;
+  margin-top: calc(var(--dialog-close-space) / 2);
+  overflow: visible !important;
+}
+
+.product-dialog-scroll {
+  max-height: inherit;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-radius: inherit;
+  outline: none;
+}
+
+.product-dialog [data-slot='dialog-close'] {
+  top: calc(-1 * var(--dialog-close-space) + 6px) !important;
+  right: 0 !important;
+  width: 40px;
+  height: 40px;
+}
+
+@media (max-width: 600px) {
+  .product-dialog {
+    --dialog-close-space: 48px;
+    max-height: calc(100dvh - 16px - var(--dialog-close-space)) !important;
+  }
+
+  .product-dialog [data-slot='dialog-close'] {
+    width: 38px;
+    height: 38px;
+  }
+}
