@@ -159,6 +159,35 @@ void test('provider results and raster retrieval use bounded, non-redirecting re
 });
 
 void test('product image selection uses its protected endpoint and the same optimized upload pipeline', async (t) => {
+  // Product photos always pass through the canvas to be framed. A blank
+  // canvas has no content box, so the 2x3 fixture is encoded unchanged.
+  let drawn = 0;
+  for (const [name, value] of [
+    [
+      'createImageBitmap',
+      async () => ({ width: 2, height: 3, close: () => {} }),
+    ],
+    [
+      'document',
+      {
+        createElement: () => ({
+          width: 0,
+          height: 0,
+          getContext: () => ({
+            drawImage: () => drawn++,
+            getImageData: (_x: number, _y: number, w: number, h: number) => ({
+              data: new Uint8ClampedArray(w * h * 4).fill(255),
+            }),
+          }),
+          toBlob: (callback: (b: Blob) => void) =>
+            callback(new Blob([webp], { type: 'image/webp' })),
+        }),
+      },
+    ],
+  ] as const) {
+    Object.defineProperty(globalThis, name, { configurable: true, value });
+    t.after(() => Reflect.deleteProperty(globalThis, name));
+  }
   t.mock.method(
     globalThis,
     'fetch',
@@ -179,6 +208,7 @@ void test('product image selection uses its protected endpoint and the same opti
     '/api/uploads?key=images%2Fproduto.webp',
   );
   assert.match(result.summary, /WebP/);
+  assert.equal(drawn, 1);
 });
 
 void test('selecting a logo uploads WebP and returns the new URL only after success, without saving other brand fields', async (t) => {

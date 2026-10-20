@@ -4,6 +4,8 @@ import {
   MAX_IMAGE_BYTES,
   MAX_IMAGE_EDGE,
   TARGET_IMAGE_BYTES,
+  productContentBox,
+  productFrame,
 } from './image-policy';
 
 export type OptimizedImage = {
@@ -13,7 +15,15 @@ export type OptimizedImage = {
   height: number;
 };
 
-export async function optimizeImage(source: File): Promise<OptimizedImage> {
+export type OptimizeOptions = {
+  // Crop empty margins and center the product in a square frame.
+  product?: boolean;
+};
+
+export async function optimizeImage(
+  source: File,
+  { product = false }: OptimizeOptions = {},
+): Promise<OptimizedImage> {
   if (source.size > MAX_IMAGE_BYTES || source.size < 12)
     throw new Error('Envie uma imagem de até 5 MB.');
   const info = inspectImage(new Uint8Array(await source.arrayBuffer()));
@@ -38,6 +48,7 @@ export async function optimizeImage(source: File): Promise<OptimizedImage> {
   });
   // Already small WebP images do not need another lossy encoding pass.
   if (
+    !product &&
     info.format === 'webp' &&
     Math.max(info.width, info.height) <= MAX_IMAGE_EDGE &&
     source.size <= TARGET_IMAGE_BYTES
@@ -49,16 +60,56 @@ export async function optimizeImage(source: File): Promise<OptimizedImage> {
     bitmap = await createImageBitmap(source, {
       imageOrientation: 'from-image',
     });
-    const { width, height } = imageDimensions(bitmap.width, bitmap.height);
+    let { width, height } = imageDimensions(bitmap.width, bitmap.height);
     canvas = document.createElement('canvas');
     canvas.width = width;
     canvas.height = height;
-    const context = canvas.getContext('2d');
+    const context = canvas.getContext(
+      '2d',
+      product ? { willReadFrequently: true } : undefined,
+    );
     if (!context) throw new Error('Não foi possível preparar a imagem.');
     context.imageSmoothingEnabled = true;
     context.imageSmoothingQuality = 'high';
     // A transparent canvas preserves transparent logos and product cutouts.
     context.drawImage(bitmap, 0, 0, width, height);
+    const box = product
+      ? productContentBox(
+          context.getImageData(0, 0, width, height).data,
+          width,
+          height,
+        )
+      : undefined;
+    let framed = false;
+    if (box) {
+      // Box was measured on the resized canvas; map it back to source pixels.
+      const ratio = bitmap.width / width;
+      const sx = box.x * ratio;
+      const sy = box.y * ratio;
+      const sw = box.width * ratio;
+      const sh = box.height * ratio;
+      const frame = productFrame(sw, sh);
+      // Resizing the canvas clears it and resets the context state.
+      canvas.width = canvas.height = width = height = frame.side;
+      context.imageSmoothingEnabled = true;
+      context.imageSmoothingQuality = 'high';
+      if (!box.transparent) {
+        context.fillStyle = '#fff';
+        context.fillRect(0, 0, frame.side, frame.side);
+      }
+      context.drawImage(
+        bitmap,
+        sx,
+        sy,
+        sw,
+        sh,
+        frame.x,
+        frame.y,
+        frame.width,
+        frame.height,
+      );
+      framed = true;
+    }
     const encode = (quality: number) =>
       new Promise<Blob>((resolve, reject) => {
         canvas!.toBlob(
@@ -82,6 +133,7 @@ export async function optimizeImage(source: File): Promise<OptimizedImage> {
       if (next.size < output.size) output = next;
     }
     if (
+      !framed &&
       info.format === 'webp' &&
       width === info.width &&
       height === info.height &&

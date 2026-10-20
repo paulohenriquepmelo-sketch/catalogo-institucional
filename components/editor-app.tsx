@@ -785,6 +785,7 @@ export function EditorApp({ userName }: { userName: string }) {
                   />
                   <UploadField
                     label="Imagem do produto"
+                    product
                     value={draft.image}
                     onChange={(image) =>
                       setDraft((current) => ({ ...current, image }))
