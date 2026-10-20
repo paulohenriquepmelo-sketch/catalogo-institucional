@@ -370,7 +370,7 @@ export function ImportEditor({
           if (cancel.current) break;
           let optimized: OptimizedImage;
           try {
-            optimized = await optimizeImage(row.file);
+            optimized = await optimizeImage(row.file, { product: true });
           } catch (error) {
             collected.push({
               key: String(images!.indexOf(row)),

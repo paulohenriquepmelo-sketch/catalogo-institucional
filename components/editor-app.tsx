@@ -35,6 +35,7 @@ import { Field, Choice, Toggle, UploadField, Panel } from './editor-controls';
 import { ConfigEditor, type EditorView } from './config-editor';
 import { useCatalogTools } from '@/hooks/use-catalog-tools';
 import { ImportEditor } from './import-editor';
+import { PhotoFraming } from './photo-framing';
 import { CampaignEditor } from './campaign-editor';
 import { ProductImagePicker } from './product-image-picker';
 
@@ -785,6 +786,7 @@ export function EditorApp({ userName }: { userName: string }) {
                   />
                   <UploadField
                     label="Imagem do produto"
+                    product
                     value={draft.image}
                     onChange={(image) =>
                       setDraft((current) => ({ ...current, image }))
@@ -817,11 +819,18 @@ export function EditorApp({ userName }: { userName: string }) {
             </section>
           </div>
         ) : view === 'imports' ? (
-          <ImportEditor
-            dirty={dirty}
-            onBusy={onBusy}
-            onRefresh={refreshAfterImport}
-          />
+          <>
+            <ImportEditor
+              dirty={dirty}
+              onBusy={onBusy}
+              onRefresh={refreshAfterImport}
+            />
+            <PhotoFraming
+              dirty={dirty}
+              onBusy={onBusy}
+              onRefresh={refreshAfterImport}
+            />
+          </>
         ) : view === 'overview' ? (
           <Panel
             title="Seu catálogo em um só lugar"

@@ -1,6 +1,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { imageDimensions, inspectImage } from '../lib/image-policy';
+import {
+  imageDimensions,
+  inspectImage,
+  isProductFramed,
+  productContentBox,
+  productFrame,
+} from '../lib/image-policy';
 import { optimizeImage, optimizationSummary } from '../lib/optimize-image';
 import { storeImage } from '../lib/image-storage';
 import { GET as getUpload } from '../app/api/uploads/route';
@@ -171,4 +177,127 @@ void test('storage accepts only static, bounded WebP and keeps legacy images rea
   );
   assert.equal(response.status, 200);
   assert.equal(response.headers.get('content-type'), 'image/png');
+});
+
+// RGBA pixels: white background with a colored block at the given rectangle.
+function pixels(
+  width: number,
+  height: number,
+  block: { x: number; y: number; width: number; height: number },
+  background = [255, 255, 255, 255],
+) {
+  const data = new Uint8ClampedArray(width * height * 4);
+  for (let y = 0; y < height; y++)
+    for (let x = 0; x < width; x++) {
+      const inside =
+        x >= block.x &&
+        x < block.x + block.width &&
+        y >= block.y &&
+        y < block.y + block.height;
+      data.set(inside ? [200, 30, 30, 255] : background, (y * width + x) * 4);
+    }
+  return data;
+}
+
+void test('product box ignores white or transparent margins', () => {
+  const block = { x: 30, y: 10, width: 20, height: 70 };
+  assert.deepEqual(productContentBox(pixels(100, 100, block), 100, 100), {
+    ...block,
+    transparent: false,
+  });
+  assert.deepEqual(
+    productContentBox(pixels(100, 100, block, [0, 0, 0, 0]), 100, 100),
+    { ...block, transparent: true },
+  );
+  // Near-white JPEG noise is still background; a blank image has no box.
+  assert.equal(
+    productContentBox(pixels(10, 10, block, [246, 248, 250, 255]), 4, 4),
+    undefined,
+  );
+});
+
+void test('product frame is square, centered, keeps margin and never upscales', () => {
+  assert.deepEqual(productFrame(400, 1400), {
+    side: 1080,
+    x: 404,
+    y: 65,
+    width: 272,
+    height: 950,
+  });
+  // Small photo: frame grows only by the margin, the product keeps its size.
+  const small = productFrame(100, 200);
+  assert.equal(small.side, 227);
+  assert.equal(small.height, 200);
+  assert.equal(small.x, 64);
+});
+
+void test('product conversion crops margins and centers on a white square', async () => {
+  const originalBitmap = Object.getOwnPropertyDescriptor(
+    globalThis,
+    'createImageBitmap',
+  );
+  const originalDocument = Object.getOwnPropertyDescriptor(
+    globalThis,
+    'document',
+  );
+  const drawn: number[][] = [];
+  const filled: string[] = [];
+  const canvas = {
+    width: 0,
+    height: 0,
+    getContext: () => ({
+      imageSmoothingEnabled: false,
+      imageSmoothingQuality: 'low',
+      fillStyle: '',
+      fillRect(this: { fillStyle: string }) {
+        filled.push(this.fillStyle);
+      },
+      getImageData: (_x: number, _y: number, w: number, h: number) => ({
+        data: pixels(w, h, { x: 30, y: 10, width: 20, height: 70 }),
+      }),
+      drawImage: (_bitmap: unknown, ...dimensions: number[]) =>
+        drawn.push(dimensions),
+    }),
+    toBlob: (callback: (b: Blob) => void) =>
+      callback(new Blob([webp], { type: 'image/webp' })),
+  };
+  Object.defineProperty(globalThis, 'createImageBitmap', {
+    configurable: true,
+    value: async () => ({ width: 100, height: 100, close: () => {} }),
+  });
+  Object.defineProperty(globalThis, 'document', {
+    configurable: true,
+    value: { createElement: () => canvas },
+  });
+  try {
+    // The fixture WebP is 2x3, so validation of the encoded size fails;
+    // what matters here is how the photo was drawn before encoding.
+    await assert.rejects(
+      () => optimizeImage(new File([webp], '00123.webp'), { product: true }),
+      /validar/,
+    );
+    assert.deepEqual(drawn[0], [0, 0, 100, 100]);
+    assert.deepEqual(drawn[1], [30, 10, 20, 70, 30, 5, 20, 70]);
+    assert.deepEqual(filled, ['#fff']);
+  } finally {
+    if (originalBitmap)
+      Object.defineProperty(globalThis, 'createImageBitmap', originalBitmap);
+    else Reflect.deleteProperty(globalThis, 'createImageBitmap');
+    if (originalDocument)
+      Object.defineProperty(globalThis, 'document', originalDocument);
+    else Reflect.deleteProperty(globalThis, 'document');
+  }
+});
+
+void test('framed photos are recognized so the bulk tool can skip them', () => {
+  // Output of productFrame for a tall product: square, centered, 6% margin.
+  const frame = productFrame(400, 1400);
+  const box = { ...frame, transparent: false };
+  assert.equal(isProductFramed(box, frame.side, frame.side), true);
+  // Same product with large or uneven margins still needs framing.
+  assert.equal(
+    isProductFramed({ ...box, x: 100, y: 200, height: 600 }, 1080, 1080),
+    false,
+  );
+  assert.equal(isProductFramed(box, 1080, 1350), false);
 });

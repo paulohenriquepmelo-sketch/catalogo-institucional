@@ -6,6 +6,7 @@ async function importCatalogImage(
   name: string,
   endpoint: string,
   failureLabel: string,
+  product = false,
 ) {
   let file: File;
   if (source instanceof File) file = source;
@@ -22,7 +23,7 @@ async function importCatalogImage(
       type: blob.type,
     });
   }
-  const optimized = await optimizeImage(file);
+  const optimized = await optimizeImage(file, { product });
   const form = new FormData();
   form.append('file', optimized.file);
   const response = await fetch('/api/uploads', {
@@ -46,5 +47,6 @@ export function importProductImage(source: number | File, name: string) {
     name,
     '/api/product-images/image',
     'a foto',
+    true,
   );
 }

@@ -84,11 +84,14 @@ export function UploadField({
   value,
   onChange,
   onBusy,
+  product = false,
 }: {
   label: string;
   value: string;
   onChange: (url: string) => void;
   onBusy?: (busy: boolean) => void;
+  // Product photos are cropped and centered in a square frame.
+  product?: boolean;
 }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -100,7 +103,7 @@ export function UploadField({
     setBusy(true);
     onBusy?.(true);
     try {
-      const optimized = await optimizeImage(file);
+      const optimized = await optimizeImage(file, { product });
       const form = new FormData();
       form.append('file', optimized.file);
       const res = await fetch('/api/uploads', { method: 'POST', body: form });

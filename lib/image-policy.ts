@@ -173,3 +173,91 @@ export function imageDimensions(width: number, height: number) {
     height: Math.max(1, Math.round(height * scale)),
   };
 }
+
+// Product photos are normalized to a square frame so every product fills a
+// similar area in the cards, whatever margin the original photo had.
+export const PRODUCT_IMAGE_EDGE = 1080;
+export const PRODUCT_IMAGE_MARGIN = 0.06;
+
+export type ContentBox = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  transparent: boolean;
+};
+
+// Near-white or almost transparent pixels count as background. Returns
+// undefined when the whole image looks like background (nothing to crop).
+export function productContentBox(
+  rgba: ArrayLike<number>,
+  width: number,
+  height: number,
+): ContentBox | undefined {
+  let left = width;
+  let top = height;
+  let right = -1;
+  let bottom = -1;
+  let transparent = false;
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const i = (y * width + x) * 4;
+      const alpha = rgba[i + 3];
+      if (alpha < 250) transparent = true;
+      if (
+        alpha < 16 ||
+        (rgba[i] >= 240 && rgba[i + 1] >= 240 && rgba[i + 2] >= 240)
+      )
+        continue;
+      if (x < left) left = x;
+      if (x > right) right = x;
+      if (y < top) top = y;
+      if (y > bottom) bottom = y;
+    }
+  }
+  if (right < 0) return undefined;
+  return {
+    x: left,
+    y: top,
+    width: right - left + 1,
+    height: bottom - top + 1,
+    transparent,
+  };
+}
+
+// Square side and destination rectangle for a content box measured in source
+// pixels. Never upscales: small photos keep their resolution.
+export function productFrame(contentWidth: number, contentHeight: number) {
+  const inner = Math.max(contentWidth, contentHeight);
+  const side = Math.max(
+    1,
+    Math.min(
+      PRODUCT_IMAGE_EDGE,
+      Math.round(inner / (1 - 2 * PRODUCT_IMAGE_MARGIN)),
+    ),
+  );
+  const scale = (side * (1 - 2 * PRODUCT_IMAGE_MARGIN)) / inner;
+  const width = Math.max(1, Math.round(contentWidth * scale));
+  const height = Math.max(1, Math.round(contentHeight * scale));
+  return {
+    side,
+    x: Math.round((side - width) / 2),
+    y: Math.round((side - height) / 2),
+    width,
+    height,
+  };
+}
+
+// True when the photo already looks like the output of productFrame: square,
+// product centered, margin close to PRODUCT_IMAGE_MARGIN. Lets the bulk tool
+// skip photos framed before instead of re-encoding them again.
+export function isProductFramed(box: ContentBox, width: number, height: number) {
+  const tolerance = Math.max(3, width * 0.015);
+  const inner = Math.max(box.width, box.height);
+  return (
+    Math.abs(width - height) <= 1 &&
+    Math.abs(inner / (1 - 2 * PRODUCT_IMAGE_MARGIN) - width) <= tolerance &&
+    Math.abs(box.x - (width - box.width) / 2) <= tolerance &&
+    Math.abs(box.y - (height - box.height) / 2) <= tolerance
+  );
+}

@@ -3350,6 +3350,49 @@ a:focus-visible {
   font-size: 12px;
   line-height: 1.7;
 }
+.framing-preview {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.framing-preview figure {
+  margin: 0;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.framing-preview figure > div {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.framing-preview img {
+  width: 100%;
+  aspect-ratio: 1;
+  padding: 8px;
+  object-fit: contain;
+}
+
+.framing-preview img + img {
+  border-left: 1px dashed var(--border);
+}
+
+.framing-preview figcaption {
+  padding: 6px 10px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+}
+
+.framing-failures {
+  margin-top: 12px;
+  padding-left: 18px;
+  font-size: 13px;
+}
+
 .import-progress button {
   justify-self: start;
 }
