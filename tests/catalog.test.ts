@@ -37,7 +37,7 @@ import {
   readPublishedCatalogSnapshot,
   writePublishedCatalogSnapshot,
 } from '../lib/published-catalog';
-import { database, env as testEnv, setIdentity } from './runtime';
+import { database, env as testEnv, headers, setIdentity } from './runtime';
 import { webp } from './image-fixtures';
 
 import { catalogDateKey, expireProductOffer } from '../lib/catalog-data';
@@ -214,7 +214,7 @@ void test('persistent workflow: migrations, seeded records, drafts, revisions, A
         enabled: true,
         discount: 40,
         startsAt: '2026-09-01',
-        endsAt: '2026-09-30',
+        endsAt: '2099-12-31', // oferta ativa; data fixa no passado vencia o teste
       },
       showAsNew: false,
     },
@@ -477,4 +477,52 @@ void test('published snapshots remove expired discounts without requiring republ
   const items = await response.json();
   assert.ok(Array.isArray(items));
   assert.equal(items[0].details.offer, undefined);
+});
+
+void test('forged identity headers do not grant editor access unless a trusted proxy is configured', async () => {
+  const { getEditorUser, authorizeMutation } = await import(
+    '../lib/editor-access'
+  );
+  const trusted = testEnv.TRUST_IDENTITY_HEADERS;
+  const role = testEnv.WORKER_ROLE;
+  try {
+    testEnv.TRUST_IDENTITY_HEADERS = '';
+    for (const [id, email] of [
+      ['editor-password', 'qualquer@exemplo.invalid'],
+      ['local-test-id', 'admin@example.test'],
+    ]) {
+      const h = await headers();
+      h.set('oai-authenticated-user-id', id);
+      h.set('oai-authenticated-user-email', email);
+      assert.equal(await getEditorUser(), null);
+      const denied = await authorizeMutation(
+        new Request('https://editor.test/api/products', {
+          method: 'POST',
+          headers: { origin: 'https://editor.test' },
+        }),
+      );
+      assert.equal(denied?.status, 403);
+    }
+    // Even with trusted headers, the password-session shortcut is not reachable
+    // by naming the header user "editor-password".
+    testEnv.TRUST_IDENTITY_HEADERS = 'true';
+    const h = await headers();
+    h.set('oai-authenticated-user-id', 'editor-password');
+    h.set('oai-authenticated-user-email', 'qualquer@exemplo.invalid');
+    assert.equal(await getEditorUser(), null);
+    // The public Worker never accepts edits, even from an administrator.
+    setIdentity('admin@example.test');
+    testEnv.WORKER_ROLE = 'public';
+    const publicDenied = await authorizeMutation(
+      new Request('https://public.test/api/uploads', {
+        method: 'POST',
+        headers: { origin: 'https://public.test' },
+      }),
+    );
+    assert.equal(publicDenied?.status, 404);
+  } finally {
+    testEnv.TRUST_IDENTITY_HEADERS = trusted;
+    testEnv.WORKER_ROLE = role;
+    setIdentity();
+  }
 });

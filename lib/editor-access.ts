@@ -6,10 +6,13 @@ export async function getEditorUser() {
     .split(',')
     .map((s) => s.trim().toLowerCase())
     .filter(Boolean);
-  if (user?.userId === 'editor-password') return user;
+  if (user?.source === 'session') return user;
   return user && allowed.includes(user.email.toLowerCase()) ? user : null;
 }
 export async function authorizeMutation(request: Request) {
+  // The public Worker shares the R2 bucket but never accepts edits.
+  if (env.WORKER_ROLE === 'public')
+    return Response.json({ error: 'Página não encontrada.' }, { status: 404 });
   if (!(await getEditorUser()))
     return Response.json(
       { error: 'Somente administradores autorizados podem editar.' },
