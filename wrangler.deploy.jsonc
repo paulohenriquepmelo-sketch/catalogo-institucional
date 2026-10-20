@@ -37,6 +37,14 @@
           "binding": "FILES",
           "bucket_name": "catalogo-institucional-files"
         }
+      ],
+      // 5 tentativas de senha por IP a cada 60 s (app/api/editor/login).
+      "ratelimits": [
+        {
+          "name": "LOGIN_LIMITER",
+          "namespace_id": "1001",
+          "simple": { "limit": 5, "period": 60 }
+        }
       ]
     },
     "public": {

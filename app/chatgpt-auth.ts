@@ -153,7 +153,11 @@ function fromBase64Url(value: string) {
 }
 
 function safeReturnTo(value: string) {
-  return value.startsWith('/') && !value.startsWith('//') ? value : '/';
+  return value.startsWith('/') &&
+    !value.startsWith('//') &&
+    !/[\\\r\n]/.test(value)
+    ? value
+    : '/';
 }
 
 function safeDecode(value: string): string | null {

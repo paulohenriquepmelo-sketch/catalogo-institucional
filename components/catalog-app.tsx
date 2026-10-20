@@ -446,6 +446,10 @@ export function CatalogApp({
       <a className="skip-link" href="#catalogo">
         Pular para o catálogo
       </a>
+      {/* Página inicial: título principal só para leitores de tela e buscadores. */}
+      {!fullCatalogPage && (
+        <h1 className="sr-only">{`${config.name} — catálogo de produtos`}</h1>
+      )}
       <div className="announcement">
         <span>{config.tagline}</span>
       </div>

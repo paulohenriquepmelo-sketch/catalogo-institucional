@@ -21,7 +21,10 @@ export default async function EditorLoginPage({
     ? params.return_to[0]
     : params.return_to;
   const safeReturnTo =
-    returnTo && returnTo.startsWith('/') && !returnTo.startsWith('//')
+    returnTo &&
+    returnTo.startsWith('/') &&
+    !returnTo.startsWith('//') &&
+    !/[\\\r\n]/.test(returnTo)
       ? returnTo
       : '/editor';
 
@@ -40,6 +43,11 @@ export default async function EditorLoginPage({
         {error === '1' && (
           <p className="editor-login-error" role="alert">
             Senha inválida ou acesso ainda não configurado.
+          </p>
+        )}
+        {error === 'limit' && (
+          <p className="editor-login-error" role="alert">
+            Muitas tentativas seguidas. Aguarde um minuto e tente novamente.
           </p>
         )}
         <form action="/api/editor/login" method="post">

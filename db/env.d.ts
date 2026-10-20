@@ -10,5 +10,7 @@ declare namespace Cloudflare {
     EDITOR_ADMIN_NAME?: string;
     WORKER_ROLE?: 'editor' | 'public';
     SITE_ORIGIN?: string;
+    // Cloudflare rate limiter for password attempts (editor Worker only).
+    LOGIN_LIMITER?: RateLimit;
   }
 }
