@@ -7,7 +7,7 @@ import {
   listCatalogProducts,
   listCatalogProductsChangedSince,
   listCatalogProductsPage,
-  getPublishedCatalogSnapshot,
+  getPublicCatalog,
   saveCatalogProduct,
 } from '@/lib/catalog-repository';
 export async function GET(request: Request) {
@@ -55,7 +55,7 @@ export async function GET(request: Request) {
         return Response.json({ error: 'Página inválida.' }, { status: 400 });
       const items = editor
         ? await listCatalogProductsPage(true, cursor, limit)
-        : (await getPublishedCatalogSnapshot()).products
+        : (await getPublicCatalog()).products
             .filter((product) => product.id > cursor)
             .sort((left, right) => left.id - right.id)
             .slice(0, limit);
@@ -77,7 +77,7 @@ export async function GET(request: Request) {
     return Response.json(
       editor
         ? await listCatalogProducts(true)
-        : (await getPublishedCatalogSnapshot()).products,
+        : (await getPublicCatalog()).products,
       {
         headers: {
           'cache-control': editor

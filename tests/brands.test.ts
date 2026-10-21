@@ -8,7 +8,14 @@ import { AllBrandsList } from '../components/all-brands-dialog';
 import { ProductCard } from '../components/product-card';
 import { products } from './fixtures';
 import { discover, emptyFilters } from '../lib/catalog-discovery';
-import { publishedBrands, brandLogoSearchUrl } from '../lib/catalog-brands';
+import {
+  publishedBrands,
+  brandLogoSearchUrl,
+  withMultibrand,
+  publicBrands,
+  MULTIBRAND,
+} from '../lib/catalog-brands';
+import { GET as getProductsRoute } from '../app/api/products/route';
 import { defaultConfig, validateConfig } from '../lib/catalog-config';
 import {
   getConfig,
@@ -182,6 +189,15 @@ void test('layout bounds, legacy defaults and brand publication survive save/rel
   assert.ok(
     !publishedData.config.brands.some((b) => b.name === draftBrand.name),
   );
+  // Produtos da marca despublicada aparecem no site como MULTIMARCAS.
+  const publicProducts = (await (
+    await getProductsRoute(new Request('https://catalog.test/api/products'))
+  ).json()) as { brand: string }[];
+  assert.ok(!publicProducts.some((p) => p.brand === draftBrand.name));
+  assert.equal(
+    publishedData.config.brands.some((b) => b.name === MULTIBRAND),
+    publicProducts.some((p) => p.brand === MULTIBRAND),
+  );
   assert.equal(
     (
       await getConfigRoute(
@@ -201,6 +217,34 @@ void test('layout bounds, legacy defaults and brand publication survive save/rel
     ),
   );
 });
+void test('unpublished brands become MULTIMARCAS on the public site, and come back when published', () => {
+  const brands = [
+    { name: 'COCA COLA', logo: '', published: true, featured: false },
+    { name: 'SANTHER', logo: '', published: false, featured: false },
+  ];
+  const list = [
+    { code: '1', brand: 'COCA COLA' },
+    { code: '2', brand: 'SANTHER' },
+    { code: '3', brand: 'SEM CADASTRO' },
+  ];
+  const shown = withMultibrand(list, brands);
+  assert.deepEqual(shown.map((p) => p.brand), ['COCA COLA', MULTIBRAND, MULTIBRAND]);
+  // O original não muda (o editor continua com a marca real).
+  assert.equal(list[1].brand, 'SANTHER');
+  assert.deepEqual(publicBrands(brands, shown).map((b) => b.name), ['COCA COLA', MULTIBRAND]);
+  // Sem produto em MULTIMARCAS, a marca não aparece.
+  assert.deepEqual(publicBrands(brands, shown.slice(0, 1)).map((b) => b.name), ['COCA COLA']);
+  // Publicar a marca devolve o nome dela.
+  const all = brands.map((b) => ({ ...b, published: true }));
+  assert.equal(withMultibrand(list, all)[1].brand, 'SANTHER');
+  // Uma marca MULTIMARCAS criada no editor (com logo) é usada no lugar da automática.
+  const custom = [...brands, { name: MULTIBRAND, logo: '/logo.webp', published: true, featured: false }];
+  assert.deepEqual(
+    publicBrands(custom, withMultibrand(list, custom)).filter((b) => b.name === MULTIBRAND).map((b) => b.logo),
+    ['/logo.webp'],
+  );
+});
+
 void test('brand-local search is exact, independent and keeps the product-details affordance', () => {
   const brand = products[0].brand;
   const results = discover(products, { ...emptyFilters, brand });
