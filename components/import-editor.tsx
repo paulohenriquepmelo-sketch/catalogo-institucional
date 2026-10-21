@@ -1,4 +1,9 @@
 'use client';
+// "?worker&url": o Vite gera o arquivo do Worker e devolve o caminho no
+// próprio site. Com new URL(..., import.meta.url) o build do vinext trocava
+// import.meta.url por um caminho local (file:///ROOT/...) e o navegador
+// recusava o Worker em produção.
+import excelWorkerUrl from '../workers/excel-import.worker.ts?worker&url';
 import { useEffect, useRef, useState } from 'react';
 import {
   FileSpreadsheet,
@@ -207,10 +212,7 @@ export function ImportEditor({
     try {
       const buffer = await file.arrayBuffer();
       const parsed = await new Promise<ExcelSheet[]>((resolve, reject) => {
-        const reader = new Worker(
-          new URL('../workers/excel-import.worker.ts', import.meta.url),
-          { type: 'module' },
-        );
+        const reader = new Worker(excelWorkerUrl, { type: 'module' });
         worker.current = reader;
         timer = setTimeout(
           () =>
