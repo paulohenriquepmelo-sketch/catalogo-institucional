@@ -88,6 +88,14 @@ export const catalogConfig = sqliteTable('catalog_config', {
   revision: integer('revision').notNull().default(1),
 });
 
+// Correções dos dados do ERP (lib/erp-fixes.ts). Fica só no editor: o Worker
+// público não tem D1, e as correções já chegam aplicadas aos produtos.
+export const erpFixes = sqliteTable('erp_fixes', {
+  id: integer('id').primaryKey(),
+  body: text('body').notNull(),
+  revision: integer('revision').notNull().default(1),
+});
+
 export const publishedCatalogConfig = sqliteTable('published_catalog_config', {
   id: integer('id').primaryKey(),
   body: text('body').notNull(),

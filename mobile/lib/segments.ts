@@ -26,10 +26,37 @@ function escapeRegExp(text: string) {
   return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+// O editor expande abreviações do ERP ("MAC" vira "MACARRÃO", "FAR TRIGO"
+// vira "FARINHA DE TRIGO"). Uma palavra-chave abreviada vale também por
+// extenso, para as regras funcionarem antes e depois da correção.
+// Manter igual a ALIASES em mobile/scripts/segmentos/segeval.py.
+const ABBREVIATIONS: [string, string][] = [
+  ['mac ', 'macarrao '],
+  ['mac.', 'macarrao'],
+  ['cond ', 'condimento '],
+  ['pir ', 'pirulito '],
+  ['ref ', 'refresco '],
+  ['far trigo', 'farinha de trigo'],
+  ['bisc ', 'biscoito '],
+  ['ag ', 'aguardente '],
+  ['emb ', 'embalagem '],
+  ['emb. ', 'embalagem '],
+  ['emb.', 'embalagem '],
+  ['emba. ', 'embalagem '],
+];
+export function withExpandedAbbreviations(words: string[]) {
+  const out = words.map((word) => normalize(word, true));
+  // Cópia: a lista cresce dentro do laço.
+  for (const word of out.slice())
+    for (const [short, full] of ABBREVIATIONS)
+      if (word.startsWith(short)) out.push(full + word.slice(short.length));
+  return [...new Set(out)];
+}
+
 // Uma expressão por lista: a palavra precisa começar no início do nome ou
 // logo depois de um caractere que não seja letra/número.
 export function wordStartPattern(words: string[]) {
-  const parts = words.map((word) => normalize(word, true)).filter(Boolean).map(escapeRegExp);
+  const parts = withExpandedAbbreviations(words).filter(Boolean).map(escapeRegExp);
   return parts.length ? new RegExp(`(?:^|[^a-z0-9])(?:${parts.join('|')})`) : null;
 }
 

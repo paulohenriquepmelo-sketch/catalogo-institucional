@@ -5946,3 +5946,80 @@ a:focus-visible {
   .product-name {
   word-spacing: 0.14em;
 }
+
+/* Correções do ERP (editor) */
+.erp-fixes {
+  display: grid;
+  gap: 18px;
+}
+/* Num grid, margin:auto encolhe o painel ao conteúdo: largura igual para todos. */
+.erp-fixes > .settings-panel {
+  width: 100%;
+}
+.erp-fixes-summary strong {
+  font-size: 1.25rem;
+}
+.erp-fixes-preview,
+.erp-fixes-suspects {
+  display: grid;
+  gap: 6px;
+  max-height: 420px;
+  overflow-y: auto;
+  margin: 12px 0;
+  padding: 0;
+  list-style: none;
+}
+.erp-fixes-preview li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  align-items: baseline;
+  padding: 6px 0;
+  border-bottom: 1px solid #ded8cd;
+  font-size: 0.9rem;
+}
+.erp-fixes-preview small {
+  flex-basis: 100%;
+  color: #8a5a00;
+}
+.erp-fixes-suspects li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #ded8cd;
+}
+.erp-fixes-suspects small {
+  display: block;
+  margin-top: 2px;
+}
+.erp-fixes-actions,
+.erp-fixes-add {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: end;
+}
+.erp-fixes-row,
+.erp-fixes-abbreviation {
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 1.4fr) auto;
+}
+.erp-fixes-abbreviation {
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr) minmax(0, 1.6fr) auto auto;
+}
+.erp-fixes-product {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+/* Rótulos claros sobre o cartão azul das linhas. */
+.erp-fixes .settings-row :is(.editor-field > span, .toggle-row > span, .erp-fixes-product, code) {
+  color: #f4f8ff;
+}
+@media (max-width: 760px) {
+  .erp-fixes-row,
+  .erp-fixes-abbreviation,
+  .erp-fixes-suspects li {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

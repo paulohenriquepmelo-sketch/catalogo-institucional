@@ -162,7 +162,7 @@ SEGMENTS = [
                   keywords=['far trigo', 'farinha', 'fermento', 'fermix', 'mistura p/ bolo', 'mistura bolo',
                             'mistura p/bolo', 'mist. prep', 'mistura p/ pao', 'mistura p panif', 'panif', 'amido', 'polvilho', 'fuba', 'trigo p',
                             'melhorador', 'reforcador', 'cerelis', 'tapioca', 'fecula'],
-                  exclude=['bisc polvilho', 'salg', 'kibe', 'mandioca', 'kimilho', 'aveia']),
+                  exclude=['bisc polvilho', 'salg', 'kibe', 'farinha mandioca', 'fecula mandioca', 'kimilho', 'aveia']),
              dict(name='Recheios, coberturas e confeitos', categories=c('H_FS'),
                   # "doce de leite (EBL)" é doce de balcão; "bicarbonato" e sachê de açúcar não são recheio
                   keywords=['margarina', 'chantil', 'cobertura', 'recheio', 'creme de conf', 'creme culinario',
