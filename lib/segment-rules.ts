@@ -297,7 +297,7 @@ export const SEGMENT_RULES: SegmentRule[] = [
         name: 'Farinhas, fermentos e misturas',
         categories: ['dona benta'],
         keywords: ['far trigo', 'farinha', 'fermento', 'fermix', 'mistura p/ bolo', 'mistura bolo', 'mistura p/bolo', 'mist. prep', 'mistura p/ pao', 'mistura p panif', 'panif', 'amido', 'polvilho', 'fuba', 'trigo p', 'melhorador', 'reforcador', 'cerelis', 'tapioca', 'fecula'],
-        exclude: ['bisc polvilho', 'salg', 'kibe', 'mandioca', 'kimilho', 'aveia'],
+        exclude: ['bisc polvilho', 'salg', 'kibe', 'farinha mandioca', 'fecula mandioca', 'kimilho', 'aveia'],
         minSize: 0,
         within: [],
       },

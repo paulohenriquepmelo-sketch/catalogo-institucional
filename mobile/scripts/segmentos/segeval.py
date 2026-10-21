@@ -4,7 +4,16 @@ from size import size_of
 BULK=re.compile(r'(?:^|[^a-z0-9])(?:bag|galao|balde|bombona)(?![a-z])|\(gr\)')
 def norm(t): return re.sub(r'\s+',' ',''.join(ch for ch in unicodedata.normalize('NFD',t or '') if unicodedata.category(ch)!='Mn').lower()).strip()
 def kwnorm(w): return re.sub(r'\s+',' ',''.join(ch for ch in unicodedata.normalize('NFD',w) if unicodedata.category(ch)!='Mn').lower()).lstrip()
-def rx(words): return re.compile(r'(?:^|[^a-z0-9])(?:'+'|'.join(re.escape(kwnorm(w)) for w in words)+')') if words else None
+# Igual a ABBREVIATIONS em lib/segments.ts: palavra abreviada do ERP também vale por extenso.
+ALIASES=[('mac ','macarrao '),('mac.','macarrao'),('cond ','condimento '),('pir ','pirulito '),('ref ','refresco '),
+         ('far trigo','farinha de trigo'),('bisc ','biscoito '),('ag ','aguardente '),('emb ','embalagem '),
+         ('emb. ','embalagem '),('emb.','embalagem '),('emba. ','embalagem ')]
+def expand(words):
+    out=[kwnorm(w) for w in words]
+    for w in list(out):
+        out+=[full+w[len(short):] for short,full in ALIASES if w.startswith(short)]
+    return list(dict.fromkeys(out))
+def rx(words): return re.compile(r'(?:^|[^a-z0-9])(?:'+'|'.join(re.escape(w) for w in expand(words))+')') if words else None
 items=[p for p in json.load(open('catalogo.json')) if p.get('published') is not False]
 def compile_group(g): return dict(name=g['name'], cats=set(norm(x) for x in g.get('categories',[])), kw=rx(g.get('keywords',[])), ex=rx(g.get('exclude',[])), min=g.get('min_size',0), within=set(norm(x) for x in g.get('within',[])))
 comp=[dict(id=s['id'],name=s['name'],groups=[compile_group(g) for g in s['groups']]) for s in SEGMENTS]

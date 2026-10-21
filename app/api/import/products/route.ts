@@ -16,6 +16,8 @@ import {
   type ProductImportInput,
 } from '@/lib/product-import';
 import type { Product } from '@/lib/catalog-data';
+import { applyErpFixes } from '@/lib/erp-fixes';
+import { getErpFixes } from '@/lib/erp-fixes-repository';
 
 export async function POST(request: Request) {
   const denied = await authorizeMutation(request);
@@ -40,6 +42,8 @@ export async function POST(request: Request) {
     };
     const results: ImportResult[] = [];
     const context = await getConfig();
+    // Abreviações e hierarquia corrigidas no editor valem a cada importação.
+    const { fixes } = await getErpFixes();
     const codes = input.rows
       .map((r: ProductImportInput) =>
         typeof r?.values?.code === 'string' ? r.values.code.trim() : '',
@@ -72,6 +76,19 @@ export async function POST(request: Request) {
         )
           throw new Error('Número de linha inválido.');
         const values = validateImportValues(row.values);
+        Object.assign(
+          values,
+          applyErpFixes(
+            {
+              code: values.code!,
+              name: values.name!,
+              department: values.department!,
+              section: values.section!,
+              category: values.category!,
+            },
+            fixes,
+          ),
+        );
         if ((counts.get(values.code!) ?? 0) > 1)
           throw new Error('Código repetido no lote.');
         const current = existing.get(values.code!);

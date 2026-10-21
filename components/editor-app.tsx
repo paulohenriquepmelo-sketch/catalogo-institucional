@@ -18,6 +18,7 @@ import {
   Search,
   Sparkles,
   Tags,
+  Wrench,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -36,6 +37,7 @@ import { ConfigEditor, type EditorView } from './config-editor';
 import { useCatalogTools } from '@/hooks/use-catalog-tools';
 import { ImportEditor } from './import-editor';
 import { PhotoFraming } from './photo-framing';
+import { ErpFixesEditor } from './erp-fixes-editor';
 import { CampaignEditor } from './campaign-editor';
 import { ProductImagePicker } from './product-image-picker';
 
@@ -43,6 +45,7 @@ const navigation: { key: EditorView; label: string; icon: typeof Package }[] = [
   { key: 'overview', label: 'Visão geral', icon: LayoutDashboard },
   { key: 'products', label: 'Produtos', icon: Package },
   { key: 'imports', label: 'Importações', icon: FileSpreadsheet },
+  { key: 'erp', label: 'Correções do ERP', icon: Wrench },
   { key: 'promotions', label: 'Ofertas e novidades', icon: BadgePercent },
   { key: 'taxonomy', label: 'Hierarquia', icon: Blocks },
   { key: 'brands', label: 'Marcas e logos', icon: Tags },
@@ -831,6 +834,14 @@ export function EditorApp({ userName }: { userName: string }) {
               onRefresh={refreshAfterImport}
             />
           </>
+        ) : view === 'erp' ? (
+          <ErpFixesEditor
+            items={items}
+            taxonomy={savedConfig.taxonomy}
+            dirty={dirty}
+            onBusy={onBusy}
+            onRefresh={refreshAfterImport}
+          />
         ) : view === 'overview' ? (
           <Panel
             title="Seu catálogo em um só lugar"

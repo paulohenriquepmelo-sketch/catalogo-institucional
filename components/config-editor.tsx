@@ -21,6 +21,7 @@ export type EditorView =
   | 'taxonomy'
   | 'brands'
   | 'segments'
+  | 'erp'
   | 'banners'
   | 'appearance';
 export function ConfigEditor({
