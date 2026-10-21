@@ -14,6 +14,7 @@ for (const name of [
   'segments',
   'editor-cache',
   'erp-fixes',
+  'catalog-pdf',
 ])
   await build({
     entryPoints: [`tests/${name}.test.ts`],
@@ -45,6 +46,7 @@ const result = spawnSync(
     'work/segments-tests.mjs',
     'work/editor-cache-tests.mjs',
     'work/erp-fixes-tests.mjs',
+    'work/catalog-pdf-tests.mjs',
   ],
   { stdio: 'inherit' },
 );
