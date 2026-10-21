@@ -6023,3 +6023,39 @@ a:focus-visible {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* Catálogo em PDF: botão do popup de segmento/marca e painel do editor */
+.collection-pdf {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  align-items: center;
+}
+.collection-pdf > span {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 13px;
+  color: var(--catalog-ink, inherit);
+}
+.collection-pdf small {
+  font-size: 12px;
+  color: var(--catalog-muted, #536358);
+}
+.collection-pdf small[role='alert'] {
+  color: #b42318;
+}
+.catalog-pdf-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-top: 14px;
+}
+.catalog-pdf-link {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  font-weight: 600;
+  text-decoration: underline;
+}

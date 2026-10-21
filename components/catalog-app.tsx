@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { catalogColorStyle } from '@/lib/catalog-colors';
 import { Download, Menu, Package, Search, Settings2, X } from 'lucide-react';
+import { CatalogPdfLink } from './catalog-pdf-download';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { NativeSelect } from '@/components/ui/native-select';
@@ -494,6 +495,7 @@ export function CatalogApp({
             <Download className="size-4" aria-hidden="true" />
             Baixe o app
           </a>
+          <CatalogPdfLink className="app-download-link" />
           {showEditorLink && (
             <a href="/editor" className="editor-link">
               <Settings2 className="size-4" /> Editor

@@ -38,6 +38,7 @@ import { useCatalogTools } from '@/hooks/use-catalog-tools';
 import { ImportEditor } from './import-editor';
 import { PhotoFraming } from './photo-framing';
 import { ErpFixesEditor } from './erp-fixes-editor';
+import { CatalogPdfPanel } from './catalog-pdf-panel';
 import { CampaignEditor } from './campaign-editor';
 import { ProductImagePicker } from './product-image-picker';
 
@@ -843,6 +844,7 @@ export function EditorApp({ userName }: { userName: string }) {
             onRefresh={refreshAfterImport}
           />
         ) : view === 'overview' ? (
+          <>
           <Panel
             title="Seu catálogo em um só lugar"
             note="O site público mostra apenas os itens publicados. Todas as edições precisam ser salvas."
@@ -891,6 +893,8 @@ export function EditorApp({ userName }: { userName: string }) {
               </Button>
             </section>
           </Panel>
+          <CatalogPdfPanel onBusy={onBusy} />
+          </>
         ) : (
           <>
             <fieldset
