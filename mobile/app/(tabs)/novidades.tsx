@@ -23,8 +23,11 @@ export default function NovidadesScreen() {
   const ready = useAfterFirstFrame();
 
   const news = useMemo(
-    () => (ready ? newProducts(products, config?.newProducts.days ?? 30) : []),
-    [ready, products, config?.newProducts.days],
+    () =>
+      ready
+        ? newProducts(products, config?.newProducts.fromCode, config?.newProducts.limit)
+        : [],
+    [ready, products, config?.newProducts.fromCode, config?.newProducts.limit],
   );
   const renderProduct = useCallback<ListRenderItem<(typeof news)[number]>>(
     ({ item }) => (

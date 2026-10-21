@@ -254,10 +254,12 @@ export function ConfigEditor({
           />
           {key === 'newProducts' && (
             <Field
-              label="Considerar novo durante quantos dias"
+              label="Mostrar a partir do código (vazio = os códigos mais altos)"
               type="number"
-              value={String(settings.days ?? 30)}
-              onChange={(days) => update({ days: Number(days) })}
+              value={settings.fromCode === undefined ? '' : String(settings.fromCode)}
+              onChange={(value) =>
+                update({ fromCode: value.trim() === '' ? undefined : Number(value) })
+              }
             />
           )}
         </article>
@@ -266,7 +268,7 @@ export function ConfigEditor({
     return (
       <Panel
         title="Ofertas e produtos novos"
-        note="A oferta é marcada no cadastro de cada produto. As novidades entram automaticamente pela data em que o produto foi criado ou importado."
+        note="A oferta é marcada no cadastro de cada produto. As novidades entram pelo código do ERP: os códigos mais altos (ou a partir do código que você indicar). Marque “Novo” para incluir um produto à mão ou desmarque para tirar."
       >
         <div className="settings-grid">
           {showcase(
@@ -277,7 +279,7 @@ export function ConfigEditor({
           {showcase(
             'newProducts',
             'Produtos novos',
-            'Seleciona automaticamente os cadastros recentes publicados.',
+            'Seleciona automaticamente os maiores códigos do ERP publicados.',
           )}
         </div>
         <section className="promotion-product-picker">

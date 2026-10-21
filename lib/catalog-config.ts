@@ -57,7 +57,10 @@ export type ProductShowcase = {
   autoplay: boolean;
   interval: number;
   limit: number;
+  /** Antigo critério por data de cadastro (não é mais usado no site). */
   days?: number;
+  /** Novidades: só códigos do ERP a partir deste (vazio = os mais altos). */
+  fromCode?: number;
 };
 export type CatalogConfig = {
   layout: CatalogLayout;
@@ -397,6 +400,13 @@ function validateShowcase(
     throw new Error('Exiba entre 1 e 30 produtos na vitrine.');
   if (withDays && (!Number.isInteger(v.days) || v.days! < 1 || v.days! > 365))
     throw new Error('Considere novidades entre 1 e 365 dias.');
+  if (
+    withDays &&
+    v.fromCode !== undefined &&
+    v.fromCode !== null &&
+    (!Number.isInteger(v.fromCode) || v.fromCode < 0 || v.fromCode > 999999999)
+  )
+    throw new Error('Use um código inteiro para o início das novidades.');
   return {
     published: v.published === true,
     title: field(v.title, 'título da vitrine', 180),
@@ -406,6 +416,7 @@ function validateShowcase(
     interval: v.interval,
     limit: v.limit,
     ...(withDays ? { days: v.days } : {}),
+    ...(withDays && Number.isInteger(v.fromCode) ? { fromCode: v.fromCode } : {}),
   };
 }
 export function validateConfig(value: unknown): CatalogConfig {
