@@ -9,6 +9,19 @@ import { displayName, planCatalogPdf } from '@/lib/catalog-pdf';
 import { NativeSelect } from '@/components/ui/native-select';
 import { megabytes, useCatalogPdfInfo, type CatalogPdfInfo } from './catalog-pdf-download';
 
+const OUTDATED =
+  'O editor foi atualizado depois que esta página foi aberta. Recarregue a página e tente de novo.';
+// Depois de um deploy, a aba aberta ainda pede o gerador pelo nome antigo
+// (o arquivo mudou de nome e o antigo responde 404).
+const messageOf = (cause: unknown) =>
+  cause instanceof Error
+    ? /dynamically imported module|Importing a module script failed|error loading dynamically/i.test(
+        cause.message,
+      )
+      ? OUTDATED
+      : cause.message
+    : 'Falha ao gerar o PDF.';
+
 function save(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
@@ -78,9 +91,7 @@ export function CatalogPdfPanel({ onBusy }: { onBusy: (busy: boolean) => void })
       setError(
         abort.current?.signal.aborted
           ? 'Geração cancelada.'
-          : cause instanceof Error
-            ? cause.message
-            : 'Falha ao gerar o PDF.',
+          : messageOf(cause),
       );
     } finally {
       setProgress(null);
@@ -125,9 +136,7 @@ export function CatalogPdfPanel({ onBusy }: { onBusy: (busy: boolean) => void })
       setError(
         abort.current?.signal.aborted
           ? 'Geração cancelada. O PDF anterior continua no site.'
-          : cause instanceof Error
-            ? cause.message
-            : 'Falha ao gerar o PDF.',
+          : messageOf(cause),
       );
     } finally {
       setProgress(null);
@@ -164,7 +173,12 @@ export function CatalogPdfPanel({ onBusy }: { onBusy: (busy: boolean) => void })
       )}
       {error && (
         <p role="alert" className="error-message">
-          {error}
+          {error}{' '}
+          {error === OUTDATED && (
+            <Button size="sm" variant="outline" onClick={() => window.location.reload()}>
+              Recarregar página
+            </Button>
+          )}
         </p>
       )}
       {notice && <p className="success-message">{notice}</p>}
