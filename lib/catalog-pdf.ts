@@ -90,45 +90,76 @@ export function planCatalogPdf(products: PdfProduct[]): PdfPage[] {
   const pages: PdfPage[] = [];
   let page: PdfPage | null = null;
   let y = 0;
+  let department = '';
+  let section = '';
   const sorted = sortForCatalog(products.filter((p) => p.image));
-  const newPage = (title: string, label: string) => {
-    page = { number: pages.length + 1, title, label, blocks: [] };
-    pages.push(page);
+  const newPage = (title: string, label: string): PdfPage => {
+    const created: PdfPage = { number: pages.length + 1, title, label, blocks: [] };
+    pages.push(created);
+    page = created;
     y = GRID.top;
-    return page;
+    return created;
   };
+  const fits = (height: number) => y + height <= GRID.bottom;
 
   let index = 0;
   while (index < sorted.length) {
-    const section = sorted[index].section;
-    const category = sorted[index].category;
-    const sameGroup: PdfProduct[] = [];
+    const first = sorted[index];
+    const group: PdfProduct[] = [];
     while (
       index < sorted.length &&
-      sorted[index].section === section &&
-      sorted[index].category === category
+      sorted[index].department === first.department &&
+      sorted[index].section === first.section &&
+      sorted[index].category === first.category
     )
-      sameGroup.push(sorted[index++]);
+      group.push(sorted[index++]);
 
-    const sectionTitle = displayName(section);
-    const categoryTitle = displayName(category);
+    const sectionTitle = displayName(first.section);
+    const categoryTitle = displayName(first.category);
+    const rows = Math.ceil(group.length / GRID.columns);
+    const newSection = first.section !== section || first.department !== department;
     let current = page as PdfPage | null;
-    // Seção nova sempre começa em página nova.
-    if (!current || current.title !== sectionTitle) current = newPage(sectionTitle, categoryTitle);
+    if (!current) current = newPage(sectionTitle, categoryTitle);
     else if (current.blocks.length) {
-      // Categoria nova na mesma página: divisória, se couber com uma linha de produtos.
-      if (y + GRID.barHeight + GRID.rowHeight > GRID.bottom)
-        current = newPage(sectionTitle, categoryTitle);
+      // Seção pequena não ganha página só para ela (era o maior buraco do
+      // PDF): entra na mesma página com uma divisória, se couberem a
+      // divisória e uma fileira de produtos.
+      const needed = GRID.barHeight + Math.min(rows, 1) * GRID.rowHeight;
+      if (!fits(needed)) current = newPage(sectionTitle, categoryTitle);
       else {
-        current.blocks.push({ type: 'bar', title: categoryTitle, y });
+        current.blocks.push({
+          type: 'bar',
+          title: newSection ? `${sectionTitle} · ${categoryTitle}` : categoryTitle,
+          y,
+        });
         y += GRID.barHeight;
       }
     }
-    for (let i = 0; i < sameGroup.length; i += GRID.columns) {
-      if (y + GRID.rowHeight > GRID.bottom) current = newPage(sectionTitle, categoryTitle);
-      current!.blocks.push({ type: 'row', products: sameGroup.slice(i, i + GRID.columns), y });
+    department = first.department;
+    section = first.section;
+    for (let i = 0; i < group.length; i += GRID.columns) {
+      if (!fits(GRID.rowHeight)) current = newPage(sectionTitle, categoryTitle);
+      current!.blocks.push({ type: 'row', products: group.slice(i, i + GRID.columns), y });
       y += GRID.rowHeight;
     }
   }
+  pages.forEach((p, i) => i < pages.length - 1 && spreadSlack(p));
   return pages;
+}
+
+/**
+ * Página que quebrou por falta de espaço espalha a sobra entre os blocos, em
+ * vez de deixar uma faixa branca antes do rodapé. Página que terminou porque
+ * o conteúdo acabou (sobra grande) fica alinhada em cima.
+ */
+function spreadSlack(page: PdfPage) {
+  const last = page.blocks.at(-1);
+  if (!last || page.blocks.length < 2) return;
+  const end = last.y + (last.type === 'bar' ? GRID.barHeight : GRID.rowHeight);
+  const slack = GRID.bottom - end;
+  if (slack <= 0 || slack >= GRID.barHeight + GRID.rowHeight) return;
+  const gap = Math.min(slack / (page.blocks.length - 1), 40);
+  page.blocks.forEach((block, i) => {
+    block.y += gap * i;
+  });
 }
