@@ -6039,3 +6039,19 @@ a:focus-visible {
   font-weight: 600;
   text-decoration: underline;
 }
+.catalog-pdf-corel {
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid #d6deec;
+}
+.catalog-pdf-corel h2 {
+  margin: 0 0 6px;
+  font-size: 1.05rem;
+}
+.catalog-pdf-corel p {
+  margin: 0;
+  max-width: 70ch;
+}
+.catalog-pdf-corel a {
+  text-decoration: underline;
+}

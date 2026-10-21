@@ -9,11 +9,17 @@ const WHITE = '#ffffff';
 const IMAGE_BOX = 80;
 /** Lado maior da foto no PDF: ~250 dpi no cartão, ~15 KB por foto. */
 const IMAGE_PIXELS = 260;
+/** Versão para editar e imprimir (CorelDRAW): ~540 dpi no cartão. */
+const PRINT_PIXELS = 600;
 const PARALLEL = 6;
 const ASSETS = '/catalog-pdf';
 const INSTAGRAM = 'distlaurencini.atacado';
+const REGULAR = 'Poppins-Regular';
+const BOLD = 'Poppins-Bold';
 
 export type CatalogPdfOptions = {
+  /** Fotos em alta para gráfica e edição no CorelDRAW (arquivo bem maior). */
+  print?: boolean;
   /** Nome da seleção na capa (segmento, marca, busca). Vazio = catálogo completo. */
   title?: string;
   onProgress?: (done: number, total: number) => void;
@@ -38,10 +44,11 @@ async function fetchBytes(url: string, signal?: AbortSignal) {
 }
 
 // Foto do produto (WebP) → JPEG pequeno com fundo branco, que todo leitor de PDF abre.
-async function loadPhoto(url: string, signal?: AbortSignal): Promise<Photo | null> {
+async function loadPhoto(url: string, print: boolean, signal?: AbortSignal): Promise<Photo | null> {
   try {
     const bitmap = await createImageBitmap(new Blob([await fetchBytes(url, signal)]));
-    const scale = Math.min(1, IMAGE_PIXELS / Math.max(bitmap.width, bitmap.height));
+    const limit = print ? PRINT_PIXELS : IMAGE_PIXELS;
+    const scale = Math.min(1, limit / Math.max(bitmap.width, bitmap.height));
     const width = Math.max(1, Math.round(bitmap.width * scale));
     const height = Math.max(1, Math.round(bitmap.height * scale));
     const canvas = document.createElement('canvas');
@@ -53,7 +60,7 @@ async function loadPhoto(url: string, signal?: AbortSignal): Promise<Photo | nul
     context.drawImage(bitmap, 0, 0, width, height);
     bitmap.close();
     const blob = await new Promise<Blob | null>((resolve) =>
-      canvas.toBlob(resolve, 'image/jpeg', 0.8),
+      canvas.toBlob(resolve, 'image/jpeg', print ? 0.9 : 0.8),
     );
     if (!blob) return null;
     return { data: new Uint8Array(await blob.arrayBuffer()), width, height };
@@ -70,7 +77,7 @@ async function loadPhotos(products: PdfProduct[], options: CatalogPdfOptions) {
   const worker = async () => {
     while (next < products.length) {
       const product = products[next++];
-      photos.set(product.id, await loadPhoto(product.image, options.signal));
+      photos.set(product.id, await loadPhoto(product.image, !!options.print, options.signal));
       options.onProgress?.(++done, products.length);
     }
   };
@@ -108,10 +115,10 @@ function drawHeader(doc: Doc, page: PdfPage) {
     [mid - 100, 38],
   ]);
   doc.setTextColor(WHITE);
-  doc.setFont('Poppins', 'bold');
+  doc.setFont(BOLD, 'normal');
   fitText(doc, page.title, 15, 190);
   doc.text(page.title, mid, 25, { align: 'center' });
-  doc.setFont('Poppins', 'normal');
+  doc.setFont(REGULAR, 'normal');
   fitText(doc, page.label, 10.5, mid - 165);
   doc.text(page.label, 16, 16);
 }
@@ -122,10 +129,10 @@ function drawFooter(doc: Doc, page: PdfPage) {
   doc.setFillColor(RED);
   doc.roundedRect(PAGE.width / 2 - 111, 808, 222, 40, 4, 4, 'F');
   doc.setTextColor(WHITE);
-  doc.setFont('Poppins', 'bold');
+  doc.setFont(BOLD, 'normal');
   doc.setFontSize(14);
   doc.text(String(page.number).padStart(2, '0'), PAGE.width / 2, 831, { align: 'center' });
-  doc.setFont('Poppins', 'normal');
+  doc.setFont(REGULAR, 'normal');
   doc.setFontSize(7);
   doc.text(INSTAGRAM, 24, 832);
 }
@@ -143,7 +150,7 @@ function drawBar(doc: Doc, title: string, y: number) {
     [mid - 101, top + 25],
   ]);
   doc.setTextColor(WHITE);
-  doc.setFont('Poppins', 'normal');
+  doc.setFont(REGULAR, 'normal');
   fitText(doc, title, 11.5, 190);
   doc.text(title, mid, top + 17, { align: 'center' });
 }
@@ -170,16 +177,16 @@ function drawProduct(doc: Doc, product: PdfProduct, photo: Photo | null, x: numb
     doc.setDrawColor('#d6deec');
     doc.rect(center - IMAGE_BOX / 2, top, IMAGE_BOX, IMAGE_BOX, 'S');
     doc.setTextColor('#8a94a8');
-    doc.setFont('Poppins', 'normal');
+    doc.setFont(REGULAR, 'normal');
     doc.setFontSize(6);
     doc.text('Foto indisponível', center, top + IMAGE_BOX / 2, { align: 'center' });
   }
   doc.setTextColor(CODE);
-  doc.setFont('Poppins', 'bold');
+  doc.setFont(BOLD, 'normal');
   doc.setFontSize(10.5);
   doc.text(product.code, center, top + IMAGE_BOX + 13, { align: 'center' });
   doc.setTextColor(TEXT);
-  doc.setFont('Poppins', 'bold');
+  doc.setFont(BOLD, 'normal');
   doc.setFontSize(5.8);
   const lines = (doc.splitTextToSize(product.name, cell - 10) as string[]).slice(0, 3);
   doc.text(lines, center, top + IMAGE_BOX + 21, { align: 'center', lineHeightFactor: 1.15 });
@@ -192,13 +199,13 @@ function drawCover(doc: Doc, cover: Uint8Array, title: string, count: number) {
   doc.setTextColor(WHITE);
   let y = PAGE.height * 0.64;
   if (title) {
-    doc.setFont('Poppins', 'bold');
+    doc.setFont(BOLD, 'normal');
     doc.setFontSize(17);
     const lines = doc.splitTextToSize(title, PAGE.width * 0.42) as string[];
     doc.text(lines, x, y, { align: 'center' });
     y += lines.length * 21 + 6;
   }
-  doc.setFont('Poppins', 'normal');
+  doc.setFont(REGULAR, 'normal');
   doc.setFontSize(9);
   const date = new Date().toLocaleDateString('pt-BR');
   doc.text(`${count} produtos · atualizado em ${date}`, x, y, { align: 'center' });
@@ -218,9 +225,11 @@ export async function renderCatalogPdf(products: PdfProduct[], options: CatalogP
 
   const doc = new jsPDF({ unit: 'pt', format: 'a4', compress: true });
   doc.addFileToVFS('Poppins-Regular.ttf', toBase64(regular));
-  doc.addFont('Poppins-Regular.ttf', 'Poppins', 'normal');
+  // Um nome por variação (o nome PostScript real): o CorelDRAW e outros
+  // editores casam o texto com a fonte instalada por esse nome.
+  doc.addFont('Poppins-Regular.ttf', REGULAR, 'normal');
   doc.addFileToVFS('Poppins-Bold.ttf', toBase64(bold));
-  doc.addFont('Poppins-Bold.ttf', 'Poppins', 'bold');
+  doc.addFont('Poppins-Bold.ttf', BOLD, 'normal');
   doc.setProperties({
     title: options.title ? `Catálogo Laurencini — ${options.title}` : 'Catálogo Laurencini',
     creator: 'Catálogo Laurencini',

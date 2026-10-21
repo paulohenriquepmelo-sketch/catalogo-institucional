@@ -1,12 +1,24 @@
 'use client';
-import { useRef, useState } from 'react';
-import { FileDown, Loader2, RefreshCw } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { FileDown, Loader2, PenTool, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress, ProgressLabel, ProgressValue } from '@/components/ui/progress';
 import { Panel } from './editor-controls';
 import { loadProducts } from '@/lib/client-api';
-import { planCatalogPdf } from '@/lib/catalog-pdf';
+import { displayName, planCatalogPdf } from '@/lib/catalog-pdf';
+import { NativeSelect } from '@/components/ui/native-select';
 import { megabytes, useCatalogPdfInfo, type CatalogPdfInfo } from './catalog-pdf-download';
+
+function save(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+}
 
 /**
  * Gera o catálogo completo em PDF a partir do que está PUBLICADO no site e
@@ -21,6 +33,61 @@ export function CatalogPdfPanel({ onBusy }: { onBusy: (busy: boolean) => void })
   const [notice, setNotice] = useState('');
   const abort = useRef<AbortController | null>(null);
   const current = info ?? loaded;
+  const [sections, setSections] = useState<string[]>([]);
+  const [section, setSection] = useState('');
+
+  // Seções do que está publicado, para baixar só uma parte no CorelDRAW.
+  useEffect(() => {
+    loadProducts(false)
+      .then((list) =>
+        setSections(
+          [...new Set(list.filter((p) => p.image).map((p) => p.section))].sort((a, b) =>
+            displayName(a).localeCompare(displayName(b), 'pt-BR'),
+          ),
+        ),
+      )
+      .catch(() => setSections([]));
+  }, []);
+
+  // Versão para editar: fotos em alta, texto como texto, baixada no computador
+  // (não muda o PDF do site).
+  async function downloadForCorel() {
+    setError('');
+    setNotice('');
+    abort.current = new AbortController();
+    onBusy(true);
+    try {
+      setStep('Lendo os produtos publicados…');
+      const products = (await loadProducts(false)).filter(
+        (p) => p.image && (!section || p.section === section),
+      );
+      setProgress({ done: 0, total: products.length });
+      setStep('Preparando as fotos em alta…');
+      const { renderCatalogPdf } = await import('@/lib/catalog-pdf-render');
+      const blob = await renderCatalogPdf(products, {
+        print: true,
+        title: section ? displayName(section) : '',
+        signal: abort.current.signal,
+        onProgress: (done, total) => setProgress({ done, total }),
+      });
+      const day = new Date().toISOString().slice(0, 10);
+      const name = section ? `-${displayName(section).toLowerCase().normalize('NFD').replace(/[^a-z0-9]+/g, '-')}` : '';
+      save(blob, `catalogo-laurencini${name}-${day}-coreldraw.pdf`);
+      setNotice(`PDF para edição baixado (${megabytes(blob.size)}). No CorelDRAW: Arquivo › Importar, e escolha importar o texto como texto.`);
+    } catch (cause) {
+      setError(
+        abort.current?.signal.aborted
+          ? 'Geração cancelada.'
+          : cause instanceof Error
+            ? cause.message
+            : 'Falha ao gerar o PDF.',
+      );
+    } finally {
+      setProgress(null);
+      setStep('');
+      onBusy(false);
+    }
+  }
 
   async function generate() {
     setError('');
@@ -116,6 +183,38 @@ export function CatalogPdfPanel({ onBusy }: { onBusy: (busy: boolean) => void })
           </a>
         )}
       </div>
+      <section className="catalog-pdf-corel" aria-labelledby="catalog-pdf-corel-title">
+        <h2 id="catalog-pdf-corel-title">Editar no CorelDRAW</h2>
+        <p>
+          Baixa um PDF editável com fotos em alta resolução: no CorelDRAW, textos, faixas e fotos
+          viram objetos separados. Instale antes as fontes{' '}
+          <a href="/catalog-pdf/Poppins-Regular.ttf" download>
+            Poppins Regular
+          </a>{' '}
+          e{' '}
+          <a href="/catalog-pdf/Poppins-Bold.ttf" download>
+            Poppins Bold
+          </a>{' '}
+          para o texto não ser trocado. O catálogo inteiro fica com uns 80 a 90 MB: para editar,
+          prefira uma seção por vez.
+        </p>
+        <div className="catalog-pdf-actions">
+          <label className="editor-field">
+            <span>Parte do catálogo</span>
+            <NativeSelect value={section} onChange={(e) => setSection(e.target.value)}>
+              <option value="">Catálogo inteiro</option>
+              {sections.map((s) => (
+                <option key={s} value={s}>
+                  {displayName(s)}
+                </option>
+              ))}
+            </NativeSelect>
+          </label>
+          <Button variant="outline" disabled={!!step} onClick={() => void downloadForCorel()}>
+            <PenTool /> Baixar para CorelDRAW
+          </Button>
+        </div>
+      </section>
     </Panel>
   );
 }
