@@ -7,7 +7,8 @@ def kwnorm(w): return re.sub(r'\s+',' ',''.join(ch for ch in unicodedata.normali
 # Igual a ABBREVIATIONS em lib/segments.ts: palavra abreviada do ERP também vale por extenso.
 ALIASES=[('mac ','macarrao '),('mac.','macarrao'),('cond ','condimento '),('pir ','pirulito '),('ref ','refresco '),
          ('far trigo','farinha de trigo'),('bisc ','biscoito '),('ag ','aguardente '),('emb ','embalagem '),
-         ('emb. ','embalagem '),('emb.','embalagem '),('emba. ','embalagem ')]
+         ('emb. ','embalagem '),('emb.','embalagem '),('emba. ','embalagem '),
+         ('choco ','chocolate ')]
 def expand(words):
     out=[kwnorm(w) for w in words]
     for w in list(out):
