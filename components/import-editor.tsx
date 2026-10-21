@@ -32,6 +32,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Panel, Toggle } from './editor-controls';
+import type { ErpFixes } from '@/lib/erp-fixes';
 import { api } from '@/lib/client-api';
 import {
   optimizeImage,
@@ -91,11 +92,11 @@ const messageOf = (error: unknown) =>
     : 'Não foi possível concluir a operação.';
 
 // Falha momentânea (página de erro da Cloudflare, rede, tempo esgotado):
-// reenvia o lote até duas vezes antes de parar. O servidor reconhece as
+// reenvia o lote até quatro vezes (2 s, 6 s, 15 s, 30 s) antes de parar. O servidor reconhece as
 // linhas que já tinha gravado (retry: true) e não as acusa como alteradas.
 const TRANSIENT = /Não foi possível concluir|Failed to fetch|NetworkError|network|timed? ?out|aborted/i;
 async function sendBatchWithRetry(body: Record<string, unknown>) {
-  const waits = [2000, 6000];
+  const waits = [2000, 6000, 15000, 30000];
   for (let attempt = 0; ; attempt++) {
     try {
       return await api<{ results: ImportResult[] }>(
@@ -282,6 +283,11 @@ export function ImportEditor({
       const snapshot = await onRefresh();
       if (mode === 'excel') {
         if (!sheet) throw new Error('Selecione uma planilha.');
+        // Sem as correções (falha de rede), a prévia só deixa de pular as
+        // linhas com abreviação corrigida: o servidor aplica de qualquer jeito.
+        const fixes = await api<{ fixes: ErpFixes }>('/api/editor/erp-fixes')
+          .then((r) => r.fixes)
+          .catch(() => undefined);
         const rows = previewProducts(
           sheet.data,
           header,
@@ -289,6 +295,7 @@ export function ImportEditor({
           snapshot.products,
           snapshot.config,
           options,
+          fixes,
         );
         if (!rows.length)
           throw new Error(
