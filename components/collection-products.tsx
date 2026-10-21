@@ -13,7 +13,6 @@ import { discover, emptyFilters } from '@/lib/catalog-discovery';
 import type { Product } from '@/lib/catalog-data';
 import { ProductCard } from './product-card';
 import { ProductDetailsDialog } from './product-details-dialog';
-import { CollectionPdfButton } from './catalog-pdf-download';
 export function CollectionProducts({
   kind,
   name,
@@ -119,14 +118,6 @@ export function CollectionProducts({
             ? 'produto encontrado'
             : 'produtos encontrados'}
         </output>
-        <CollectionPdfButton
-          title={
-            groups && groupIndex >= 0 && groups[groupIndex]
-              ? `${name} — ${groups[groupIndex].name}`
-              : name
-          }
-          products={products}
-        />
       </div>
       <div className="brand-products-results">
         <div className="product-grid">
