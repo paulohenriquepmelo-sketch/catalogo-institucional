@@ -77,6 +77,7 @@ export type ProductShowcase = {
   interval: number;
   limit: number;
   days?: number;
+  fromCode?: number;
 };
 
 export type CatalogCampaign = {
@@ -458,24 +459,29 @@ export function activeOffers(products: Product[], limit?: number): Product[] {
   return typeof limit === 'number' ? list.slice(0, limit) : list;
 }
 
+// Igual ao site (selectNewProducts): novidade é código do ERP alto. A data de
+// cadastro muda numa importação e destacava códigos antigos.
+const codeNumber = (code: string) => {
+  const value = Number(code.replace(/\D/g, ''));
+  return Number.isFinite(value) ? value : 0;
+};
 export function newProducts(
   products: Product[],
-  days = 30,
+  fromCode?: number,
   limit?: number,
 ): Product[] {
-  const earliest = Date.now() - days * 86_400_000;
-  // A data é convertida uma vez por produto, não a cada comparação da ordenação.
-  const rows: { p: Product; created: number }[] = [];
-  for (const p of products) {
-    if (p.published === false || p.details?.showAsNew === false) continue;
-    const created = Date.parse(p.createdAt ?? '');
-    if (p.details?.showAsNew === true || (Number.isFinite(created) && created >= earliest)) {
-      rows.push({ p, created });
-    }
-  }
-  rows.sort((a, b) => b.created - a.created);
-  const list = rows.map((r) => r.p);
-  return typeof limit === 'number' ? list.slice(0, limit) : list;
+  const from = fromCode ?? 0;
+  const list = products
+    .filter((p) => {
+      if (p.published === false || p.details?.showAsNew === false) return false;
+      return p.details?.showAsNew === true || codeNumber(p.code) >= from;
+    })
+    .sort(
+      (a, b) =>
+        Number(b.details?.showAsNew === true) - Number(a.details?.showAsNew === true) ||
+        codeNumber(b.code) - codeNumber(a.code),
+    );
+  return list.slice(0, limit ?? 30);
 }
 
 export function offerTimeLabel(end: string, now = Date.now()): string {

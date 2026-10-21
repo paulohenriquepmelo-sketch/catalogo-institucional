@@ -95,7 +95,7 @@ export function buildNotifications(
     });
   }
 
-  for (const product of newProducts(products, config?.newProducts.days ?? 30, 25)) {
+  for (const product of newProducts(products, config?.newProducts.fromCode, 25)) {
     const createdAt = Date.parse(product.createdAt ?? '');
     list.push({
       id: `new-${product.id}`,

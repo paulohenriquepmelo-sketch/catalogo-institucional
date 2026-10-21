@@ -29,6 +29,35 @@ export function offerTimeLabel(end: string, now: number) {
   return `Encerra em ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 }
 
+const codeNumber = (code: string) => {
+  const value = Number(code.replace(/\D/g, ''));
+  return Number.isFinite(value) ? value : 0;
+};
+/**
+ * "Acabaram de chegar": o código do ERP cresce a cada produto novo, então
+ * novidade é código alto (a data de cadastro no site muda numa importação
+ * e destacava códigos antigos). Com "a partir do código", só entram os
+ * códigos dali para cima. Marcado "Novo" no editor entra sempre (primeiro);
+ * desmarcado nunca entra.
+ */
+export function selectNewProducts(
+  items: Product[],
+  settings: Pick<ProductShowcase, 'limit' | 'fromCode'>,
+) {
+  const from = settings.fromCode ?? 0;
+  return items
+    .filter((product) => {
+      if (product.details?.showAsNew === false) return false;
+      return product.details?.showAsNew === true || codeNumber(product.code) >= from;
+    })
+    .sort(
+      (a, b) =>
+        Number(b.details?.showAsNew === true) - Number(a.details?.showAsNew === true) ||
+        codeNumber(b.code) - codeNumber(a.code),
+    )
+    .slice(0, settings.limit);
+}
+
 export function selectActiveOffers(
   items: Product[],
   today: string,
@@ -110,19 +139,8 @@ export function ProductShowcaseCarousel({
     if (kind === 'offers') {
       return selectActiveOffers(items, today, settings.limit);
     }
-    const earliest = now - (settings.days ?? 30) * 86_400_000;
-    return [...items]
-      .filter((product) => {
-        if (product.details?.showAsNew === true) return true;
-        if (product.details?.showAsNew === false) return false;
-        const created = Date.parse(product.createdAt ?? '');
-        return Number.isFinite(created) && created >= earliest;
-      })
-      .sort(
-        (a, b) => Date.parse(b.createdAt ?? '') - Date.parse(a.createdAt ?? ''),
-      )
-      .slice(0, settings.limit);
-  }, [items, kind, now, settings, today]);
+    return selectNewProducts(items, settings);
+  }, [items, kind, settings, today]);
   if (!visible.length) return null;
   const isOffer = kind === 'offers';
   const label = isOffer ? 'ofertas' : 'novidades';

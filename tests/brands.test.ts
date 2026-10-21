@@ -409,3 +409,19 @@ void test('only featured public brands enter the carousel; the searchable popup 
   assert.match(empty, /Nenhuma marca encontrada/);
   assert.doesNotMatch(empty, /data-slot="carousel"/);
 });
+
+void test('Acabaram de chegar follows the ERP code, not the import date', async () => {
+  const { selectNewProducts } = await import('../components/product-showcase-carousel');
+  const make = (code: string, extra: Record<string, unknown> = {}) => ({
+    ...products[0],
+    id: Number(code),
+    code,
+    createdAt: code === '9001' ? new Date().toISOString() : '2026-01-01T00:00:00Z',
+    details: { ...products[0].details, ...extra },
+  });
+  // 9001 foi "criado hoje" por uma importação, mas é código antigo.
+  const items = [make('9001'), make('11709'), make('11710'), make('11963'), make('11800', { showAsNew: false }), make('500', { showAsNew: true })];
+  assert.deepEqual(selectNewProducts(items, { limit: 3 }).map((p) => p.code), ['500', '11963', '11710']);
+  assert.deepEqual(selectNewProducts(items, { limit: 10, fromCode: 11710 }).map((p) => p.code), ['500', '11963', '11710']);
+  assert.ok(!selectNewProducts(items, { limit: 10 }).some((p) => p.code === '11800'));
+});
