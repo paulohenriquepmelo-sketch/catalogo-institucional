@@ -1,6 +1,6 @@
 import {
   getConfig,
-  getPublishedCatalogSnapshot,
+  getPublicCatalog,
   saveConfig,
 } from '@/lib/catalog-repository';
 import {
@@ -8,7 +8,6 @@ import {
   getEditorUser,
   readJson,
 } from '@/lib/editor-access';
-import { publishedBrands } from '@/lib/catalog-brands';
 export async function GET(request: Request) {
   const editor = new URL(request.url).searchParams.get('editor') === '1';
   if (editor && !(await getEditorUser()))
@@ -16,12 +15,7 @@ export async function GET(request: Request) {
   try {
     const settings = editor
       ? await getConfig()
-      : await getPublishedCatalogSnapshot().then(({ config, revision }) => ({
-          config,
-          revision,
-        }));
-    if (!editor)
-      settings.config.brands = publishedBrands(settings.config.brands);
+      : await getPublicCatalog().then(({ config, revision }) => ({ config, revision }));
     return Response.json(settings, {
       headers: {
         'cache-control': editor
