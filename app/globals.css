@@ -6055,3 +6055,35 @@ a:focus-visible {
 .catalog-pdf-corel a {
   text-decoration: underline;
 }
+.catalog-pdf-fonts {
+  display: grid;
+  gap: 6px;
+  margin: 16px 0 18px;
+  padding: 14px 16px;
+  border: 1px solid #d6deec;
+  border-radius: 10px;
+}
+.catalog-pdf-fonts .catalog-pdf-actions {
+  margin-top: 6px;
+}
+.catalog-pdf-font {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: #203976;
+  color: #fff !important;
+  font-weight: 600;
+  text-decoration: none !important;
+}
+.catalog-pdf-font:hover {
+  background: #29478e;
+}
+.catalog-pdf-font:focus-visible {
+  outline: 2px solid #ed1c23;
+  outline-offset: 2px;
+}
+.catalog-pdf-step {
+  display: block;
+}
