@@ -153,8 +153,19 @@ void test('segments keep the same products after names are expanded', () => {
     make('COND COLORAU GUARANA 500G', '1.5-CONDIMENTOS GUARANA'),
     make('EMB BOLO (G32) MILLENIUM ALTA 1KG', 'POTES REDONDO /  RETANGULAR'),
     make('REF TANG UVA 18G', '1.2-MERCEARIA'),
+    make('CHOCO CREME OVOMALTINE CROCANTE 900G', '1.1-FOOD SERVICE'),
+    make('CHOCO BOLINHA POTE KI-KAKAU C/70', '2.4-CHOCOLATES'),
   ];
-  const fixed = erp.map((p) => applyErpFixes(p, defaultErpFixes));
+  // Regra criada no editor em produção (CHOCO -> CHOCOLATE).
+  const withChoco = {
+    ...defaultErpFixes,
+    abbreviations: [
+      ...defaultErpFixes.abbreviations,
+      { from: 'CHOCO', to: 'CHOCOLATE', categories: [], startOnly: true },
+    ],
+  };
+  const fixed = erp.map((p) => applyErpFixes(p, withChoco));
+  assert.equal(fixed[5].name, 'CHOCOLATE CREME OVOMALTINE CROCANTE 900G');
   assert.equal(fixed[1].name, 'FARINHA DE TRIGO TIA OFELIA PAPEL 25KG');
   const where = (list: Product[]) =>
     buildSegments(list).flatMap((s) =>

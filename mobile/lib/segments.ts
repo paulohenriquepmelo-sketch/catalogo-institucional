@@ -43,6 +43,7 @@ const ABBREVIATIONS: [string, string][] = [
   ['emb. ', 'embalagem '],
   ['emb.', 'embalagem '],
   ['emba. ', 'embalagem '],
+  ['choco ', 'chocolate '],
 ];
 export function withExpandedAbbreviations(words: string[]) {
   const out = words.map((word) => normalize(word, true));
