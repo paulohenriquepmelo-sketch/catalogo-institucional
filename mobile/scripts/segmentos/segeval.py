@@ -6,9 +6,10 @@ def norm(t): return re.sub(r'\s+',' ',''.join(ch for ch in unicodedata.normalize
 def kwnorm(w): return re.sub(r'\s+',' ',''.join(ch for ch in unicodedata.normalize('NFD',w) if unicodedata.category(ch)!='Mn').lower()).lstrip()
 def rx(words): return re.compile(r'(?:^|[^a-z0-9])(?:'+'|'.join(re.escape(kwnorm(w)) for w in words)+')') if words else None
 items=[p for p in json.load(open('catalogo.json')) if p.get('published') is not False]
-def compile_group(g): return dict(name=g['name'], cats=set(norm(x) for x in g.get('categories',[])), kw=rx(g.get('keywords',[])), ex=rx(g.get('exclude',[])), min=g.get('min_size',0))
+def compile_group(g): return dict(name=g['name'], cats=set(norm(x) for x in g.get('categories',[])), kw=rx(g.get('keywords',[])), ex=rx(g.get('exclude',[])), min=g.get('min_size',0), within=set(norm(x) for x in g.get('within',[])))
 comp=[dict(id=s['id'],name=s['name'],groups=[compile_group(g) for g in s['groups']]) for s in SEGMENTS]
 def match(g,p,n,cat):
+    if g['within'] and cat not in g['within']: return False
     if g['ex'] and g['ex'].search(n): return False
     by_cat = cat in g['cats']
     if not (by_cat or (g['kw'] and g['kw'].search(n))): return False

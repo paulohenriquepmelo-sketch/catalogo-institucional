@@ -32,6 +32,8 @@ const catalog = [
   make('SACOLA PAPEL 7,5KG COMPAPEL 26,5X39', 'SACOLAS/ BOBINAS/ SACOS PP', { section: '8-EMBALAGENS & EPS' }),
   make('MAC OVOS STA AMALIA PENA 500G', '1.6-SANTA AMALIA'),
   make('MOLHO TOMATE DAJUDA PEDACOS 200G', '1.2-MERCEARIA'),
+  make('MAC. INSTANT. GALINHA MARATA 74G', '1.4-MASSAS'),
+  make('ESCOLVA SORRISO TRIPLA MAC. LEV3PAG2', 'HIGIENE PESSOAL', { section: '5-HIGIENE & PERFUMARIA' }),
 ];
 
 void test('similar products: up to 8, same product line first, no unrelated fillers', () => {
@@ -55,6 +57,27 @@ void test('segments: a product can be in several segments; food service needs a 
   const restaurant = segments.find((s) => s.rule.id === 'restaurantes')!;
   const sauces = restaurant.groups.find((g) => g.name === 'Molhos food service')!.products.map((p) => p.name);
   assert.deepEqual(sauces, ['CATCHUP CALCUTA GALAO 3,4KG']);
+});
+
+void test('segments: pasta written as "MAC" reaches kitchens of any size; instant noodles stay retail', () => {
+  const segments = buildSegments(catalog);
+  const group = (segment: string, name: string) =>
+    segments
+      .find((s) => s.rule.id === segment)!
+      .groups.find((g) => g.name === name)
+      ?.products.map((p) => p.name) ?? [];
+  for (const segment of ['restaurantes', 'marmitarias'])
+    assert.deepEqual(group(segment, 'Massas'), ['MAC OVOS STA AMALIA PENA 500G']);
+  assert.deepEqual(group('supermercados', 'Massas'), [
+    'MAC OVOS STA AMALIA PENA 500G',
+    'MAC. INSTANT. GALINHA MARATA 74G',
+  ]);
+  // A massa sai do grupo genérico "Mercearia", e o molho vai para o grupo dele.
+  assert.ok(!group('supermercados', 'Mercearia').some((n) => n.startsWith('MAC')));
+  assert.deepEqual(group('supermercados', 'Molhos, temperos e condimentos'), [
+    'CATCHUP CALCUTA 200G',
+    'MOLHO TOMATE DAJUDA PEDACOS 200G',
+  ]);
 });
 
 void test('complements: pasta suggests tomato sauce', () => {

@@ -17,7 +17,8 @@ SITE_HEADER = '''/**
  * Um produto pode estar em VÁRIOS segmentos; cada segmento tem grupos.
  * Um grupo inclui o produto quando a CATEGORIA está em `categories` OU o NOME
  * tem alguma palavra de `keywords`, e o nome não tem nenhuma de `exclude`.
- * `minSize` (g/ml, lido do nome) exige embalagem food service.
+ * `minSize` (g/ml, lido do nome) exige embalagem food service. `within`, se
+ * não vazio, limita o grupo aos produtos dessas categorias.
  */
 
 export type SegmentGroupRule = {
@@ -26,6 +27,7 @@ export type SegmentGroupRule = {
   keywords: string[];
   exclude: string[];
   minSize: number;
+  within: string[];
 };
 
 export type SegmentRule = {
@@ -49,7 +51,7 @@ out=[header+'export const SEGMENT_RULES: SegmentRule[] = [']
 for s in SEGMENTS:
     out += ['  {', f"    id: {q(s['id'])},", f"    name: {q(s['name'])},", f"    note: {q(s['note'])},", f"    icon: {q(ICONS[s['id']])},", '    groups: [']
     for g in s['groups']:
-        out += ['      {', f"        name: {q(g['name'])},"] + [f"        {k}: {arr(g.get(k, []))}," for k in ('categories','keywords','exclude')] + [f"        minSize: {g.get('min_size', 0)},", '      },']
+        out += ['      {', f"        name: {q(g['name'])},"] + [f"        {k}: {arr(g.get(k, []))}," for k in ('categories','keywords','exclude')] + [f"        minSize: {g.get('min_size', 0)},", f"        within: {arr(g.get('within', []))},", '      },']
     out += ['    ],', '  },']
 out.append('];\n')
 open(sys.argv[1],'w').write('\n'.join(out))
