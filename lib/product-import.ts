@@ -30,30 +30,32 @@ export const importColumns = [
     key: 'department',
     label: 'Departamento',
     required: true,
-    aliases: ['departamento', 'descricao do departamento'],
+    aliases: ['descricao do departamento', 'departamento'],
   },
   {
     key: 'section',
     label: 'Seção',
     required: true,
-    aliases: ['secao', 'descricao da secao'],
+    aliases: ['descricao da secao', 'secao'],
   },
   {
     key: 'category',
     label: 'Categoria',
     required: true,
-    aliases: ['categoria', 'nome da categoria', 'descricao da categoria'],
+    aliases: ['nome da categoria', 'descricao da categoria', 'categoria'],
   },
   {
     key: 'brand',
     label: 'Marca',
     required: true,
-    aliases: ['marca', 'nome da marca'],
+    aliases: ['nome da marca', 'marca'],
+    // Exportação do ERP: "Marca" (código) e depois "Marca" (nome).
+    preferLast: true,
   },
   {
     key: 'supplier',
     label: 'Fornecedor (interno)',
-    aliases: ['fornecedor', 'nome do fornecedor'],
+    aliases: ['nome do fornecedor', 'fornecedor'],
   },
   {
     key: 'packaging',
@@ -96,7 +98,35 @@ export const importColumns = [
     label: 'EAN master',
     aliases: ['unidade master ean', 'ean master'],
   },
+  // Regra de saída do site: qualquer uma das três marcações tira o produto
+  // do site (veja outOfCatalog).
+  { key: 'outOfLine', label: 'Fora de linha', aliases: ['fora de linha'] },
+  { key: 'resale', label: 'Revenda', aliases: ['revenda'] },
+  {
+    key: 'salesForce',
+    label: 'Enviar para Força de Vendas',
+    aliases: ['enviar para forca de vendas', 'forca de vendas'],
+  },
 ] as const;
+
+/**
+ * Fora de linha = FL, Revenda = N ou Enviar para Força de Vendas = N: o
+ * produto sai do site, do app e do PDF (entra ou fica como rascunho, com
+ * foto e dados guardados no editor, na área "Fora de linha"). Devolve o
+ * motivo, ou '' quando o produto segue normal.
+ */
+export function outOfCatalog(values: ImportValues) {
+  const flag = (value?: string) => (value ?? '').trim().toUpperCase();
+  return [
+    flag(values.outOfLine) === 'FL' && 'Fora de linha',
+    flag(values.resale) === 'N' && 'Revenda: N',
+    flag(values.salesForce) === 'N' && 'Força de Vendas: N',
+  ]
+    .filter(Boolean)
+    .join(' · ');
+}
+export const OUT_OF_CATALOG_NOTE =
+  'Fora de linha, sem revenda ou fora da Força de Vendas: fica como rascunho (fora do site).';
 export type ImportKey = (typeof importColumns)[number]['key'];
 export type ColumnMapping = Partial<Record<ImportKey, number>>;
 export type ImportValues = Partial<Record<ImportKey, string>>;
@@ -125,20 +155,23 @@ export type ProductPreview = ProductImportInput & {
   segment: string;
 };
 
+// Planilhas do ERP repetem a informação como código e como nome
+// ("Departamento" 10008 / "Descrição do departamento" 1-ATACADO): os apelidos
+// de cada campo vêm em ordem de preferência, e o nome ganha do código.
 export function autoMap(headers: unknown[]): ColumnMapping {
   const used = new Set<number>();
   const mapping: ColumnMapping = {};
+  const titles = headers.map((header) => normalize(columnTitle(header)).replace(/\s+/g, ' '));
   for (const field of importColumns) {
-    const index = headers.findIndex(
-      (header, i) =>
-        !used.has(i) &&
-        (field.aliases as readonly string[]).includes(
-          normalize(columnTitle(header)),
-        ),
-    );
-    if (index >= 0) {
+    for (const alias of field.aliases as readonly string[]) {
+      const matches = titles
+        .map((title, i) => (title === alias && !used.has(i) ? i : -1))
+        .filter((i) => i >= 0);
+      if (!matches.length) continue;
+      const index = 'preferLast' in field ? matches.at(-1)! : matches[0];
       mapping[field.key] = index;
       used.add(index);
+      break;
     }
   }
   return mapping;
@@ -171,6 +204,8 @@ function cellText(value: unknown, key: ImportKey): string {
     );
   let text = String(value).trim();
   if (key === 'ncm') text = text.replace(/\.$/, '');
+  if (['outOfLine', 'resale', 'salesForce'].includes(key) && text.length > 20)
+    throw new Error('As colunas Fora de linha, Revenda e Força de Vendas aceitam só a marcação (FL, S ou N).');
   const limit = ['department', 'section', 'category', 'brand'].includes(key)
     ? 80
     : ['code', 'name'].includes(key)
@@ -204,6 +239,10 @@ export function mergeImport(
 ): Product {
   const details: ProductDetails = { ...existing?.details };
   for (const [key] of detailFields) if (values[key]) details[key] = values[key];
+  // A planilha decide de novo a cada importação: desmarcou, sai da área.
+  const out = outOfCatalog(values);
+  if (out) details.outOfCatalog = out;
+  else delete details.outOfCatalog;
   const p: Product = {
     id: existing?.id ?? 0,
     name: values.name!,
@@ -215,7 +254,7 @@ export function mergeImport(
     description: existing?.description ?? '',
     image: existing?.image ?? '',
     specs: existing?.specs ?? [],
-    published: existing?.published ?? options.publishNew,
+    published: out ? false : (existing?.published ?? options.publishNew),
     featured: existing?.featured ?? false,
     updatedAt: existing?.updatedAt,
     createdAt: existing?.createdAt,
@@ -285,7 +324,9 @@ export function previewProducts(
       row.note =
         row.action === 'skip'
           ? 'Código já cadastrado; será mantido.'
-          : warnings.length
+          : outOfCatalog(row.values)
+            ? OUT_OF_CATALOG_NOTE
+            : warnings.length
             ? `Conferir: ${warnings.join(' · ')}`
             : 'Pronto para importar.';
     } catch (error) {

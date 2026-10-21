@@ -19,6 +19,7 @@ import {
   Sparkles,
   Tags,
   Wrench,
+  Archive,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -39,6 +40,7 @@ import { ImportEditor } from './import-editor';
 import { PhotoFraming } from './photo-framing';
 import { ErpFixesEditor } from './erp-fixes-editor';
 import { CatalogPdfPanel } from './catalog-pdf-panel';
+import { OutOfCatalogArea } from './out-of-catalog-area';
 import { CampaignEditor } from './campaign-editor';
 import { ProductImagePicker } from './product-image-picker';
 
@@ -47,6 +49,7 @@ const navigation: { key: EditorView; label: string; icon: typeof Package }[] = [
   { key: 'products', label: 'Produtos', icon: Package },
   { key: 'imports', label: 'Importações', icon: FileSpreadsheet },
   { key: 'erp', label: 'Correções do ERP', icon: Wrench },
+  { key: 'outOfCatalog', label: 'Fora de linha', icon: Archive },
   { key: 'promotions', label: 'Ofertas e novidades', icon: BadgePercent },
   { key: 'taxonomy', label: 'Hierarquia', icon: Blocks },
   { key: 'brands', label: 'Marcas e logos', icon: Tags },
@@ -835,6 +838,13 @@ export function EditorApp({ userName }: { userName: string }) {
               onRefresh={refreshAfterImport}
             />
           </>
+        ) : view === 'outOfCatalog' ? (
+          <OutOfCatalogArea
+            items={items}
+            dirty={dirty}
+            onBusy={onBusy}
+            onRefresh={refreshAfterImport}
+          />
         ) : view === 'erp' ? (
           <ErpFixesEditor
             items={items}

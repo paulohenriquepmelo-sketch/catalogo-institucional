@@ -22,6 +22,7 @@ export type EditorView =
   | 'brands'
   | 'segments'
   | 'erp'
+  | 'outOfCatalog'
   | 'banners'
   | 'appearance';
 export function ConfigEditor({
