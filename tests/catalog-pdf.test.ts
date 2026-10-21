@@ -37,7 +37,7 @@ void test('catalog pdf: distribution first, then ERP numbering, then name', () =
   );
 });
 
-void test('catalog pdf: pages break by section, bars split categories, nothing below the footer', () => {
+void test('catalog pdf: small sections share the page, full pages spread the slack, nothing below the footer', () => {
   const list = [
     ...Array.from({ length: 23 }, (_, i) => make(`BALA ${i}`, '2-BOMBONIERI', '2.1-BALAS & DROPS')),
     ...Array.from({ length: 12 }, (_, i) => make(`CHICLE ${i}`, '2-BOMBONIERI', '2.2-CHICLETES')),
@@ -46,22 +46,24 @@ void test('catalog pdf: pages break by section, bars split categories, nothing b
   ];
   const pages = planCatalogPdf(list);
   assert.deepEqual(pages.map((p) => p.number), pages.map((_, i) => i + 1));
-  // Bombonieri: 5 linhas de balas + divisória + 3 de chicletes cabem? Não: vai para a página 2.
   assert.equal(pages[0].title, 'Bombonieri');
   assert.equal(pages[0].label, 'Balas & Drops');
-  const bombonieri = pages.filter((p) => p.title === 'Bombonieri');
-  const blocks = bombonieri.flatMap((p) => p.blocks);
-  assert.ok(blocks.some((b) => b.type === 'bar' && b.title === 'Chicletes') || bombonieri.some((p) => p.label === 'Chicletes'));
-  // Seção nova começa em página nova, com a categoria no canto.
-  const wine = pages.find((p) => p.title === 'Bebidas Alcoolicas')!;
-  assert.equal(wine.label, 'Vinhos');
-  assert.ok(!wine.blocks.some((b) => b.type === 'bar'));
+  // Chicletes não cabem com uma fileira depois de 5 fileiras de balas: página nova.
+  assert.equal(pages[1].label, 'Chicletes');
+  // A seção de vinhos começa na mesma página, com divisória "Seção · Categoria".
+  assert.ok(pages[1].blocks.some((b) => b.type === 'bar' && b.title === 'Bebidas Alcoolicas · Vinhos'));
+  // A continuação leva o nome da seção no topo.
+  assert.equal(pages[2].title, 'Bebidas Alcoolicas');
   for (const page of pages)
     for (const block of page.blocks) {
       const height = block.type === 'bar' ? GRID.barHeight : GRID.rowHeight;
-      assert.ok(block.y >= GRID.top && block.y + height <= GRID.bottom);
+      assert.ok(block.y >= GRID.top && block.y + height <= GRID.bottom + 0.001);
       if (block.type === 'row') assert.ok(block.products.length >= 1 && block.products.length <= GRID.columns);
     }
+  // Página que quebrou por espaço termina rente ao rodapé (sem faixa branca).
+  const full = pages[0];
+  const last = full.blocks.at(-1)!;
+  assert.ok(GRID.bottom - (last.y + GRID.rowHeight) < 1);
   // Sem foto fica fora; todos os outros aparecem uma vez.
   const shown = pages.flatMap((p) => p.blocks.flatMap((b) => (b.type === 'row' ? b.products : [])));
   assert.equal(shown.length, 75);
