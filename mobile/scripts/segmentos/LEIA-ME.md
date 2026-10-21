@@ -26,3 +26,9 @@ Cuidados que já apareceram:
 - `min_size` (g/ml, lido do nome) separa food service de varejo nos segmentos
   de alimentação.
 - Apóstrofo em palavra-chave quebra o arquivo gerado. Use outra parte do nome.
+- O ERP abrevia nomes: macarrão é "MAC"/"MAC." ("MAC OVOS STA AMALIA PENA 500G").
+  Antes de criar uma palavra-chave, confira como o produto está escrito; uma
+  palavra-chave que não casa com nada aparece fácil num `segeval.py`.
+- `within` limita o grupo a algumas categorias. Use quando a palavra é curta ou
+  ambígua ("mac " também aparece em "ESCOVA ... MAC." = macia) ou para dividir
+  um grupo grande por tipo (a Mercearia do supermercado é dividida assim).

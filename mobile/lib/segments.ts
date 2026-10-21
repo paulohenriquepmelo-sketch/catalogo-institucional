@@ -55,6 +55,7 @@ type CompiledGroup = {
   keywords: RegExp | null;
   exclude: RegExp | null;
   minSize: number;
+  within: Set<string>;
 };
 
 const compiled = SEGMENT_RULES.map((rule) => ({
@@ -65,6 +66,7 @@ const compiled = SEGMENT_RULES.map((rule) => ({
     keywords: wordStartPattern(group.keywords),
     exclude: wordStartPattern(group.exclude),
     minSize: group.minSize,
+    within: new Set(group.within.map((category) => normalize(category))),
   })),
 }));
 
@@ -88,6 +90,7 @@ export function buildSegments(products: Product[]): Segment[] {
     let bulk: boolean | undefined;
     compiled.forEach((segment, s) => {
       segment.groups.forEach((group, g) => {
+        if (group.within.size && !group.within.has(category)) return;
         if (group.exclude?.test(name)) return;
         if (!group.categories.has(category) && !group.keywords?.test(name)) return;
         if (group.minSize > 0) {

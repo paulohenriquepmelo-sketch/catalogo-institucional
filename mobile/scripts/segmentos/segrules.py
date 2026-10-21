@@ -82,22 +82,52 @@ FS_OLEOS = dict(name='Óleos, gorduras e conservas', min_size=900, categories=c(
                           'milho verde', 'ervilha', 'seleta', 'cogumelo', 'champignon', 'pepino', 'pimenta biquinho',
                           'tomate seco', 'cebolinha', 'alcaparra', 'atum', 'sardinha', 'conserva'],
                 exclude=[*NAO_INSUMO, *CONFEITARIA])
-FS_FARINHAS = dict(name='Farinhas, massas e grãos', min_size=900,
+FS_FARINHAS = dict(name='Farinhas e grãos', min_size=900,
                    keywords=['far trigo', 'farinha', 'farofa', 'polvilho', 'fecula', 'amido', 'arroz', 'feijao',
                              'fuba', 'trigo para kibe', 'trigo p', 'batata palha', 'mist. prep. pao de queijo',
-                             'macarrao', 'espaguete', 'massa', 'batata em flocos', 'pure'],
-                   exclude=[*NAO_INSUMO, 'aveia', 'kimilho', 'mistura p/ bolo', 'mistura bolo', 'creme de conf',
-                            'massa corrida'])
-FS_INSUMOS = [FS_MOLHOS, FS_CONDIMENTOS, FS_OLEOS, FS_FARINHAS]
+                             'batata em flocos', 'pure'],
+                   exclude=[*NAO_INSUMO, 'aveia', 'kimilho', 'mistura p/ bolo', 'mistura bolo', 'creme de conf'])
+# O ERP abrevia macarrão: "MAC OVOS STA AMALIA PENA 500G", "MAC. INSTANT. GALINHA".
+MASSAS_KW = ['mac ', 'mac.', 'macarrao', 'espaguete', 'lasanha', 'talharim', 'nhoque', 'canelone', 'canelloni']
+# Na cozinha entra macarrão de qualquer tamanho (quase todos são de 500 g); instantâneo é só varejo.
+# `within` evita nomes de outras seções ("ESCOLVA ... MAC." é escova macia).
+MASSAS_CATS = c('MASSAS', 'SANTA', 'MERC', 'FS')
+FS_MASSAS = dict(name='Massas', within=MASSAS_CATS, keywords=MASSAS_KW, exclude=['instant', 'lamen', 'cup noodles'])
+FS_INSUMOS = [FS_MOLHOS, FS_CONDIMENTOS, FS_OLEOS, FS_FARINHAS, FS_MASSAS]
+
+# --- Mercearia de varejo (supermercados), dividida por tipo de produto ---
+# `within`: o grupo só olha produtos destas categorias (o resto do catálogo não entra).
+# Conservas também aceitam o Food Service: baldes de azeitona e pepino são revendidos a granel.
+VAREJO = c('MERC', 'MASSAS', 'SANTA', 'Y_ALIM', 'Y_FAR', 'Y_TEMP', 'COND', 'ART_PALHA', 'BANHAS')
+MERC_MOLHOS_KW = ['molho', 'catchup', 'maionese', 'mostarda', 'extrato', 'vinagre', 'cond ', 'caldo', 'tempero',
+                  'temp.', 'mais sabor', 'toque de chef', 'grill', 'creme de cebola', 'amaciante de carne']
+MERC_CONSERVAS_KW = ['conserva', 'palmito', 'azeitona', 'milho verde', 'ervilha', 'pepino', 'cebolinha',
+                     'pessego em calda', 'atum', 'sardinha', 'seleta']
+MERC_DOCES_KW = ['gelatina', 'choc. granul', 'choco granul', 'chocolate granul', 'conf. granul', 'choco confeito',
+                 'coco ralado', 'leite cond', 'creme de leite', 'leite de coco', 'goiabada', 'doce goiabada',
+                 'po  p/sorvete', 'po p/sorvete', 'fermento', 'acucar de confeiteiro', 'creme de confeiteiro',
+                 'creme culinaria', 'reforcador', 'bicarbonato', 'sal amoniaco']
+MERC_FRIOS_KW = ['mortadela', 'linguica', 'linguiça', 'salsicha', 'charque', 'feijoada']
+MERC_REFRESCOS_KW = ['ref ']
 
 SEGMENTS = [
     dict(id='supermercados', name='Supermercados e mercearias', note='Revenda do dia a dia e abastecimento',
          icon='basket', groups=[
-             dict(name='Mercearia', categories=c('MERC', 'MASSAS', 'SANTA', 'Y_ALIM', 'Y_FAR', 'Y_TEMP', 'COND',
-                                                 'ART_PALHA', 'BANHAS'),
-                  keywords=['batata palha', 'banha', 'cebolinha', 'pepino', 'palmito', 'trigo para kibe', 'tapioca',
-                            'leite po', 'alho frito', 'batata em flocos'],
+             dict(name='Mercearia', categories=VAREJO,
+                  keywords=['batata palha', 'banha', 'trigo para kibe', 'tapioca', 'leite po', 'alho frito',
+                            'batata em flocos'],
+                  exclude=['cesta', *MASSAS_KW, *MERC_MOLHOS_KW, *MERC_CONSERVAS_KW, *MERC_DOCES_KW,
+                           *MERC_FRIOS_KW, *MERC_REFRESCOS_KW]),
+             dict(name='Massas', within=VAREJO, keywords=MASSAS_KW),
+             dict(name='Molhos, temperos e condimentos', within=VAREJO, categories=c('COND', 'Y_TEMP'),
+                  keywords=MERC_MOLHOS_KW, exclude=['cesta', 'conf.', 'granulado', 'bicarbonato', 'sal amoniaco',
+                                                    *MASSAS_KW]),
+             dict(name='Conservas e enlatados', within=[*VAREJO, C['FS']], keywords=MERC_CONSERVAS_KW,
+                  exclude=['cesta', 'cond ', 'po  p/sorvete', 'po p/sorvete']),
+             dict(name='Doces, sobremesas e confeitaria', within=VAREJO, keywords=MERC_DOCES_KW,
                   exclude=['cesta']),
+             dict(name='Frios e embutidos', within=VAREJO, keywords=MERC_FRIOS_KW),
+             dict(name='Refrescos em pó', within=VAREJO, keywords=MERC_REFRESCOS_KW),
              dict(name='Biscoitos e matinais', categories=c('BISC'), keywords=['achocolat', 'cafe radiante', 'cereal']),
              BEBIDAS_SEM_ALCOOL, BEBIDAS_ALCOOL, BOMBONIERE, SALGADINHOS,
              dict(name='Higiene e perfumaria', categories=c('HIG'), keywords=['papel hig', 'fralda']),
