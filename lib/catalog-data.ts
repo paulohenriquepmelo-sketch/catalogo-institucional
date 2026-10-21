@@ -13,6 +13,8 @@ export type ProductDetails = {
   sourceRow?: number;
   offer?: ProductOffer;
   showAsNew?: boolean;
+  /** Marcação do ERP que tirou o produto do site ("Fora de linha · Revenda: N"). */
+  outOfCatalog?: string;
 };
 export type ProductOffer = {
   enabled: boolean;

@@ -6087,3 +6087,67 @@ a:focus-visible {
 .catalog-pdf-step {
   display: block;
 }
+
+/* Área "Fora de linha" do editor */
+.out-catalog-toolbar,
+.out-catalog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.out-catalog-toolbar input {
+  max-width: 420px;
+}
+.out-catalog-check {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+}
+.out-catalog-confirm {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: center;
+  padding: 10px 14px;
+  border: 1px solid #f1b7b4;
+  border-radius: 10px;
+  background: #fff4f3;
+  color: #8b1d16;
+}
+.out-catalog-list {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.out-catalog-list label {
+  display: grid;
+  grid-template-columns: auto 48px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  padding: 8px 10px;
+  border: 1px solid #d6deec;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.out-catalog-list img,
+.out-catalog-noimg {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  border-radius: 6px;
+  background: #f3f5fa;
+}
+.out-catalog-info {
+  display: grid;
+  min-width: 0;
+}
+.out-catalog-info strong {
+  overflow-wrap: anywhere;
+}
+.out-catalog-info small {
+  color: #5d6a85;
+}
