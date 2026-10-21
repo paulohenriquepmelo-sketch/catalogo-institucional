@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import { FileDown, Loader2, PenTool, RefreshCw } from 'lucide-react';
+import { Download, FileDown, Loader2, PenTool, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress, ProgressLabel, ProgressValue } from '@/components/ui/progress';
 import { Panel } from './editor-controls';
@@ -187,17 +187,32 @@ export function CatalogPdfPanel({ onBusy }: { onBusy: (busy: boolean) => void })
         <h2 id="catalog-pdf-corel-title">Editar no CorelDRAW</h2>
         <p>
           Baixa um PDF editável com fotos em alta resolução: no CorelDRAW, textos, faixas e fotos
-          viram objetos separados. Instale antes as fontes{' '}
-          <a href="/catalog-pdf/Poppins-Regular.ttf" download>
-            Poppins Regular
-          </a>{' '}
-          e{' '}
-          <a href="/catalog-pdf/Poppins-Bold.ttf" download>
-            Poppins Bold
-          </a>{' '}
-          para o texto não ser trocado. O catálogo inteiro fica com uns 80 a 90 MB: para editar,
+          viram objetos separados. O catálogo inteiro fica com uns 80 a 90 MB: para editar,
           prefira uma seção por vez.
         </p>
+        <div className="catalog-pdf-fonts">
+          <strong>1. Instale as fontes antes de abrir no CorelDRAW</strong>
+          <span>
+            Sem elas o CorelDRAW troca a fonte do texto. Baixe as duas, abra cada arquivo e clique
+            em Instalar.
+          </span>
+          <div className="catalog-pdf-actions">
+            <a className="catalog-pdf-font" href="/catalog-pdf/Poppins-Regular.ttf" download>
+              <Download className="size-4" aria-hidden="true" /> Baixar fonte Poppins Regular
+            </a>
+            <a className="catalog-pdf-font" href="/catalog-pdf/Poppins-Bold.ttf" download>
+              <Download className="size-4" aria-hidden="true" /> Baixar fonte Poppins Bold
+            </a>
+          </div>
+          <small>
+            Fonte gratuita, licença{' '}
+            <a href="/catalog-pdf/OFL-Poppins.txt" target="_blank" rel="noreferrer">
+              SIL Open Font License
+            </a>
+            .
+          </small>
+        </div>
+        <strong className="catalog-pdf-step">2. Baixe o catálogo para editar</strong>
         <div className="catalog-pdf-actions">
           <label className="editor-field">
             <span>Parte do catálogo</span>
