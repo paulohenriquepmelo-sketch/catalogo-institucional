@@ -98,3 +98,27 @@ void test('import keeps marked products as drafts in the Fora de linha area; del
   const left = await listCatalogProducts(true, ['FL-1', 'OK-1']);
   assert.deepEqual(left.map((p) => p.code), ['OK-1']);
 });
+
+void test('import retry: a row already saved by a failed batch is reported as saved, not as changed', async () => {
+  setIdentity('admin@example.test');
+  const { config } = await getConfig();
+  const path = config.taxonomy[0];
+  const row = {
+    row: 7,
+    values: { code: 'RETRY-1', name: 'PRODUTO RETRY', department: path.department, section: path.section, category: path.category, brand: config.brands[0].name },
+  };
+  const send = async (extra: Record<string, unknown>) =>
+    ((await (
+      await importProducts(post('/api/import/products', { rows: [row], mode: 'upsert', publishNew: false, sourceFile: 'retry.xlsx', ...extra }))
+    ).json()) as { results: { status: string; message: string }[] }).results[0];
+  // 1ª tentativa grava, mas a resposta "se perde" no caminho.
+  assert.equal((await send({})).status, 'created');
+  // Sem o aviso de reenvio, a mesma linha é recusada (produto já existe, sem expectedUpdatedAt).
+  assert.equal((await send({})).status, 'error');
+  // Reenvio automático: reconhecida como já gravada.
+  const retried = await send({ retry: true });
+  assert.equal(retried.status, 'updated');
+  assert.match(retried.message, /Já salvo/);
+  // De outra planilha, o reenvio não esconde o conflito.
+  assert.equal((await send({ retry: true, sourceFile: 'outra.xlsx' })).status, 'error');
+});

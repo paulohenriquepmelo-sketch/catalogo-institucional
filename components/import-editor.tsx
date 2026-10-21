@@ -3,6 +3,7 @@
 // próprio site. Com new URL(..., import.meta.url) o build do vinext trocava
 // import.meta.url por um caminho local (file:///ROOT/...) e o navegador
 // recusava o Worker em produção.
+// oxlint-disable-next-line import/default -- o Vite cria o default no build.
 import excelWorkerUrl from '../workers/excel-import.worker.ts?worker&url';
 import { useEffect, useRef, useState } from 'react';
 import {
@@ -88,6 +89,27 @@ const messageOf = (error: unknown) =>
   error instanceof Error
     ? error.message
     : 'Não foi possível concluir a operação.';
+
+// Falha momentânea (página de erro da Cloudflare, rede, tempo esgotado):
+// reenvia o lote até duas vezes antes de parar. O servidor reconhece as
+// linhas que já tinha gravado (retry: true) e não as acusa como alteradas.
+const TRANSIENT = /Não foi possível concluir|Failed to fetch|NetworkError|network|timed? ?out|aborted/i;
+async function sendBatchWithRetry(body: Record<string, unknown>) {
+  const waits = [2000, 6000];
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await api<{ results: ImportResult[] }>(
+        '/api/import/products',
+        attempt ? { ...body, retry: true } : body,
+        AbortSignal.timeout(60000),
+      );
+    } catch (error) {
+      const message = error instanceof Error ? `${error.name} ${error.message}` : '';
+      if (attempt >= waits.length || !TRANSIENT.test(message)) throw error;
+      await new Promise((resolve) => setTimeout(resolve, waits[attempt]));
+    }
+  }
+}
 
 export function ImportEditor({
   dirty,
@@ -342,19 +364,15 @@ export function ImportEditor({
           start += 10
         ) {
           const batch = readyProducts.slice(start, start + 10);
-          const response = await api<{ results: ImportResult[] }>(
-            '/api/import/products',
-            {
-              rows: batch.map(({ row, values, expectedUpdatedAt }) => ({
-                row,
-                values,
-                expectedUpdatedAt,
-              })),
-              sourceFile: fileName.slice(0, 120),
-              ...options,
-            },
-            AbortSignal.timeout(60000),
-          );
+          const response = await sendBatchWithRetry({
+            rows: batch.map(({ row, values, expectedUpdatedAt }) => ({
+              row,
+              values,
+              expectedUpdatedAt,
+            })),
+            sourceFile: fileName.slice(0, 120),
+            ...options,
+          });
           collected.push(
             ...response.results.map((r) => ({
               key: String(r.row),

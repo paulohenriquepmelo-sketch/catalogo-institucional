@@ -94,6 +94,23 @@ export async function POST(request: Request) {
         if ((counts.get(values.code!) ?? 0) > 1)
           throw new Error('Código repetido no lote.');
         const current = existing.get(values.code!);
+        // Reenvio automático de um lote que falhou no meio: a linha que o
+        // servidor já gravou desta planilha não vira erro de "mudou".
+        if (
+          input.retry === true &&
+          current &&
+          current.updatedAt !== row.expectedUpdatedAt &&
+          current.details?.sourceFile === input.sourceFile &&
+          current.details?.sourceRow === row.row
+        ) {
+          results.push({
+            row: row.row,
+            code,
+            status: 'updated',
+            message: 'Já salvo na tentativa anterior.',
+          });
+          continue;
+        }
         if (current && options.mode === 'new') {
           results.push({
             row: row.row,
@@ -113,36 +130,40 @@ export async function POST(request: Request) {
           );
         const product = mergeImport(values, current, config, options);
         // Only append relationships; never remove or overwrite page settings.
-        const candidate = {
-          ...config,
-          brands: [...config.brands],
-          taxonomy: [...config.taxonomy],
-        };
-        if (
-          !candidate.brands.some(
-            (b) => normalize(b.name) === normalize(product.brand),
-          )
-        )
-          candidate.brands.push({
-            name: product.brand,
-            logo: '',
-            published: false,
-            featured: false,
-          });
-        if (
-          !candidate.taxonomy.some(
-            (t) =>
-              t.department === product.department &&
-              t.section === product.section &&
-              t.category === product.category,
-          )
-        )
-          candidate.taxonomy.push({
-            department: product.department,
-            section: product.section,
-            category: product.category,
-          });
-        const validConfig = validateConfig(candidate);
+        // Revalidar a configuração inteira só quando a linha traz marca ou
+        // categoria nova: fazer isso em toda linha pesava no limite de
+        // processamento do Worker e derrubava lotes no meio da importação.
+        const newBrand = !config.brands.some(
+          (b) => normalize(b.name) === normalize(product.brand),
+        );
+        const newPath = !config.taxonomy.some(
+          (t) =>
+            t.department === product.department &&
+            t.section === product.section &&
+            t.category === product.category,
+        );
+        let validConfig = config;
+        if (newBrand || newPath) {
+          const candidate = {
+            ...config,
+            brands: [...config.brands],
+            taxonomy: [...config.taxonomy],
+          };
+          if (newBrand)
+            candidate.brands.push({
+              name: product.brand,
+              logo: '',
+              published: false,
+              featured: false,
+            });
+          if (newPath)
+            candidate.taxonomy.push({
+              department: product.department,
+              section: product.section,
+              category: product.category,
+            });
+          validConfig = validateConfig(candidate);
+        }
         product.details = {
           ...product.details,
           sourceFile: input.sourceFile,
