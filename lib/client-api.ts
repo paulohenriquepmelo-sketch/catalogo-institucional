@@ -17,13 +17,22 @@ export async function api<T>(
           body: JSON.stringify(body),
         },
   );
-  const data = (await response.json().catch(() => null)) as {
-    error?: string;
-  } | null;
-  if (!response.ok || data === null)
+  const text = await response.text().catch(() => '');
+  let data: { error?: string } | null = null;
+  try {
+    data = JSON.parse(text) as { error?: string } | null;
+  } catch {
+    data = null;
+  }
+  if (!response.ok || data === null) {
+    if (data?.error) throw new Error(data.error);
+    // Página de erro da Cloudflare ("error code: 1102"): guarda o código para
+    // dar para saber o que houve (limite de processamento, de uso...).
+    const code = /error code:?\s*(\d{3,4})/i.exec(text)?.[1];
     throw new Error(
-      data?.error ?? 'Não foi possível concluir. Tente novamente.',
+      `Não foi possível concluir (HTTP ${response.status}${code ? `, erro ${code}` : ''}). Tente novamente.`,
     );
+  }
   return data as T;
 }
 

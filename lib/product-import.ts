@@ -6,6 +6,7 @@ import {
 } from './catalog-data';
 import { normalize, type CatalogConfig } from './catalog-config';
 import { classifySegment } from './segment-classifier';
+import { applyErpFixes, type ErpFixes } from './erp-fixes';
 
 export const importColumns = [
   {
@@ -275,6 +276,14 @@ export function mergeImport(
   p.segment = classifySegment(p, config.segments).segment;
   return p;
 }
+const comparedKeys = ['name', 'department', 'section', 'category', 'brand', 'published'] as const;
+function sameImportedData(next: Product, current: Product) {
+  if (comparedKeys.some((key) => next[key] !== current[key])) return false;
+  const keys = [...detailFields.map(([key]) => key), 'outOfCatalog'] as const;
+  return keys.every(
+    (key) => (next.details?.[key] ?? '') === (current.details?.[key] ?? ''),
+  );
+}
 export function previewProducts(
   rows: unknown[][],
   header: number,
@@ -282,6 +291,8 @@ export function previewProducts(
   products: Product[],
   config: CatalogConfig,
   options: ImportOptions,
+  /** Correções do ERP: aplicadas aqui também, para comparar com o cadastro. */
+  fixes?: ErpFixes,
 ): ProductPreview[] {
   const mappingIssue = mappingError(mapping);
   if (mappingIssue) throw new Error(mappingIssue);
@@ -310,6 +321,20 @@ export function previewProducts(
           row.values[field.key] = cellText(cells[index], field.key);
       }
       row.values = validateImportValues(row.values);
+      if (fixes)
+        Object.assign(
+          row.values,
+          applyErpFixes(
+            {
+              code: row.values.code!,
+              name: row.values.name!,
+              department: row.values.department!,
+              section: row.values.section!,
+              category: row.values.category!,
+            },
+            fixes,
+          ),
+        );
       row.name = row.values.name ?? '';
       const current = existing.get(row.values.code!);
       row.expectedUpdatedAt = current?.updatedAt;
@@ -320,10 +345,16 @@ export function previewProducts(
         : 'new';
       const merged = mergeImport(row.values, current, config, options);
       row.segment = merged.segment;
+      // Igual ao cadastro: não precisa ir de novo (reimportar a mesma
+      // planilha, ou continuar uma importação que parou, só envia o resto).
+      if (row.action === 'update' && current && sameImportedData(merged, current))
+        row.action = 'skip';
       const warnings = productIssues(merged);
       row.note =
         row.action === 'skip'
-          ? 'Código já cadastrado; será mantido.'
+          ? options.mode === 'new'
+            ? 'Código já cadastrado; será mantido.'
+            : 'Sem alterações em relação ao cadastro.'
           : outOfCatalog(row.values)
             ? OUT_OF_CATALOG_NOTE
             : warnings.length

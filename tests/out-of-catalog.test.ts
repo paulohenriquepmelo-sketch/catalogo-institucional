@@ -122,3 +122,32 @@ void test('import retry: a row already saved by a failed batch is reported as sa
   // De outra planilha, o reenvio não esconde o conflito.
   assert.equal((await send({ retry: true, sourceFile: 'outra.xlsx' })).status, 'error');
 });
+
+void test('preview: rows equal to the saved product are skipped, changed rows still go', async () => {
+  const { previewProducts } = await import('../lib/product-import');
+  const { config } = await getConfig();
+  const path = config.taxonomy[0];
+  const brand = config.brands[0].name;
+  const header = ['Código', 'Descrição', 'Descrição do departamento', 'Descrição da seção', 'Nome da categoria', 'Marca', 'Revenda'];
+  const line = (code: string, name: string, resale = 'S') => [code, name, path.department, path.section, path.category, brand, resale];
+  const saved = await listCatalogProducts(true, ['OK-1']);
+  const current = { ...saved[0], name: 'PRODUTO OK-1', published: false };
+  const rows = previewProducts(
+    [header, line('OK-1', 'PRODUTO OK-1'), line('OK-1B', 'NOVO'), line('OK-1', 'PRODUTO OK-1', 'N')],
+    0,
+    { code: 0, name: 1, department: 2, section: 3, category: 4, brand: 5, resale: 6 },
+    [current],
+    config,
+    { mode: 'upsert', publishNew: false },
+  );
+  // A primeira e a terceira têm o mesmo código: a prévia acusa repetição; testamos cada uma isolada.
+  const single = (cells: unknown[]) =>
+    previewProducts([header, cells], 0, { code: 0, name: 1, department: 2, section: 3, category: 4, brand: 5, resale: 6 }, [current], config, { mode: 'upsert', publishNew: false })[0];
+  assert.equal(rows.length, 3);
+  const same = single(line('OK-1', 'PRODUTO OK-1'));
+  assert.equal(same.action, 'skip');
+  assert.match(same.note, /Sem alterações/);
+  assert.equal(single(line('OK-1', 'PRODUTO OK-1 NOVO NOME')).action, 'update');
+  assert.equal(single(line('OK-1', 'PRODUTO OK-1', 'N')).action, 'update');
+  assert.equal(single(line('OK-1B', 'NOVO')).action, 'new');
+});
