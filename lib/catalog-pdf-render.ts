@@ -223,7 +223,9 @@ export async function renderCatalogPdf(products: PdfProduct[], options: CatalogP
   const photos = await loadPhotos(withPhoto, options);
   options.signal?.throwIfAborted();
 
-  const doc = new jsPDF({ unit: 'pt', format: 'a4', compress: true });
+  // Só as fontes usadas (Poppins): sem isso o jsPDF declara as 14 fontes
+  // padrão (Helvetica, Times, Symbol...) e o CorelDRAW pede todas.
+  const doc = new jsPDF({ unit: 'pt', format: 'a4', compress: true, putOnlyUsedFonts: true });
   doc.addFileToVFS('Poppins-Regular.ttf', toBase64(regular));
   // Um nome por variação (o nome PostScript real): o CorelDRAW e outros
   // editores casam o texto com a fonte instalada por esse nome.
