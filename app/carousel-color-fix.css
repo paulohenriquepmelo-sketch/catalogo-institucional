@@ -314,3 +314,10 @@
     max-height: 100%;
   }
 }
+
+/* Resultados da busca: a linha da foto segue a altura configurada da foto
+   (--product-photo-height, 210px por padrão). Com a linha fixa em 180px no
+   celular, a foto invadia o texto e cortava a marca acima do nome. */
+.catalog-search-dialog .catalog-search-results .product-card {
+  grid-template-rows: auto minmax(150px, auto);
+}
