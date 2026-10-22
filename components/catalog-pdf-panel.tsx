@@ -179,8 +179,7 @@ export function CatalogPdfPanel({ onBusy }: { onBusy: (busy: boolean) => void })
         onProgress: (done, total) => setProgress({ done, total }),
       });
       setStep(`Enviando o PDF (${megabytes(blob.size)})…`);
-      // Capa e sumário + páginas de produtos.
-      const pages = planCatalogPdf(products).length + 2;
+      const pages = planCatalogPdf(products).length + 1;
       const response = await fetch(
         `/api/catalog-pdf?products=${products.length}&pages=${pages}`,
         {
