@@ -108,3 +108,15 @@ void test('catalog pdf API: editor uploads, everyone downloads the ready file', 
   assert.equal(new TextDecoder().decode(await file.arrayBuffer()), new TextDecoder().decode(pdfBytes));
   assert.equal((await info()).available, true);
 });
+
+void test('lista sem foto: ordem por código e PDF válido', async () => {
+  const { renderNoPhotoPdf, sortNoPhotoList } = await import('../lib/no-photo-pdf');
+  const item = (code: string, name: string) => ({ code, name, brand: 'MARCA', section: '1-HERSHEYS', category: 'CHOCOLATES' });
+  const list = [item('11963', 'B'), item('900', 'A'), item('11711', 'MACARRÃO COM NOME MUITO LONGO '.repeat(5))];
+  assert.deepEqual(sortNoPhotoList(list).map((p) => p.code), ['900', '11711', '11963']);
+  const many = Array.from({ length: 120 }, (_, i) => item(String(11000 + i), `PRODUTO ${i}`));
+  const blob = await renderNoPhotoPdf([...list, ...many]);
+  const bytes = new Uint8Array(await blob.arrayBuffer());
+  assert.equal(new TextDecoder().decode(bytes.slice(0, 5)), '%PDF-');
+  assert.match(new TextDecoder('latin1').decode(bytes), /\/Count 3\b/);
+});
