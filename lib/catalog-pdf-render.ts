@@ -6,7 +6,7 @@ const RED = '#ed1c23';
 const CODE = '#091452';
 const TEXT = '#231f20';
 const WHITE = '#ffffff';
-const IMAGE_BOX = 80;
+const BASE_IMAGE_BOX = 80;
 /** Lado maior da foto no PDF: ~250 dpi no cartão, ~15 KB por foto. */
 const IMAGE_PIXELS = 260;
 /** Versão para editar e imprimir (CorelDRAW): ~540 dpi no cartão. */
@@ -155,7 +155,16 @@ function drawBar(doc: Doc, title: string, y: number) {
   doc.text(title, mid, top + 17, { align: 'center' });
 }
 
-function drawProduct(doc: Doc, product: PdfProduct, photo: Photo | null, x: number, y: number) {
+function drawProduct(
+  doc: Doc,
+  product: PdfProduct,
+  photo: Photo | null,
+  x: number,
+  y: number,
+  // Fileira apertada (veja squeezeOneMoreRow): a foto diminui o que faltou.
+  rowHeight: number = GRID.rowHeight,
+) {
+  const IMAGE_BOX = BASE_IMAGE_BOX - (GRID.rowHeight - rowHeight);
   const cell = (PAGE.width - GRID.marginX * 2) / GRID.columns;
   const center = x + cell / 2;
   const top = y + 6;
@@ -254,6 +263,7 @@ export async function renderCatalogPdf(products: PdfProduct[], options: CatalogP
             photos.get(product.id) ?? null,
             GRID.marginX + offset + i * cell,
             block.y,
+            block.height,
           );
         });
     }
