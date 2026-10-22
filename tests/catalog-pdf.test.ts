@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { displayName, GRID, planCatalogPdf, planContents, sortForCatalog, type PdfProduct } from '../lib/catalog-pdf';
+import { displayName, GRID, MODELO_AREA, planCatalogPdf, planContents, sortForCatalog, type PdfProduct } from '../lib/catalog-pdf';
 import { GET as getPdf, POST as postPdf } from '../app/api/catalog-pdf/route';
 import { env, setIdentity } from './runtime';
 
@@ -232,4 +232,15 @@ void test('sumário lista departamento, seção e categoria com a página onde c
       ['category', 'Mercearia', 2],
     ],
   );
+});
+
+void test('layout modelo: produtos ficam dentro da área mais baixa da página', () => {
+  const list = Array.from({ length: 60 }, (_, i) => make(`P${i}`, '1-ALIMENTOS', '1.1-FOOD SERVICE'));
+  const pages = planCatalogPdf(list, MODELO_AREA);
+  for (const page of pages)
+    for (const block of page.blocks) {
+      assert.ok(block.y >= MODELO_AREA.top);
+      assert.ok(block.y + (block.type === 'bar' ? GRID.barHeight : (block.height ?? GRID.rowHeight)) <= MODELO_AREA.bottom);
+    }
+  assert.ok(pages.length > planCatalogPdf(list).length - 1);
 });

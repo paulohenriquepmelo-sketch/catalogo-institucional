@@ -3,6 +3,7 @@ import {
   isDistribution,
   PAGE,
   planCatalogPdf,
+  MODELO_AREA,
   planContents,
   type ContentsEntry,
   type PdfPage,
@@ -32,7 +33,7 @@ const INSTAGRAM = 'distlaurencini.atacado';
 const REGULAR = 'Poppins-Regular';
 const BOLD = 'Poppins-Bold';
 
-export type CatalogPdfLayout = 'classico' | 'moderno';
+export type CatalogPdfLayout = 'classico' | 'moderno' | 'modelo';
 
 export type CatalogPdfOptions = {
   /** Clássico (o do impresso, padrão) ou moderno (cartões e sumário). */
@@ -283,7 +284,7 @@ function drawFooterModern(doc: Doc, page: PdfPage) {
   const brandWidth = doc.getTextWidth(brand);
   doc.setFont(REGULAR, 'normal');
   doc.setFontSize(7);
-  const social = `  ·  ${INSTAGRAM}`;
+  const social = `  ·  @${INSTAGRAM}`;
   const total = brandWidth + doc.getTextWidth(social);
   const x = outerRight ? CONTENT_LEFT : CONTENT_RIGHT - total;
   doc.setTextColor(NAVY);
@@ -472,6 +473,152 @@ function drawContents(doc: Doc, entries: ContentsEntry[], title: string) {
   });
 }
 
+// ---- Layout "modelo": logo no topo, faixa azul com o departamento, título
+// da seção com traço vermelho, etiqueta da categoria, fundo de polígonos e
+// rodapé azul. Usa os cartões e o sumário do layout moderno. ----
+
+const GOLD = '#f2c230';
+type ModeloAssets = { background: Uint8Array; logo: Uint8Array };
+
+function drawTagModelo(doc: Doc, title: string, y: number) {
+  doc.setFont(BOLD, 'normal');
+  fitText(doc, title, 10, 300);
+  const w = doc.getTextWidth(title) + 26;
+  const left = CONTENT_LEFT - 11;
+  doc.setFillColor(NAVY);
+  doc.lines(
+    [
+      [w, 0],
+      [-6, 20],
+      [-w + 6, 0],
+    ],
+    left,
+    y,
+    [1, 1],
+    'F',
+    true,
+  );
+  doc.setTextColor(WHITE);
+  doc.text(title, left + 10, y + 14);
+  doc.setDrawColor(NAVY);
+  doc.setLineWidth(0.8);
+  doc.line(left + w + 6, y + 10, PAGE.width - 17, y + 10);
+}
+
+function drawPageModelo(doc: Doc, page: PdfPage, assets: ModeloAssets) {
+  doc.addImage(assets.background, 'JPEG', 0, 0, PAGE.width, PAGE.height, 'fundo', 'FAST');
+  // Logo oficial à esquerda.
+  doc.addImage(assets.logo, 'PNG', 14, 15, 162, 162 * (151 / 700), 'logo', 'FAST');
+  // Faixa azul com canto inclinado à esquerda e ponta vermelha à direita.
+  doc.setFillColor(RED);
+  doc.rect(300, 50, PAGE.width - 300, 4, 'F');
+  doc.setFillColor(NAVY);
+  doc.lines(
+    [
+      [PAGE.width - 207, 0],
+      [0, 40],
+      [-(PAGE.width - 183), 0],
+    ],
+    207,
+    11,
+    [1, 1],
+    'F',
+    true,
+  );
+  doc.setFillColor(RED);
+  doc.lines(
+    [
+      [18, 0],
+      [0, 46],
+      [-34, 0],
+    ],
+    PAGE.width - 18,
+    11,
+    [1, 1],
+    'F',
+    true,
+  );
+  doc.setTextColor(WHITE);
+  doc.setFont(BOLD, 'normal');
+  const department = pageDepartment(page) || 'CATÁLOGO';
+  fitText(doc, department, 15, 170);
+  doc.text(department, 222, 29);
+  doc.setTextColor(GOLD);
+  doc.setFont(REGULAR, 'normal');
+  const sub = `/ ${page.title}`;
+  fitText(doc, sub, 10, 180);
+  doc.text(sub, 222, 44);
+  doc.setTextColor(WHITE);
+  doc.setFontSize(8.5);
+  doc.text('Atacado e Distribuição', PAGE.width - 40, 34, { align: 'right' });
+
+  // Título da seção com traço vermelho e etiqueta da categoria.
+  doc.setFillColor(RED);
+  doc.rect(17, 72, 6, 25, 'F');
+  doc.setTextColor(NAVY);
+  doc.setFont(BOLD, 'normal');
+  fitText(doc, page.title, 22, PAGE.width - 80);
+  doc.text(page.title, 31, 93);
+  drawTagModelo(doc, page.label, 104);
+}
+
+function drawFooterModelo(doc: Doc, page: PdfPage) {
+  const top = 800;
+  doc.setFillColor(NAVY);
+  doc.rect(0, top, PAGE.width, PAGE.height - top, 'F');
+  doc.setFillColor(RED);
+  doc.rect(0, top - 3, 400, 3, 'F');
+  // Corte diagonal branco e vermelho entre o número e o Instagram.
+  doc.setFillColor(WHITE);
+  doc.lines(
+    [
+      [8, 0],
+      [-26, PAGE.height - top],
+      [-8, 0],
+    ],
+    424,
+    top,
+    [1, 1],
+    'F',
+    true,
+  );
+  doc.setFillColor(RED);
+  doc.lines(
+    [
+      [PAGE.width - 432, 0],
+      [0, 3],
+      [-(PAGE.width - 432), 0],
+    ],
+    432,
+    top - 3,
+    [1, 1],
+    'F',
+    true,
+  );
+  doc.lines(
+    [
+      [6, 0],
+      [-26, PAGE.height - top],
+      [-6, 0],
+    ],
+    434,
+    top,
+    [1, 1],
+    'F',
+    true,
+  );
+  doc.setTextColor(WHITE);
+  doc.setFont(BOLD, 'normal');
+  doc.setFontSize(13);
+  const number = String(page.number).padStart(2, '0');
+  doc.text(number, 20, 826);
+  const numberWidth = doc.getTextWidth(number);
+  doc.setFont(REGULAR, 'normal');
+  doc.setFontSize(11);
+  doc.text(`  |  Catálogo de Produtos`, 20 + numberWidth, 826);
+  doc.text(`@${INSTAGRAM}`, PAGE.width - 18, 826, { align: 'right' });
+}
+
 // Imagem da marca na sobra da última página da seção: de uma borda à outra
 // da folha, sem distorcer. Se for mais alta que a sobra, corta o excesso de
 // cima e de baixo (fica o meio); se for mais baixa, fica centralizada.
@@ -539,16 +686,27 @@ export async function renderCatalogPdf(products: PdfProduct[], options: CatalogP
   }
 
   drawCover(doc, new Uint8Array(cover), options.title ?? '', withPhoto.length);
-  const pages = planCatalogPdf(withPhoto);
-  const modern = options.layout === 'moderno';
+  const modelo = options.layout === 'modelo';
+  const modern = options.layout === 'moderno' || modelo;
+  const pages = planCatalogPdf(withPhoto, modelo ? MODELO_AREA : undefined);
+  const modeloAssets: ModeloAssets | null = modelo
+    ? {
+        background: new Uint8Array(await fetchBytes(`${ASSETS}/fundo-modelo.jpg`, options.signal)),
+        logo: new Uint8Array(await fetchBytes(`${ASSETS}/logo-laurencini.png`, options.signal)),
+      }
+    : null;
   if (modern) {
     doc.addPage();
     drawContents(doc, planContents(pages), options.title ?? '');
   }
-  const header = modern ? drawHeaderModern : drawHeader;
-  const bar = modern ? drawBarModern : drawBar;
+  const header = modeloAssets
+    ? (d: Doc, p: PdfPage) => drawPageModelo(d, p, modeloAssets)
+    : modern
+      ? drawHeaderModern
+      : drawHeader;
+  const bar = modelo ? (d: Doc, title: string, y: number) => drawTagModelo(d, title, y + 12) : modern ? drawBarModern : drawBar;
   const product = modern ? drawProductModern : drawProduct;
-  const footer = modern ? drawFooterModern : drawFooter;
+  const footer = modelo ? drawFooterModelo : modern ? drawFooterModern : drawFooter;
   const cell = (PAGE.width - GRID.marginX * 2) / GRID.columns;
   for (const page of pages) {
     doc.addPage();

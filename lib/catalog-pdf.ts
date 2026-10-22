@@ -120,12 +120,12 @@ export function packRows(group: PdfProduct[]) {
  * Aperta as fileiras da página para caber mais uma (a última de uma
  * categoria, com 1 ou 2 produtos). Devolve false se nem apertando couber.
  */
-function squeezeOneMoreRow(page: PdfPage) {
+function squeezeOneMoreRow(page: PdfPage, area: PdfArea) {
   const rows = page.blocks.filter((b) => b.type === 'row').length + 1;
   const bars = page.blocks.filter((b) => b.type === 'bar').length;
-  const height = Math.floor((GRID.bottom - GRID.top - bars * GRID.barHeight) / rows);
+  const height = Math.floor((area.bottom - area.top - bars * GRID.barHeight) / rows);
   if (height < GRID.minRowHeight) return null;
-  let y = GRID.top;
+  let y = area.top;
   for (const block of page.blocks) {
     block.y = y;
     if (block.type === 'bar') y += GRID.barHeight;
@@ -141,7 +141,15 @@ const blockHeight = (block: PdfBlock) =>
   block.type === 'bar' ? GRID.barHeight : (block.height ?? GRID.rowHeight);
 
 /** Páginas de produtos (a capa não conta: a primeira página de produtos é a 01). */
-export function planCatalogPdf(products: PdfProduct[]): PdfPage[] {
+/** Faixa vertical da página onde entram os produtos (muda com o layout). */
+export type PdfArea = { top: number; bottom: number };
+/** Área dos produtos no layout modelo (cabeçalho e título são mais altos). */
+export const MODELO_AREA: PdfArea = { top: 134, bottom: 786 };
+
+export function planCatalogPdf(
+  products: PdfProduct[],
+  area: PdfArea = { top: GRID.top, bottom: GRID.bottom },
+): PdfPage[] {
   const pages: PdfPage[] = [];
   let page: PdfPage | null = null;
   let y = 0;
@@ -152,10 +160,10 @@ export function planCatalogPdf(products: PdfProduct[]): PdfPage[] {
     const created: PdfPage = { number: pages.length + 1, title, label, blocks: [], section: pageSection };
     pages.push(created);
     page = created;
-    y = GRID.top;
+    y = area.top;
     return created;
   };
-  const fits = (height: number) => y + height <= GRID.bottom;
+  const fits = (height: number) => y + height <= area.bottom;
 
   let index = 0;
   while (index < sorted.length) {
@@ -204,11 +212,11 @@ export function planCatalogPdf(products: PdfProduct[]): PdfPage[] {
         // vez de deixá-los sozinhos na seguinte.
         const squeezed =
           r === packed.length - 1 && r > 0 && products.length <= 2
-            ? squeezeOneMoreRow(current!)
+            ? squeezeOneMoreRow(current!, area)
             : null;
         if (squeezed) {
           current!.blocks.push({ type: 'row', products, y: squeezed.y, height: squeezed.height });
-          y = GRID.bottom;
+          y = area.bottom;
           return;
         }
         current = newPage(sectionTitle, categoryTitle, ownPage);
@@ -222,13 +230,13 @@ export function planCatalogPdf(products: PdfProduct[]): PdfPage[] {
     // Última página de uma seção da Distribuição: guarda a sobra para a imagem.
     if (p.section && next?.section !== p.section) {
       const last = p.blocks.at(-1);
-      const end = last ? last.y + blockHeight(last) : GRID.top;
-      const height = GRID.bottom - end - FILLER_GAP;
+      const end = last ? last.y + blockHeight(last) : area.top;
+      const height = area.bottom - end - FILLER_GAP;
       if (height >= MIN_FILLER_HEIGHT)
         p.filler = { section: p.section, y: end + FILLER_GAP, height };
       return;
     }
-    if (next) spreadSlack(p);
+    if (next) spreadSlack(p, area);
   });
   return pages;
 }
@@ -238,11 +246,11 @@ export function planCatalogPdf(products: PdfProduct[]): PdfPage[] {
  * vez de deixar uma faixa branca antes do rodapé. Página que terminou porque
  * o conteúdo acabou (sobra grande) fica alinhada em cima.
  */
-function spreadSlack(page: PdfPage) {
+function spreadSlack(page: PdfPage, area: PdfArea) {
   const last = page.blocks.at(-1);
   if (!last || page.blocks.length < 2) return;
   const end = last.y + blockHeight(last);
-  const slack = GRID.bottom - end;
+  const slack = area.bottom - end;
   if (slack <= 0 || slack >= GRID.barHeight + GRID.rowHeight) return;
   const gap = Math.min(slack / (page.blocks.length - 1), 40);
   page.blocks.forEach((block, i) => {
