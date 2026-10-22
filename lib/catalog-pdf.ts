@@ -27,7 +27,7 @@ export const GRID = {
 
 export type PdfProduct = Pick<
   Product,
-  'id' | 'code' | 'name' | 'department' | 'section' | 'category' | 'brand' | 'image' | 'details'
+  'id' | 'code' | 'name' | 'department' | 'section' | 'category' | 'brand' | 'image'
 >;
 export type PdfBlock =
   | { type: 'bar'; title: string; y: number }
@@ -248,40 +248,4 @@ function spreadSlack(page: PdfPage) {
   page.blocks.forEach((block, i) => {
     block.y += gap * i;
   });
-}
-
-export type ContentsEntry = {
-  level: 'department' | 'section' | 'category';
-  title: string;
-  page: number;
-};
-
-/**
- * Sumário (página depois da capa): departamento, seção e categoria com a
- * página em que cada um começa, na ordem do catálogo.
- */
-export function planContents(pages: PdfPage[]): ContentsEntry[] {
-  const entries: ContentsEntry[] = [];
-  const seen = new Set<string>();
-  const add = (level: ContentsEntry['level'], key: string, title: string, page: number) => {
-    if (seen.has(key)) return;
-    seen.add(key);
-    entries.push({ level, title, page });
-  };
-  for (const page of pages)
-    for (const block of page.blocks) {
-      if (block.type !== 'row') continue;
-      for (const p of block.products) {
-        const department = isDistribution(p.department) ? 'Distribuição' : displayName(p.department);
-        add('department', p.department, department, page.number);
-        add('section', `${p.department}|${p.section}`, displayName(p.section), page.number);
-        add(
-          'category',
-          `${p.department}|${p.section}|${p.category}`,
-          displayName(p.category),
-          page.number,
-        );
-      }
-    }
-  return entries;
 }
