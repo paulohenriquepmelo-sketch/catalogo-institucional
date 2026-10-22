@@ -143,8 +143,18 @@ void test('PDF: dentro da categoria, produtos parecidos ficam juntos', async () 
   assert.deepEqual(hygiene.slice(0, 3), [
     'APARELHO DE BARBEAR BIC', 'APARELHO DE BARBEAR PROBAK II 28UN', 'LAMINA DE BARBEAR GILLETTE PLATINUM NOVO',
   ]);
+  // Utilidades: vassouras, rodos, rastelos, pás e esfregões ficam juntos.
+  const cleaning = order([
+    'ISQUEIRO BIC MINI (12UN)', 'RODO PLASTICO 60CM DALCIN', 'ESFREGAO MILEVA (3057)', 'PANELA DE ALUMINIO C/ TAMPA N°16',
+    'PA PARA LIXO COMPANHEIRA (936)', 'VASSOURA MILEVA PLUMA (2007)', 'LAMPADA AVANT LED 9W NOVO', 'RASTELO PLASTICO DALCIN',
+    'PA (S/CABO) P/LIXO MILEVA PAPATUDO(5001)', 'VASSOURAO ECONOMICO MILEVA (5017)',
+  ]);
+  assert.deepEqual(cleaning.slice(0, 7), [
+    'VASSOURA MILEVA PLUMA (2007)', 'VASSOURAO ECONOMICO MILEVA (5017)', 'RODO PLASTICO 60CM DALCIN', 'RASTELO PLASTICO DALCIN',
+    'PA PARA LIXO COMPANHEIRA (936)', 'PA (S/CABO) P/LIXO MILEVA PAPATUDO(5001)', 'ESFREGAO MILEVA (3057)',
+  ]);
   // Sem família conhecida: continua junto pela primeira palavra.
-  assert.deepEqual(order(['VELA B', 'PANO A', 'VELA A']), ['PANO A', 'VELA A', 'VELA B']);
+  assert.deepEqual(order(['XICARA B', 'BULE A', 'XICARA A']), ['BULE A', 'XICARA A', 'XICARA B']);
 });
 
 void test('PDF: 5 por fileira e item sozinho não vai para outra página', async () => {

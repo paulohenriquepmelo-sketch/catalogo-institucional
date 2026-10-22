@@ -65,6 +65,31 @@ const FAMILIES: string[][] = [
     'desinfetante', 'multiuso', 'limpa', 'limpador', 'desengordurante', 'desengripante',
     'alcool', 'soda', 'tira', 'essencia', 'pastilha', 'pedra', 'esponja', 'bombril',
   ],
+  // Utensílios de limpeza (Utilidades): vassouras, rodos, rastelos e pás
+  // juntos, depois escovas, panos e sacos de lixo.
+  [
+    'vassoura', 'vassourao', 'rodo', 'rastelo', 'pa p/ lixo', 'pa para lixo', 'pa (s/cabo)',
+    'esfregao', 'escova sanitaria', 'escova', 'flanela', 'pano', 'saco lixo',
+  ],
+  // Cozinha (Utilidades).
+  [
+    'panela', 'caldeirao', 'canecao', 'frigideira', 'taboa', 'socador', 'coador',
+    'churrasqueira', 'espeto', 'pe de botija',
+  ],
+  // Bar e mesa (Utilidades).
+  [
+    'copo americano', 'copo bristol', 'copo nadir', 'copo tulipa', 'porta latinha',
+    'porta latao', 'porta litrao', 'porta cerveja', 'porta garrafa', 'cesta 4x4', 'cesta 6x6',
+    'porta guardanapo', 'porta guard.', 'porta canudo', 'paliteiro', 'palito', 'saleiro',
+    'bisnaga', 'baleiro',
+  ],
+  // Lavanderia, tabacaria e miudezas (Utilidades).
+  ['prendedor', 'corda de varal'],
+  ['isqueiro', 'fosforo', 'vela', 'fumo', 'papel p/cigarro'],
+  [
+    'pilha', 'lampada', 'fita adesiva', 'cola instantanea', 'arame/fecho', 'caneta',
+    'papel a4', 'baralho', 'inseticida', 'bola de vidro',
+  ],
   // Descartáveis.
   [
     'copo', 'prato', 'garfo', 'faca', 'colher', 'mexedor', 'pazinha', 'canudo', 'guardanapo',
