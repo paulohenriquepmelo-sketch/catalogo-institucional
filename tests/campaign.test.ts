@@ -40,7 +40,7 @@ void test('public navigation downloads the Android app stored in R2', async () =
   await testEnv.FILES.put('apps/catalogo-institucional.apk', bytes, {
     httpMetadata: { contentType: 'application/vnd.android.package-archive' },
   });
-  const response = await downloadApp();
+  const response = await downloadApp(new Request('https://catalog.test/api/app-download'));
   assert.equal(response.status, 200);
   assert.equal(
     response.headers.get('content-disposition'),
@@ -51,6 +51,28 @@ void test('public navigation downloads the Android app stored in R2', async () =
     String(bytes.byteLength),
   );
   assert.deepEqual(await response.arrayBuffer(), bytes);
+  assert.equal(response.headers.get('accept-ranges'), 'bytes');
+  // Download que caiu no meio continua de onde parou.
+  const etag = response.headers.get('etag')!;
+  const part = await downloadApp(
+    new Request('https://catalog.test/api/app-download', {
+      headers: { range: 'bytes=2-', 'if-range': etag },
+    }),
+  );
+  assert.equal(part.status, 206);
+  assert.equal(part.headers.get('content-range'), `bytes 2-${bytes.byteLength - 1}/${bytes.byteLength}`);
+  assert.deepEqual(new Uint8Array(await part.arrayBuffer()), new Uint8Array(bytes).slice(2));
+  // Arquivo trocado (etag diferente): manda o novo inteiro.
+  const changed = await downloadApp(
+    new Request('https://catalog.test/api/app-download', {
+      headers: { range: 'bytes=2-', 'if-range': '"outro"' },
+    }),
+  );
+  assert.equal(changed.status, 200);
+  const outside = await downloadApp(
+    new Request('https://catalog.test/api/app-download', { headers: { range: 'bytes=999999-' } }),
+  );
+  assert.equal(outside.status, 416);
 });
 
 void test('public carousels hide play controls and offer countdown becomes precise in the last 24 hours', () => {

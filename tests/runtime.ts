@@ -93,11 +93,14 @@ export const env = {
         customMetadata: options.customMetadata,
       });
     },
-    async get(key: string) {
+    async get(key: string, options?: { range?: { offset: number; length: number } }) {
       const file = files.get(key);
+      const range = options?.range;
       return file
         ? {
-            body: file.data,
+            body: range
+              ? file.data.slice(range.offset, range.offset + range.length)
+              : file.data,
             size: file.data.byteLength,
             httpMetadata: file.httpMetadata,
             customMetadata: file.customMetadata,
@@ -115,6 +118,7 @@ export const env = {
       return file
         ? {
             size: file.data.byteLength,
+            httpEtag: `"${file.data.byteLength}"`,
             httpMetadata: file.httpMetadata,
             customMetadata: file.customMetadata,
           }
