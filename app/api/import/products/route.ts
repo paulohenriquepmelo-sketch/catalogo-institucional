@@ -11,6 +11,8 @@ import { normalize, validateConfig } from '@/lib/catalog-config';
 import {
   mergeImport,
   outOfCatalog,
+  ignoredCategory,
+  IGNORED_CATEGORY_NOTE,
   OUT_OF_CATALOG_NOTE,
   validateImportValues,
   type ImportResult,
@@ -93,6 +95,15 @@ export async function POST(request: Request) {
         );
         if ((counts.get(values.code!) ?? 0) > 1)
           throw new Error('Código repetido no lote.');
+        if (ignoredCategory(values.category)) {
+          results.push({
+            row: row.row,
+            code,
+            status: 'skipped',
+            message: IGNORED_CATEGORY_NOTE,
+          });
+          continue;
+        }
         const current = existing.get(values.code!);
         // Reenvio automático de um lote que falhou no meio: a linha que o
         // servidor já gravou desta planilha não vira erro de "mudou".

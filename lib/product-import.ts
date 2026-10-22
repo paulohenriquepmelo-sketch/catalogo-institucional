@@ -126,6 +126,15 @@ export function outOfCatalog(values: ImportValues) {
     .filter(Boolean)
     .join(' · ');
 }
+/**
+ * Categorias que não entram no catálogo: linhas da planilha nessas
+ * categorias são ignoradas na importação (nem criam nem atualizam produto).
+ */
+export function ignoredCategory(category?: string) {
+  return /\bexpositor/.test(normalize(category ?? ''));
+}
+export const IGNORED_CATEGORY_NOTE =
+  'Expositores/Promocional não entram no catálogo; linha ignorada.';
 export const OUT_OF_CATALOG_NOTE =
   'Fora de linha, sem revenda ou fora da Força de Vendas: fica como rascunho (fora do site).';
 export type ImportKey = (typeof importColumns)[number]['key'];
@@ -336,6 +345,12 @@ export function previewProducts(
           ),
         );
       row.name = row.values.name ?? '';
+      if (ignoredCategory(row.values.category)) {
+        row.action = 'skip';
+        row.note = IGNORED_CATEGORY_NOTE;
+        output.push(row);
+        continue;
+      }
       const current = existing.get(row.values.code!);
       row.expectedUpdatedAt = current?.updatedAt;
       row.action = current
