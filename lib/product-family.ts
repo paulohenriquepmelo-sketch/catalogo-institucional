@@ -97,12 +97,6 @@ export function familyRank(name: string) {
   return UNKNOWN;
 }
 
-/** Chave do tipo do produto: produtos com a mesma chave são do mesmo tipo. */
-export function familyKey(name: string) {
-  const rank = familyRank(name);
-  return rank === UNKNOWN ? `?${normalizeName(name).split(' ')[0]}` : String(rank);
-}
-
 /** Compara dois nomes da mesma categoria: tipo, depois nome. */
 export function compareBySimilarity(a: string, b: string) {
   const ra = familyRank(a);
