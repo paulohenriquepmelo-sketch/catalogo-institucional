@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { displayName, GRID, planCatalogPdf, sortForCatalog, type PdfProduct } from '../lib/catalog-pdf';
+import { displayName, GRID, planCatalogPdf, planContents, sortForCatalog, type PdfProduct } from '../lib/catalog-pdf';
 import { GET as getPdf, POST as postPdf } from '../app/api/catalog-pdf/route';
 import { env, setIdentity } from './runtime';
 
@@ -211,4 +211,25 @@ void test('imagens das marcas: só editor salva, e só imagens enviadas pelo edi
   assert.equal((await save({ images: { '1-HERSHEYS': url } })).status, 200);
   assert.deepEqual(((await (await GET()).json()) as { images: unknown }).images, { '1-HERSHEYS': url });
   assert.equal((await save({ images: { '1-HERSHEYS': '/api/uploads?key=..%2Fsecret' } })).status, 400);
+});
+
+void test('sumário lista departamento, seção e categoria com a página onde começam', () => {
+  const list = [
+    make('A', '1-HERSHEYS', '1.1-BARRA DARK', '2-DISTRIBUICAO'),
+    make('B', '1-ALIMENTOS', '1.1-FOOD SERVICE'),
+    make('C', '1-ALIMENTOS', '1.2-MERCEARIA'),
+  ];
+  const entries = planContents(planCatalogPdf(list));
+  assert.deepEqual(
+    entries.map((e) => [e.level, e.title, e.page]),
+    [
+      ['department', 'Distribuição', 1],
+      ['section', 'Hersheys', 1],
+      ['category', 'Barra Dark', 1],
+      ['department', 'Atacado', 2],
+      ['section', 'Alimentos', 2],
+      ['category', 'Food Service', 2],
+      ['category', 'Mercearia', 2],
+    ],
+  );
 });

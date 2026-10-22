@@ -6040,6 +6040,29 @@ a:focus-visible {
 }
 
 /* Catálogo em PDF: painel do editor */
+.catalog-pdf-layout {
+  display: grid;
+  gap: 8px;
+  margin: 8px 0 0;
+  padding: 0;
+  border: 0;
+}
+.catalog-pdf-layout legend {
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.catalog-pdf-layout label {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  cursor: pointer;
+}
+.catalog-pdf-layout input {
+  margin-top: 4px;
+}
+.catalog-pdf-layout strong {
+  margin-right: 4px;
+}
 .catalog-pdf-actions {
   display: flex;
   flex-wrap: wrap;
