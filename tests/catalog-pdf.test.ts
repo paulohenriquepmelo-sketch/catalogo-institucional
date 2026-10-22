@@ -120,3 +120,29 @@ void test('lista sem foto: ordem por código e PDF válido', async () => {
   assert.equal(new TextDecoder().decode(bytes.slice(0, 5)), '%PDF-');
   assert.match(new TextDecoder('latin1').decode(bytes), /\/Count 3\b/);
 });
+
+void test('PDF: dentro da categoria, produtos parecidos ficam juntos', async () => {
+  const { compareBySimilarity } = await import('../lib/product-family');
+  const order = (names: string[]) => [...names].sort(compareBySimilarity);
+  const food = order([
+    'MILHO VERDE LATA OLE 1,700 KG', 'MISTURA BOLO COAMO AIPIM 05KG', 'ERVILHA LATA OLE 1,700 KG',
+    'POLVILHO DOCE AMIDOTEC 1KG', 'FARINHA DE TRIGO PREDILETA 25KG PAPEL', 'MOLHO INGLES PRONTO 900ML',
+    'TRIGO PARA KIBE ELDOURADO 5KG', 'MILHO VERDE LATA PREDILECTA 1,500 KG', 'MARGARINA COAMO 80% 14,5KG',
+    'ERVILHA LATA PREDILECTA 1,700 KG', 'FERMENTO BIOLOGICO SECO MAGEST 500G',
+  ]);
+  assert.deepEqual(food, [
+    'FARINHA DE TRIGO PREDILETA 25KG PAPEL', 'TRIGO PARA KIBE ELDOURADO 5KG', 'POLVILHO DOCE AMIDOTEC 1KG',
+    'MISTURA BOLO COAMO AIPIM 05KG', 'FERMENTO BIOLOGICO SECO MAGEST 500G', 'MARGARINA COAMO 80% 14,5KG',
+    'MILHO VERDE LATA OLE 1,700 KG', 'MILHO VERDE LATA PREDILECTA 1,500 KG', 'ERVILHA LATA OLE 1,700 KG',
+    'ERVILHA LATA PREDILECTA 1,700 KG', 'MOLHO INGLES PRONTO 900ML',
+  ]);
+  const hygiene = order([
+    'CREME DENTAL COLGATE 90 GR', 'LAMINA DE BARBEAR GILLETTE PLATINUM NOVO', 'APARELHO DE BARBEAR BIC',
+    'FRALDA DESC DIGUINHO CONFORT PLUS G', 'APARELHO DE BARBEAR PROBAK II 28UN', 'ESCOVA DENTAL POWERDENT INFANTIL PIUI',
+  ]);
+  assert.deepEqual(hygiene.slice(0, 3), [
+    'APARELHO DE BARBEAR BIC', 'APARELHO DE BARBEAR PROBAK II 28UN', 'LAMINA DE BARBEAR GILLETTE PLATINUM NOVO',
+  ]);
+  // Sem família conhecida: continua junto pela primeira palavra.
+  assert.deepEqual(order(['VELA B', 'PANO A', 'VELA A']), ['PANO A', 'VELA A', 'VELA B']);
+});
