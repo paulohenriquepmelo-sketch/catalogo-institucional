@@ -53,12 +53,18 @@ const FAMILIES: string[][] = [
   ['cafe', 'refresco', 'suco'],
   // Frios e embutidos.
   ['mortadela', 'linguica', 'salsicha', 'charque', 'feijoada'],
-  // Higiene pessoal.
+  // Higiene pessoal, por uso: bucal, banho (sabonete em barra antes do
+  // líquido; desodorantes femininos juntos), barbear, absorvente e fralda,
+  // papéis e cuidados.
+  ['creme dental', 'escova dental'],
   [
-    'aparelho de barbear', 'lamina de barbear', 'creme dental', 'escova dental', 'cotonete',
-    'sabonete liq', 'sabonete', 'desodorante', 'abs', 'fralda', 'papel hig',
-    'papel interf', 'papel toalha', 'curativo', 'acetona',
+    'sabonete', 'sabonete liq', 'desodorante aero rexona men', 'desodorante aero rexona fem',
+    'desodorante aero rexona women', 'desodorante',
   ],
+  ['aparelho de barbear', 'lamina de barbear'],
+  ['abs', 'fralda'],
+  ['papel hig', 'papel interf', 'papel toalha'],
+  ['cotonete', 'curativo', 'acetona'],
   // Limpeza, por uso: cozinha (detergente com esponja e palha de aço),
   // roupas (sabão em pó, em barra, amaciante, alvejante e tira manchas),
   // desinfecção e banheiro, superfícies e, por fim, os produtos pesados.
