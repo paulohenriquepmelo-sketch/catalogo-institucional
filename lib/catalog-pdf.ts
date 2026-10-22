@@ -1,4 +1,5 @@
 import type { Product } from './catalog-data';
+import { compareBySimilarity } from './product-family';
 
 /**
  * Plano das páginas do catálogo em PDF, no layout do catálogo impresso da
@@ -70,7 +71,8 @@ function compareByPrefix(a: string, b: string) {
 /**
  * Ordem igual à do catálogo impresso: primeiro a Distribuição (marcas
  * próprias: Dona Benta, Yoki, Hershey's...), depois o Atacado; dentro de
- * cada um, seções e categorias pela numeração do ERP e produtos pelo nome.
+ * cada um, seções e categorias pela numeração do ERP. Dentro da categoria,
+ * produtos por semelhança (tipo do produto, veja product-family.ts) e nome.
  */
 export function sortForCatalog(products: PdfProduct[]) {
   const departmentRank = (d: string) => (/distribui/i.test(d) ? 0 : 1);
@@ -80,7 +82,7 @@ export function sortForCatalog(products: PdfProduct[]) {
       compareByPrefix(a.department, b.department) ||
       compareByPrefix(a.section, b.section) ||
       compareByPrefix(a.category, b.category) ||
-      a.name.localeCompare(b.name, 'pt-BR') ||
+      compareBySimilarity(a.name, b.name) ||
       a.code.localeCompare(b.code, 'pt-BR', { numeric: true }),
   );
 }
