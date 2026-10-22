@@ -1,11 +1,13 @@
 'use client';
+/* oxlint-disable next/no-img-element -- Prévia das imagens enviadas (WebP no storage). */
 import { useEffect, useRef, useState } from 'react';
-import { Download, FileDown, Loader2, PenTool, RefreshCw } from 'lucide-react';
+import { Download, FileDown, ImagePlus, Loader2, PenTool, RefreshCw, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress, ProgressLabel, ProgressValue } from '@/components/ui/progress';
 import { Panel } from './editor-controls';
-import { loadProducts } from '@/lib/client-api';
-import { displayName, planCatalogPdf } from '@/lib/catalog-pdf';
+import { api, loadProducts } from '@/lib/client-api';
+import { optimizeImage } from '@/lib/optimize-image';
+import { displayName, isDistribution, planCatalogPdf } from '@/lib/catalog-pdf';
 import { NativeSelect } from '@/components/ui/native-select';
 import { megabytes, useCatalogPdfInfo, type CatalogPdfInfo } from './catalog-pdf-download';
 
@@ -48,19 +50,78 @@ export function CatalogPdfPanel({ onBusy }: { onBusy: (busy: boolean) => void })
   const current = info ?? loaded;
   const [sections, setSections] = useState<string[]>([]);
   const [section, setSection] = useState('');
+  // Seções da Distribuição (marcas): cada uma tem página própria no PDF e a
+  // sobra da última página recebe a imagem da marca escolhida aqui.
+  const [brandSections, setBrandSections] = useState<string[]>([]);
+  const [sectionImages, setSectionImages] = useState<Record<string, string>>({});
+  const [imageBusy, setImageBusy] = useState('');
 
   // Seções do que está publicado, para baixar só uma parte no CorelDRAW.
   useEffect(() => {
     loadProducts(false)
-      .then((list) =>
-        setSections(
-          [...new Set(list.filter((p) => p.image).map((p) => p.section))].sort((a, b) =>
-            displayName(a).localeCompare(displayName(b), 'pt-BR'),
-          ),
-        ),
-      )
+      .then((list) => {
+        const withPhoto = list.filter((p) => p.image);
+        const byName = (a: string, b: string) =>
+          displayName(a).localeCompare(displayName(b), 'pt-BR');
+        setSections([...new Set(withPhoto.map((p) => p.section))].sort(byName));
+        setBrandSections(
+          [
+            ...new Set(
+              withPhoto.filter((p) => isDistribution(p.department)).map((p) => p.section),
+            ),
+          ].sort((a, b) => a.localeCompare(b, 'pt-BR', { numeric: true })),
+        );
+      })
       .catch(() => setSections([]));
+    fetch('/api/catalog-pdf/section-images')
+      .then((r) => (r.ok ? (r.json() as Promise<{ images: Record<string, string> }>) : null))
+      .then((data) => data && setSectionImages(data.images))
+      .catch(() => undefined);
   }, []);
+
+  async function saveSectionImage(name: string, url: string) {
+    const next = { ...sectionImages, [name]: url };
+    if (!url) delete next[name];
+    const data = await api<{ images: Record<string, string> }>('/api/catalog-pdf/section-images', {
+      images: next,
+    });
+    setSectionImages(data.images);
+  }
+
+  async function uploadSectionImage(name: string, file?: File) {
+    if (!file) return;
+    setError('');
+    setNotice('');
+    setImageBusy(name);
+    onBusy(true);
+    try {
+      const optimized = await optimizeImage(file);
+      const form = new FormData();
+      form.append('file', optimized.file);
+      const res = await fetch('/api/uploads', { method: 'POST', body: form });
+      const data = (await res.json()) as { error?: string; url?: string };
+      if (!res.ok || !data.url) throw new Error(data.error ?? 'Falha no envio.');
+      await saveSectionImage(name, data.url);
+      setNotice(`Imagem de ${displayName(name)} salva. Gere o PDF de novo para aplicar.`);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Falha no envio.');
+    } finally {
+      setImageBusy('');
+      onBusy(false);
+    }
+  }
+
+  async function removeSectionImage(name: string) {
+    setError('');
+    setImageBusy(name);
+    try {
+      await saveSectionImage(name, '');
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Não foi possível remover.');
+    } finally {
+      setImageBusy('');
+    }
+  }
 
   // Versão para editar: fotos em alta, texto como texto, baixada no computador
   // (não muda o PDF do site).
@@ -80,6 +141,7 @@ export function CatalogPdfPanel({ onBusy }: { onBusy: (busy: boolean) => void })
       const blob = await renderCatalogPdf(products, {
         print: true,
         title: section ? displayName(section) : '',
+        sectionImages,
         signal: abort.current.signal,
         onProgress: (done, total) => setProgress({ done, total }),
       });
@@ -112,6 +174,7 @@ export function CatalogPdfPanel({ onBusy }: { onBusy: (busy: boolean) => void })
       setStep('Preparando as fotos…');
       const { renderCatalogPdf } = await import('@/lib/catalog-pdf-render');
       const blob = await renderCatalogPdf(products, {
+        sectionImages,
         signal: abort.current.signal,
         onProgress: (done, total) => setProgress({ done, total }),
       });
@@ -182,6 +245,55 @@ export function CatalogPdfPanel({ onBusy }: { onBusy: (busy: boolean) => void })
         </p>
       )}
       {notice && <p className="success-message">{notice}</p>}
+      {brandSections.length > 0 && (
+        <section className="catalog-pdf-brands" aria-labelledby="catalog-pdf-brands-title">
+          <h2 id="catalog-pdf-brands-title">Imagem das marcas (Distribuição)</h2>
+          <p>
+            Cada marca da Distribuição começa numa página própria. O espaço que sobra no fim da
+            última página da marca recebe a imagem escolhida aqui (foto de produto, banner,
+            embalagem…). A imagem aparece inteira, sem cortes, centralizada na área livre. Sem
+            imagem, o espaço fica em branco.
+          </p>
+          <ul>
+            {brandSections.map((name) => (
+              <li key={name}>
+                <span className="catalog-pdf-brand-preview">
+                  {sectionImages[name] ? (
+                    <img src={sectionImages[name]} alt={`Imagem de ${displayName(name)}`} />
+                  ) : (
+                    <ImagePlus aria-hidden="true" />
+                  )}
+                </span>
+                <strong>{displayName(name)}</strong>
+                <label className="upload-button">
+                  {imageBusy === name ? <Loader2 className="size-4 animate-spin" /> : <ImagePlus className="size-4" />}
+                  {sectionImages[name] ? 'Trocar imagem' : 'Enviar imagem'}
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    hidden
+                    disabled={!!imageBusy || !!step}
+                    onChange={(e) => {
+                      void uploadSectionImage(name, e.target.files?.[0]);
+                      e.target.value = '';
+                    }}
+                  />
+                </label>
+                {sectionImages[name] && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    disabled={!!imageBusy || !!step}
+                    onClick={() => void removeSectionImage(name)}
+                  >
+                    <Trash2 /> Remover
+                  </Button>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       <div className="catalog-pdf-actions">
         <Button disabled={!!step} onClick={() => void generate()}>
           <RefreshCw /> {current?.available ? 'Gerar de novo' : 'Gerar PDF do catálogo'}

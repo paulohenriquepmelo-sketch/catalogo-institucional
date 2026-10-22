@@ -24,6 +24,8 @@ export type CatalogPdfOptions = {
   title?: string;
   onProgress?: (done: number, total: number) => void;
   signal?: AbortSignal;
+  /** Imagem da marca por seção da Distribuição (preenche a sobra da seção). */
+  sectionImages?: Record<string, string>;
 };
 type Photo = { data: Uint8Array; width: number; height: number };
 
@@ -44,10 +46,14 @@ async function fetchBytes(url: string, signal?: AbortSignal) {
 }
 
 // Foto do produto (WebP) → JPEG pequeno com fundo branco, que todo leitor de PDF abre.
-async function loadPhoto(url: string, print: boolean, signal?: AbortSignal): Promise<Photo | null> {
+async function loadPhoto(
+  url: string,
+  print: boolean,
+  signal?: AbortSignal,
+  limit = print ? PRINT_PIXELS : IMAGE_PIXELS,
+): Promise<Photo | null> {
   try {
     const bitmap = await createImageBitmap(new Blob([await fetchBytes(url, signal)]));
-    const limit = print ? PRINT_PIXELS : IMAGE_PIXELS;
     const scale = Math.min(1, limit / Math.max(bitmap.width, bitmap.height));
     const width = Math.max(1, Math.round(bitmap.width * scale));
     const height = Math.max(1, Math.round(bitmap.height * scale));
@@ -201,6 +207,24 @@ function drawProduct(
   doc.text(lines, center, top + IMAGE_BOX + 21, { align: 'center', lineHeightFactor: 1.15 });
 }
 
+// Imagem da marca na sobra da última página da seção: inteira, centralizada.
+function drawFiller(doc: Doc, image: Photo, area: { y: number; height: number }, key: string) {
+  const width = PAGE.width - GRID.marginX * 2;
+  const scale = Math.min(width / image.width, area.height / image.height);
+  const w = image.width * scale;
+  const h = image.height * scale;
+  doc.addImage(
+    image.data,
+    'JPEG',
+    (PAGE.width - w) / 2,
+    area.y + (area.height - h) / 2,
+    w,
+    h,
+    key,
+    'FAST',
+  );
+}
+
 function drawCover(doc: Doc, cover: Uint8Array, title: string, count: number) {
   doc.addImage(cover, 'JPEG', 0, 0, PAGE.width, PAGE.height, 'capa', 'FAST');
   // Texto no painel azul da capa, abaixo do logotipo.
@@ -246,6 +270,13 @@ export async function renderCatalogPdf(products: PdfProduct[], options: CatalogP
     creator: 'Catálogo Laurencini',
   });
 
+  // Imagens das marcas: maiores que as fotos dos produtos (ocupam a largura).
+  const fillers = new Map<string, Photo>();
+  for (const [section, url] of Object.entries(options.sectionImages ?? {})) {
+    const image = await loadPhoto(url, false, options.signal, options.print ? 2400 : 1400);
+    if (image) fillers.set(section, image);
+  }
+
   drawCover(doc, new Uint8Array(cover), options.title ?? '', withPhoto.length);
   const cell = (PAGE.width - GRID.marginX * 2) / GRID.columns;
   for (const page of planCatalogPdf(withPhoto)) {
@@ -267,6 +298,8 @@ export async function renderCatalogPdf(products: PdfProduct[], options: CatalogP
           );
         });
     }
+    const filler = page.filler && fillers.get(page.filler.section);
+    if (page.filler && filler) drawFiller(doc, filler, page.filler, `f${page.number}`);
     drawFooter(doc, page);
   }
   return doc.output('blob');

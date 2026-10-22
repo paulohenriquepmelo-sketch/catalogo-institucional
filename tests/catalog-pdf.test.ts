@@ -172,3 +172,43 @@ void test('PDF: 5 por fileira e item sozinho não vai para outra página', async
   const last = pages[0].blocks.at(-1)!;
   assert.ok(last.y + (last.type === 'row' ? last.height! : GRID.barHeight) <= GRID.bottom);
 });
+
+void test('PDF: cada seção da Distribuição em página própria, com área para a imagem da marca; Atacado igual', () => {
+  const dist = '1-DISTRIBUICAO';
+  const list = [
+    ...Array.from({ length: 7 }, (_, i) => make(`BARRA ${i}`, '1-HERSHEYS', 'BARRA', dist)),
+    ...Array.from({ length: 3 }, (_, i) => make(`BATATA ${i}`, '2-ART FRITAS', 'BATATA', dist)),
+    ...Array.from({ length: 4 }, (_, i) => make(`ARROZ ${i}`, '1-ALIMENTOS', 'MERCEARIA')),
+    ...Array.from({ length: 4 }, (_, i) => make(`SABAO ${i}`, '6-LIMPEZA', 'LIMPEZA')),
+  ];
+  const pages = planCatalogPdf(list);
+  assert.deepEqual(pages.map((p) => p.title), ['Hersheys', 'Art Fritas', 'Alimentos']);
+  assert.equal(pages[0].filler?.section, '1-HERSHEYS');
+  assert.equal(pages[1].filler?.section, '2-ART FRITAS');
+  assert.ok(pages[0].filler!.height >= 90 && pages[0].filler!.y + pages[0].filler!.height <= GRID.bottom);
+  // Atacado: seções pequenas continuam dividindo a página, sem imagem.
+  assert.equal(pages[2].filler, undefined);
+  assert.equal(pages[2].blocks.filter((b) => b.type === 'bar').length, 1);
+});
+
+void test('imagens das marcas: só editor salva, e só imagens enviadas pelo editor', async () => {
+  const { GET, POST, validateSectionImages } = await import('../app/api/catalog-pdf/section-images/route');
+  const url = '/api/uploads?key=images%2F0f2b6c1e-1111-4222-8333-444455556666.webp';
+  assert.deepEqual(validateSectionImages({ '1-HERSHEYS': url, '2-ART FRITAS': '' }), { '1-HERSHEYS': url });
+  assert.throws(() => validateSectionImages({ '1-HERSHEYS': 'https://evil.example/x.png' }), /botão do editor/);
+  assert.throws(() => validateSectionImages(['x']), /inválidos/);
+  const save = (body: unknown, origin = 'https://catalog.test') =>
+    POST(new Request('https://catalog.test/api/catalog-pdf/section-images', {
+      method: 'POST',
+      headers: { origin, 'content-type': 'application/json' },
+      body: JSON.stringify(body),
+    }));
+  setIdentity();
+  assert.equal((await save({ images: { '1-HERSHEYS': url } })).status, 403);
+  assert.equal((await GET()).status, 403);
+  setIdentity('admin@example.test');
+  assert.equal((await save({ images: { '1-HERSHEYS': url } }, 'https://evil.example')).status, 403);
+  assert.equal((await save({ images: { '1-HERSHEYS': url } })).status, 200);
+  assert.deepEqual(((await (await GET()).json()) as { images: unknown }).images, { '1-HERSHEYS': url });
+  assert.equal((await save({ images: { '1-HERSHEYS': '/api/uploads?key=..%2Fsecret' } })).status, 400);
+});

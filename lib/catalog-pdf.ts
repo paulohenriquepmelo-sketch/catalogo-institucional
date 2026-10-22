@@ -39,7 +39,20 @@ export type PdfPage = {
   /** Categoria do início da página (canto superior direito). */
   label: string;
   blocks: PdfBlock[];
+  /** Seção da página (só nas páginas da Distribuição, que não misturam seções). */
+  section?: string;
+  /**
+   * Espaço vazio no fim da última página de uma seção da Distribuição, onde
+   * entra a imagem da marca escolhida no editor.
+   */
+  filler?: { section: string; y: number; height: number };
 };
+
+/** Altura mínima da sobra para valer pôr a imagem da marca. */
+export const MIN_FILLER_HEIGHT = 90;
+const FILLER_GAP = 14;
+
+export const isDistribution = (department: string) => /distribui/i.test(department);
 
 const SMALL_WORDS = new Set(['de', 'da', 'do', 'das', 'dos', 'e', 'em', 'p/', 'c/']);
 const ACRONYMS = new Set(['pvc', 'eps', 'pp', 'pet', 'uht']);
@@ -80,7 +93,7 @@ function compareByPrefix(a: string, b: string) {
  * produtos por semelhança (tipo do produto, veja product-family.ts) e nome.
  */
 export function sortForCatalog(products: PdfProduct[]) {
-  const departmentRank = (d: string) => (/distribui/i.test(d) ? 0 : 1);
+  const departmentRank = (d: string) => (isDistribution(d) ? 0 : 1);
   return [...products].sort(
     (a, b) =>
       departmentRank(a.department) - departmentRank(b.department) ||
@@ -135,8 +148,8 @@ export function planCatalogPdf(products: PdfProduct[]): PdfPage[] {
   let department = '';
   let section = '';
   const sorted = sortForCatalog(products.filter((p) => p.image));
-  const newPage = (title: string, label: string): PdfPage => {
-    const created: PdfPage = { number: pages.length + 1, title, label, blocks: [] };
+  const newPage = (title: string, label: string, pageSection?: string): PdfPage => {
+    const created: PdfPage = { number: pages.length + 1, title, label, blocks: [], section: pageSection };
     pages.push(created);
     page = created;
     y = GRID.top;
@@ -161,14 +174,19 @@ export function planCatalogPdf(products: PdfProduct[]): PdfPage[] {
     const packed = packRows(group);
     const rows = packed.length;
     const newSection = first.section !== section || first.department !== department;
+    // Distribuição: cada seção (marca) começa na própria página; a sobra da
+    // última página fica para a imagem da marca. Atacado segue como antes.
+    const ownPage = isDistribution(first.department) ? first.section : undefined;
     let current = page as PdfPage | null;
-    if (!current) current = newPage(sectionTitle, categoryTitle);
+    if (!current) current = newPage(sectionTitle, categoryTitle, ownPage);
+    else if (newSection && (ownPage || current.section))
+      current = newPage(sectionTitle, categoryTitle, ownPage);
     else if (current.blocks.length) {
       // Seção pequena não ganha página só para ela (era o maior buraco do
       // PDF): entra na mesma página com uma divisória, se couberem a
       // divisória e uma fileira de produtos.
       const needed = GRID.barHeight + Math.min(rows, 1) * GRID.rowHeight;
-      if (!fits(needed)) current = newPage(sectionTitle, categoryTitle);
+      if (!fits(needed)) current = newPage(sectionTitle, categoryTitle, ownPage);
       else {
         current.blocks.push({
           type: 'bar',
@@ -193,13 +211,25 @@ export function planCatalogPdf(products: PdfProduct[]): PdfPage[] {
           y = GRID.bottom;
           return;
         }
-        current = newPage(sectionTitle, categoryTitle);
+        current = newPage(sectionTitle, categoryTitle, ownPage);
       }
       current!.blocks.push({ type: 'row', products, y });
       y += GRID.rowHeight;
     });
   }
-  pages.forEach((p, i) => i < pages.length - 1 && spreadSlack(p));
+  pages.forEach((p, i) => {
+    const next = pages[i + 1];
+    // Última página de uma seção da Distribuição: guarda a sobra para a imagem.
+    if (p.section && next?.section !== p.section) {
+      const last = p.blocks.at(-1);
+      const end = last ? last.y + blockHeight(last) : GRID.top;
+      const height = GRID.bottom - end - FILLER_GAP;
+      if (height >= MIN_FILLER_HEIGHT)
+        p.filler = { section: p.section, y: end + FILLER_GAP, height };
+      return;
+    }
+    if (next) spreadSlack(p);
+  });
   return pages;
 }
 
