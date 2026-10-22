@@ -1,10 +1,22 @@
-import { GRID, PAGE, planCatalogPdf, type PdfPage, type PdfProduct } from './catalog-pdf';
+import {
+  GRID,
+  isDistribution,
+  PAGE,
+  planCatalogPdf,
+  planContents,
+  type ContentsEntry,
+  type PdfPage,
+  type PdfProduct,
+} from './catalog-pdf';
 
-// Medidas e cores tiradas do catálogo impresso (pontos, A4).
+// Cores da marca (catálogo impresso da Laurencini) e tons de apoio.
 const NAVY = '#1e3a81';
+const NAVY_SOFT = '#b9c6e6';
 const RED = '#ed1c23';
-const CODE = '#091452';
-const TEXT = '#231f20';
+const INK = '#1b2340';
+const MUTED = '#6b7591';
+const LINE = '#dde3ef';
+const TINT = '#eef2f9';
 const WHITE = '#ffffff';
 const BASE_IMAGE_BOX = 80;
 /** Lado maior da foto no PDF: ~250 dpi no cartão, ~15 KB por foto. */
@@ -13,7 +25,7 @@ const IMAGE_PIXELS = 260;
 const PRINT_PIXELS = 600;
 const PARALLEL = 6;
 const ASSETS = '/catalog-pdf';
-const INSTAGRAM = 'distlaurencini.atacado';
+const INSTAGRAM = '@distlaurencini.atacado';
 const REGULAR = 'Poppins-Regular';
 const BOLD = 'Poppins-Bold';
 
@@ -91,17 +103,6 @@ async function loadPhotos(products: PdfProduct[], options: CatalogPdfOptions) {
   return photos;
 }
 
-function polygon(doc: Doc, points: [number, number][]) {
-  const [first, ...rest] = points;
-  let [x, y] = first;
-  const deltas = rest.map(([px, py]) => {
-    const delta: [number, number] = [px - x, py - y];
-    [x, y] = [px, py];
-    return delta;
-  });
-  doc.lines(deltas, first[0], first[1], [1, 1], 'F', true);
-}
-
 // Diminui a fonte até o texto caber (título de seção ou categoria longo).
 function fitText(doc: Doc, text: string, size: number, maxWidth: number, min = 7) {
   let current = size;
@@ -109,56 +110,94 @@ function fitText(doc: Doc, text: string, size: number, maxWidth: number, min = 7
   while (current > min && doc.getTextWidth(text) > maxWidth) doc.setFontSize((current -= 0.5));
 }
 
-function drawHeader(doc: Doc, page: PdfPage) {
-  const mid = PAGE.width / 2;
-  doc.setFillColor(RED);
-  doc.rect(0, 0, PAGE.width, 23, 'F');
-  doc.setFillColor(NAVY);
-  polygon(doc, [
-    [mid - 149, 0],
-    [mid + 149, 0],
-    [mid + 100, 38],
-    [mid - 100, 38],
-  ]);
-  doc.setTextColor(WHITE);
-  doc.setFont(BOLD, 'normal');
-  fitText(doc, page.title, 15, 190);
-  doc.text(page.title, mid, 25, { align: 'center' });
-  doc.setFont(REGULAR, 'normal');
-  fitText(doc, page.label, 10.5, mid - 165);
-  doc.text(page.label, 16, 16);
+const CONTENT_LEFT = GRID.marginX;
+const CONTENT_RIGHT = PAGE.width - GRID.marginX;
+
+/** Departamento da página (vai pequeno acima do nome da seção). */
+function pageDepartment(page: PdfPage) {
+  for (const block of page.blocks)
+    if (block.type === 'row' && block.products[0])
+      return isDistribution(block.products[0].department) ? 'DISTRIBUIÇÃO' : 'ATACADO';
+  return '';
 }
 
-function drawFooter(doc: Doc, page: PdfPage) {
+// Topo: faixa azul com departamento, seção (marca) e a categoria à direita,
+// fio vermelho embaixo.
+function drawHeader(doc: Doc, page: PdfPage) {
   doc.setFillColor(NAVY);
-  doc.rect(0, 819, PAGE.width, PAGE.height - 819, 'F');
+  doc.rect(0, 0, PAGE.width, 34, 'F');
   doc.setFillColor(RED);
-  doc.roundedRect(PAGE.width / 2 - 111, 808, 222, 40, 4, 4, 'F');
+  doc.rect(0, 34, PAGE.width, 2.5, 'F');
+  doc.rect(0, 0, 8, 34, 'F');
+  doc.setTextColor(NAVY_SOFT);
+  doc.setFont(REGULAR, 'normal');
+  doc.setFontSize(6.2);
+  doc.text(pageDepartment(page), CONTENT_LEFT, 12.5, { charSpace: 0.8 });
   doc.setTextColor(WHITE);
   doc.setFont(BOLD, 'normal');
-  doc.setFontSize(14);
-  doc.text(String(page.number).padStart(2, '0'), PAGE.width / 2, 831, { align: 'center' });
+  fitText(doc, page.title, 13, 300);
+  doc.text(page.title, CONTENT_LEFT, 26.5);
+  doc.setFont(REGULAR, 'normal');
+  fitText(doc, page.label, 8.5, 200);
+  doc.text(page.label, CONTENT_RIGHT, 22, { align: 'right' });
+}
+
+// Rodapé: número na borda externa (ímpar à direita, como na página da
+// direita do livro aberto: capa e sumário vêm antes da 01) e a marca do
+// outro lado.
+function drawFooter(doc: Doc, page: PdfPage) {
+  const outerRight = page.number % 2 === 1;
+  doc.setDrawColor(LINE);
+  doc.setLineWidth(0.6);
+  doc.line(CONTENT_LEFT, 811, CONTENT_RIGHT, 811);
+  const box = { w: 28, h: 18 };
+  const boxX = outerRight ? CONTENT_RIGHT - box.w : CONTENT_LEFT;
+  doc.setFillColor(RED);
+  doc.roundedRect(boxX, 818, box.w, box.h, 3, 3, 'F');
+  doc.setTextColor(WHITE);
+  doc.setFont(BOLD, 'normal');
+  doc.setFontSize(10);
+  doc.text(String(page.number).padStart(2, '0'), boxX + box.w / 2, 830.5, { align: 'center' });
+
+  doc.setFont(BOLD, 'normal');
+  doc.setFontSize(7.5);
+  const brand = 'Distribuidora Laurencini';
+  const brandWidth = doc.getTextWidth(brand);
   doc.setFont(REGULAR, 'normal');
   doc.setFontSize(7);
-  doc.text(INSTAGRAM, 24, 832);
+  const social = `  ·  ${INSTAGRAM}`;
+  const total = brandWidth + doc.getTextWidth(social);
+  const x = outerRight ? CONTENT_LEFT : CONTENT_RIGHT - total;
+  doc.setTextColor(NAVY);
+  doc.setFont(BOLD, 'normal');
+  doc.setFontSize(7.5);
+  doc.text(brand, x, 830);
+  doc.setTextColor(MUTED);
+  doc.setFont(REGULAR, 'normal');
+  doc.setFontSize(7);
+  doc.text(social, x + brandWidth, 830);
 }
 
+// Divisória de categoria: traço vermelho, título e fio até a margem.
 function drawBar(doc: Doc, title: string, y: number) {
-  const mid = PAGE.width / 2;
-  const top = y + 6;
+  const top = y + 14;
   doc.setFillColor(RED);
-  doc.rect(0, top, PAGE.width, 10, 'F');
-  doc.setFillColor(NAVY);
-  polygon(doc, [
-    [mid - 150, top],
-    [mid + 150, top],
-    [mid + 101, top + 25],
-    [mid - 101, top + 25],
-  ]);
-  doc.setTextColor(WHITE);
-  doc.setFont(REGULAR, 'normal');
-  fitText(doc, title, 11.5, 190);
-  doc.text(title, mid, top + 17, { align: 'center' });
+  doc.rect(CONTENT_LEFT, top, 3, 15, 'F');
+  doc.setTextColor(NAVY);
+  doc.setFont(BOLD, 'normal');
+  fitText(doc, title, 11, 380);
+  doc.text(title, CONTENT_LEFT + 9, top + 11.2);
+  const end = CONTENT_LEFT + 9 + doc.getTextWidth(title) + 10;
+  doc.setDrawColor(LINE);
+  doc.setLineWidth(0.6);
+  doc.line(end, top + 7.5, CONTENT_RIGHT, top + 7.5);
+}
+
+/** "CX 12X01LT": unidade e embalagem master, como vêm do ERP. */
+function packagingLabel(product: PdfProduct) {
+  const d = product.details;
+  if (!d?.masterPackaging) return '';
+  return [d.masterUnit, d.masterPackaging].filter(Boolean).join(' ');
 }
 
 function drawProduct(
@@ -170,59 +209,163 @@ function drawProduct(
   // Fileira apertada (veja squeezeOneMoreRow): a foto diminui o que faltou.
   rowHeight: number = GRID.rowHeight,
 ) {
-  const IMAGE_BOX = BASE_IMAGE_BOX - (GRID.rowHeight - rowHeight);
+  const imageBox = BASE_IMAGE_BOX - (GRID.rowHeight - rowHeight);
   const cell = (PAGE.width - GRID.marginX * 2) / GRID.columns;
-  const center = x + cell / 2;
+  // Cartão em volta do mesmo espaço de antes: a foto mantém o tamanho.
+  const card = { x: x + 2, y: y + 1, w: cell - 4, h: rowHeight - 3 };
+  const pad = 6;
+  const inner = card.w - pad * 2;
+  doc.setDrawColor(LINE);
+  doc.setLineWidth(0.6);
+  doc.setFillColor(WHITE);
+  doc.roundedRect(card.x, card.y, card.w, card.h, 5, 5, 'FD');
+
   const top = y + 6;
+  const center = card.x + card.w / 2;
   if (photo) {
-    const scale = Math.min(IMAGE_BOX / photo.width, IMAGE_BOX / photo.height);
+    const scale = Math.min(imageBox / photo.width, imageBox / photo.height);
     const w = photo.width * scale;
     const h = photo.height * scale;
     doc.addImage(
       photo.data,
       'JPEG',
       center - w / 2,
-      top + (IMAGE_BOX - h) / 2,
+      top + (imageBox - h) / 2,
       w,
       h,
       `p${product.id}`,
       'FAST',
     );
   } else {
-    doc.setDrawColor('#d6deec');
-    doc.rect(center - IMAGE_BOX / 2, top, IMAGE_BOX, IMAGE_BOX, 'S');
-    doc.setTextColor('#8a94a8');
+    doc.setFillColor(TINT);
+    doc.roundedRect(card.x + 5, top, card.w - 10, imageBox, 3, 3, 'F');
+    doc.setTextColor(MUTED);
     doc.setFont(REGULAR, 'normal');
     doc.setFontSize(6);
-    doc.text('Foto indisponível', center, top + IMAGE_BOX / 2, { align: 'center' });
+    doc.text('Foto indisponível', center, top + imageBox / 2, { align: 'center' });
   }
-  doc.setTextColor(CODE);
+
+  const left = card.x + pad;
+  const codeY = top + imageBox + 11;
+  doc.setTextColor(NAVY);
   doc.setFont(BOLD, 'normal');
-  doc.setFontSize(10.5);
-  doc.text(product.code, center, top + IMAGE_BOX + 13, { align: 'center' });
-  doc.setTextColor(TEXT);
+  doc.setFontSize(9.5);
+  doc.text(product.code, left, codeY);
+  const codeWidth = doc.getTextWidth(product.code);
+
+  const packaging = packagingLabel(product);
+  if (packaging) {
+    doc.setFont(REGULAR, 'normal');
+    fitText(doc, packaging, 5.4, inner - codeWidth - 10, 4.2);
+    const w = doc.getTextWidth(packaging) + 6;
+    const pillX = card.x + card.w - pad - w;
+    doc.setFillColor(TINT);
+    doc.roundedRect(pillX, codeY - 7, w, 9, 2, 2, 'F');
+    doc.setTextColor(MUTED);
+    doc.text(packaging, pillX + 3, codeY - 0.8);
+  }
+
+  doc.setTextColor(INK);
   doc.setFont(BOLD, 'normal');
-  doc.setFontSize(5.8);
-  const lines = (doc.splitTextToSize(product.name, cell - 10) as string[]).slice(0, 3);
-  doc.text(lines, center, top + IMAGE_BOX + 21, { align: 'center', lineHeightFactor: 1.15 });
+  doc.setFontSize(5.6);
+  const lines = (doc.splitTextToSize(product.name, inner) as string[]).slice(0, 3);
+  doc.text(lines, left, codeY + 8.5, { lineHeightFactor: 1.15 });
 }
 
-// Imagem da marca na sobra da última página da seção: inteira, centralizada.
-function drawFiller(doc: Doc, image: Photo, area: { y: number; height: number }, key: string) {
-  const width = PAGE.width - GRID.marginX * 2;
-  const scale = Math.min(width / image.width, area.height / image.height);
-  const w = image.width * scale;
-  const h = image.height * scale;
-  doc.addImage(
-    image.data,
-    'JPEG',
-    (PAGE.width - w) / 2,
-    area.y + (area.height - h) / 2,
-    w,
-    h,
-    key,
-    'FAST',
+// Sumário: departamento, seção (com página) e categorias (com pontilhado),
+// em duas colunas.
+function drawContents(doc: Doc, entries: ContentsEntry[], title: string) {
+  doc.setFillColor(NAVY);
+  doc.rect(0, 0, PAGE.width, 112, 'F');
+  doc.setFillColor(RED);
+  doc.rect(0, 112, PAGE.width, 3, 'F');
+  doc.rect(0, 0, 8, 112, 'F');
+  doc.setTextColor(WHITE);
+  doc.setFont(BOLD, 'normal');
+  doc.setFontSize(26);
+  doc.text('Sumário', CONTENT_LEFT, 70);
+  doc.setTextColor(NAVY_SOFT);
+  doc.setFont(REGULAR, 'normal');
+  doc.setFontSize(9);
+  doc.text(
+    title ? `Catálogo ${title} · Distribuidora Laurencini` : 'Catálogo de produtos · Distribuidora Laurencini',
+    CONTENT_LEFT,
+    90,
   );
+
+  const gap = 28;
+  const width = (CONTENT_RIGHT - CONTENT_LEFT - gap) / 2;
+  const heightOf = (e: ContentsEntry) =>
+    e.level === 'department' ? 30 : e.level === 'section' ? 30 : 15;
+  const startY = 152;
+  const total = entries.reduce((sum, e) => sum + heightOf(e), 0);
+  let column = 0;
+  let y = startY;
+  entries.forEach((entry, i) => {
+    // Muda de coluna na metade, sempre antes de um departamento ou seção.
+    if (
+      column === 0 &&
+      i > 0 &&
+      entry.level !== 'category' &&
+      y - startY + heightOf(entry) > total / 2
+    ) {
+      column = 1;
+      y = startY;
+    }
+    const x = CONTENT_LEFT + column * (width + gap);
+    const right = x + width;
+    const page = String(entry.page).padStart(2, '0');
+    if (entry.level === 'department') {
+      if (y > startY) y += 8;
+      doc.setTextColor(RED);
+      doc.setFont(BOLD, 'normal');
+      doc.setFontSize(7.5);
+      doc.text(entry.title.toUpperCase(), x, y, { charSpace: 1 });
+      doc.setDrawColor(LINE);
+      doc.setLineWidth(0.6);
+      doc.line(x, y + 5, right, y + 5);
+      y += 20;
+      return;
+    }
+    if (entry.level === 'section') {
+      // Respiro antes da seção (menos logo abaixo do departamento).
+      if (entries[i - 1]?.level === 'category') y += 10;
+      doc.setTextColor(NAVY);
+      doc.setFont(BOLD, 'normal');
+      fitText(doc, entry.title, 10.5, width - 30);
+      doc.text(entry.title, x, y);
+      doc.text(page, right, y, { align: 'right' });
+      y += 18;
+      return;
+    }
+    doc.setTextColor(INK);
+    doc.setFont(REGULAR, 'normal');
+    fitText(doc, entry.title, 8.5, width - 50);
+    doc.text(entry.title, x + 10, y);
+    const textEnd = x + 10 + doc.getTextWidth(entry.title) + 4;
+    doc.setTextColor(MUTED);
+    const pageWidth = doc.getTextWidth(page);
+    doc.text(page, right, y, { align: 'right' });
+    doc.setFontSize(6);
+    const dot = doc.getTextWidth('. ');
+    const dots = Math.max(0, Math.floor((right - pageWidth - 4 - textEnd) / dot));
+    if (dots) doc.text('. '.repeat(dots), textEnd, y);
+    y += heightOf(entry);
+  });
+}
+
+// Imagem da marca na sobra da última página da seção: de uma borda à outra
+// da folha, sem distorcer. Se for mais alta que a sobra, corta o excesso de
+// cima e de baixo (fica o meio); se for mais baixa, fica centralizada.
+function drawFiller(doc: Doc, image: Photo, area: { y: number; height: number }, key: string) {
+  const w = PAGE.width;
+  const h = (image.height * w) / image.width;
+  doc.saveGraphicsState();
+  doc.rect(0, area.y, w, area.height, null);
+  doc.clip();
+  doc.discardPath();
+  doc.addImage(image.data, 'JPEG', 0, area.y + (area.height - h) / 2, w, h, key, 'FAST');
+  doc.restoreGraphicsState();
 }
 
 function drawCover(doc: Doc, cover: Uint8Array, title: string, count: number) {
@@ -278,8 +421,11 @@ export async function renderCatalogPdf(products: PdfProduct[], options: CatalogP
   }
 
   drawCover(doc, new Uint8Array(cover), options.title ?? '', withPhoto.length);
+  const pages = planCatalogPdf(withPhoto);
+  doc.addPage();
+  drawContents(doc, planContents(pages), options.title ?? '');
   const cell = (PAGE.width - GRID.marginX * 2) / GRID.columns;
-  for (const page of planCatalogPdf(withPhoto)) {
+  for (const page of pages) {
     doc.addPage();
     drawHeader(doc, page);
     for (const block of page.blocks) {
