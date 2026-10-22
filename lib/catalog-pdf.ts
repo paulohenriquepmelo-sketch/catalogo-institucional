@@ -25,6 +25,41 @@ export const GRID = {
   minRowHeight: 104,
 } as const;
 
+/** Produtos por fileira: 5 (padrão, igual ao impresso), 4 ou 3 com fotos maiores. */
+export type PdfColumns = 3 | 4 | 5;
+export const PDF_COLUMNS: PdfColumns[] = [5, 4, 3];
+/**
+ * Medidas da fileira por número de colunas. Com menos colunas a célula fica
+ * mais larga e a foto cresce até a largura da célula (menos o respiro); o
+ * texto cresce um pouco (`textScale`). A altura da fileira se ajusta à área
+ * da página para caber um número inteiro de fileiras, sem faixa branca no
+ * fim. `pixels` é o lado máximo da foto no PDF de tela, maior quando a foto
+ * cresce, mas limitado para o arquivo não passar dos 90 MB que o servidor
+ * aceita. Com 5 colunas as medidas são fixas (as do impresso).
+ */
+export type PdfGrid = {
+  columns: PdfColumns;
+  rowHeight: number;
+  minRowHeight: number;
+  imageBox: number;
+  textScale: number;
+  pixels: number;
+};
+/** Fileira mais alta (foto do tamanho da célula) e espaço do código e nome. */
+const LARGER: Record<3 | 4, { maxRow: number; text: number; textScale: number; pixels: number }> = {
+  4: { maxRow: 152, text: 48, textScale: 1.1, pixels: 340 },
+  3: { maxRow: 203, text: 54, textScale: 1.25, pixels: 400 },
+};
+export function gridFor(columns: PdfColumns = 5, area: PdfArea = DEFAULT_AREA): PdfGrid {
+  if (columns === 5)
+    return { columns, rowHeight: GRID.rowHeight, minRowHeight: GRID.minRowHeight, imageBox: 80, textScale: 1, pixels: 260 };
+  const { maxRow, text, textScale, pixels } = LARGER[columns];
+  const height = area.bottom - area.top;
+  const rows = Math.max(1, Math.round(height / maxRow));
+  const rowHeight = Math.min(maxRow, Math.floor(height / rows));
+  return { columns, rowHeight, minRowHeight: rowHeight - 18, imageBox: rowHeight - text, textScale, pixels };
+}
+
 export type PdfProduct = Pick<
   Product,
   'id' | 'code' | 'name' | 'department' | 'section' | 'category' | 'brand' | 'image' | 'details'
@@ -106,13 +141,13 @@ export function sortForCatalog(products: PdfProduct[]) {
 }
 
 /**
- * Fileiras de uma categoria: sempre 5 produtos por fileira, na ordem por
+ * Fileiras de uma categoria: sempre 5 (ou 4, ou 3) produtos por fileira, na ordem por
  * semelhança (só a última da categoria pode ficar incompleta). Partir o
  * tipo em fileiras próprias deixava fileiras de 3 e 4 no meio da página.
  */
-export function packRows(group: PdfProduct[]) {
+export function packRows(group: PdfProduct[], columns: number = GRID.columns) {
   const rows: PdfProduct[][] = [];
-  for (let i = 0; i < group.length; i += GRID.columns) rows.push(group.slice(i, i + GRID.columns));
+  for (let i = 0; i < group.length; i += columns) rows.push(group.slice(i, i + columns));
   return rows;
 }
 
@@ -120,36 +155,39 @@ export function packRows(group: PdfProduct[]) {
  * Aperta as fileiras da página para caber mais uma (a última de uma
  * categoria, com 1 ou 2 produtos). Devolve false se nem apertando couber.
  */
-function squeezeOneMoreRow(page: PdfPage, area: PdfArea) {
+function squeezeOneMoreRow(page: PdfPage, area: PdfArea, grid: PdfGrid) {
   const rows = page.blocks.filter((b) => b.type === 'row').length + 1;
   const bars = page.blocks.filter((b) => b.type === 'bar').length;
   const height = Math.floor((area.bottom - area.top - bars * GRID.barHeight) / rows);
-  if (height < GRID.minRowHeight) return null;
+  if (height < grid.minRowHeight) return null;
   let y = area.top;
   for (const block of page.blocks) {
     block.y = y;
     if (block.type === 'bar') y += GRID.barHeight;
     else {
-      block.height = Math.min(height, GRID.rowHeight);
+      block.height = Math.min(height, grid.rowHeight);
       y += block.height;
     }
   }
-  return { y, height: Math.min(height, GRID.rowHeight) };
+  return { y, height: Math.min(height, grid.rowHeight) };
 }
 
-const blockHeight = (block: PdfBlock) =>
-  block.type === 'bar' ? GRID.barHeight : (block.height ?? GRID.rowHeight);
+const blockHeight = (block: PdfBlock, grid: PdfGrid) =>
+  block.type === 'bar' ? GRID.barHeight : (block.height ?? grid.rowHeight);
 
 /** Páginas de produtos (a capa não conta: a primeira página de produtos é a 01). */
 /** Faixa vertical da página onde entram os produtos (muda com o layout). */
 export type PdfArea = { top: number; bottom: number };
+const DEFAULT_AREA: PdfArea = { top: GRID.top, bottom: GRID.bottom };
 /** Área dos produtos no layout modelo (cabeçalho e título são mais altos). */
 export const MODELO_AREA: PdfArea = { top: 134, bottom: 786 };
 
 export function planCatalogPdf(
   products: PdfProduct[],
-  area: PdfArea = { top: GRID.top, bottom: GRID.bottom },
+  area: PdfArea = DEFAULT_AREA,
+  columns: PdfColumns = 5,
 ): PdfPage[] {
+  const grid = gridFor(columns, area);
   const pages: PdfPage[] = [];
   let page: PdfPage | null = null;
   let y = 0;
@@ -179,7 +217,7 @@ export function planCatalogPdf(
 
     const sectionTitle = displayName(first.section);
     const categoryTitle = displayName(first.category);
-    const packed = packRows(group);
+    const packed = packRows(group, grid.columns);
     const rows = packed.length;
     const newSection = first.section !== section || first.department !== department;
     // Distribuição: cada seção (marca) começa na própria página; a sobra da
@@ -193,7 +231,7 @@ export function planCatalogPdf(
       // Seção pequena não ganha página só para ela (era o maior buraco do
       // PDF): entra na mesma página com uma divisória, se couberem a
       // divisória e uma fileira de produtos.
-      const needed = GRID.barHeight + Math.min(rows, 1) * GRID.rowHeight;
+      const needed = GRID.barHeight + Math.min(rows, 1) * grid.rowHeight;
       if (!fits(needed)) current = newPage(sectionTitle, categoryTitle, ownPage);
       else {
         current.blocks.push({
@@ -207,12 +245,12 @@ export function planCatalogPdf(
     department = first.department;
     section = first.section;
     packed.forEach((products, r) => {
-      if (!fits(GRID.rowHeight)) {
+      if (!fits(grid.rowHeight)) {
         // Última fileira da categoria com 1 ou 2 produtos: aperta a página em
         // vez de deixá-los sozinhos na seguinte.
         const squeezed =
           r === packed.length - 1 && r > 0 && products.length <= 2
-            ? squeezeOneMoreRow(current!, area)
+            ? squeezeOneMoreRow(current!, area, grid)
             : null;
         if (squeezed) {
           current!.blocks.push({ type: 'row', products, y: squeezed.y, height: squeezed.height });
@@ -222,7 +260,7 @@ export function planCatalogPdf(
         current = newPage(sectionTitle, categoryTitle, ownPage);
       }
       current!.blocks.push({ type: 'row', products, y });
-      y += GRID.rowHeight;
+      y += grid.rowHeight;
     });
   }
   pages.forEach((p, i) => {
@@ -230,13 +268,13 @@ export function planCatalogPdf(
     // Última página de uma seção da Distribuição: guarda a sobra para a imagem.
     if (p.section && next?.section !== p.section) {
       const last = p.blocks.at(-1);
-      const end = last ? last.y + blockHeight(last) : area.top;
+      const end = last ? last.y + blockHeight(last, grid) : area.top;
       const height = area.bottom - end - FILLER_GAP;
       if (height >= MIN_FILLER_HEIGHT)
         p.filler = { section: p.section, y: end + FILLER_GAP, height };
       return;
     }
-    if (next) spreadSlack(p, area);
+    if (next) spreadSlack(p, area, grid);
   });
   return pages;
 }
@@ -246,12 +284,12 @@ export function planCatalogPdf(
  * vez de deixar uma faixa branca antes do rodapé. Página que terminou porque
  * o conteúdo acabou (sobra grande) fica alinhada em cima.
  */
-function spreadSlack(page: PdfPage, area: PdfArea) {
+function spreadSlack(page: PdfPage, area: PdfArea, grid: PdfGrid) {
   const last = page.blocks.at(-1);
   if (!last || page.blocks.length < 2) return;
-  const end = last.y + blockHeight(last);
+  const end = last.y + blockHeight(last, grid);
   const slack = area.bottom - end;
-  if (slack <= 0 || slack >= GRID.barHeight + GRID.rowHeight) return;
+  if (slack <= 0 || slack >= GRID.barHeight + grid.rowHeight) return;
   const gap = Math.min(slack / (page.blocks.length - 1), 40);
   page.blocks.forEach((block, i) => {
     block.y += gap * i;

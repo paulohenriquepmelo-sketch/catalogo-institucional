@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { displayName, GRID, MODELO_AREA, planCatalogPdf, planContents, sortForCatalog, type PdfProduct } from '../lib/catalog-pdf';
+import { displayName, GRID, gridFor, MODELO_AREA, planCatalogPdf, planContents, sortForCatalog, type PdfProduct } from '../lib/catalog-pdf';
 import { GET as getPdf, POST as postPdf } from '../app/api/catalog-pdf/route';
 import { env, setIdentity } from './runtime';
 
@@ -35,6 +35,35 @@ void test('catalog pdf: distribution first, then ERP numbering, then name', () =
     sortForCatalog(list).map((p) => p.name),
     ['Y', 'A', 'B', 'Z'],
   );
+});
+
+void test('catalog pdf: 4 e 3 produtos por fileira, fotos maiores, nada passa do rodapé', () => {
+  const list = [
+    ...Array.from({ length: 23 }, (_, i) => make(`BALA ${i}`, '2-BOMBONIERI', '2.1-BALAS & DROPS')),
+    ...Array.from({ length: 7 }, (_, i) => make(`CHICLE ${i}`, '2-BOMBONIERI', '2.2-CHICLETES')),
+    ...Array.from({ length: 41 }, (_, i) => make(`VINHO ${i}`, '4-BEBIDAS ALCOOLICAS', '4.3-VINHOS')),
+  ];
+  assert.ok(gridFor(4).imageBox > gridFor(5).imageBox && gridFor(3).imageBox > gridFor(4).imageBox);
+  // A altura da fileira fecha um número inteiro de fileiras na página.
+  assert.deepEqual([gridFor(4).rowHeight, gridFor(3).rowHeight], [150, 187]);
+  assert.deepEqual([gridFor(4, MODELO_AREA).rowHeight, gridFor(3, MODELO_AREA).rowHeight], [152, 203]);
+  for (const columns of [4, 3] as const)
+    for (const area of [{ top: GRID.top, bottom: GRID.bottom }, MODELO_AREA]) {
+      const grid = gridFor(columns, area);
+      // A foto e o texto cabem na largura da célula.
+      assert.ok(grid.imageBox <= (595.28 - GRID.marginX * 2) / columns - 20);
+      const pages = planCatalogPdf(list, area, columns);
+      const shown = pages.flatMap((p) => p.blocks.flatMap((b) => (b.type === 'row' ? b.products : [])));
+      assert.equal(shown.length, list.length);
+      assert.equal(new Set(shown.map((p) => p.id)).size, list.length);
+      for (const page of pages)
+        for (const block of page.blocks) {
+          const height = block.type === 'bar' ? GRID.barHeight : (block.height ?? grid.rowHeight);
+          assert.ok(block.y >= area.top && block.y + height <= area.bottom + 0.001);
+          if (block.type === 'row') assert.ok(block.products.length <= columns);
+        }
+      assert.ok(pages.length > planCatalogPdf(list, area, 5).length);
+    }
 });
 
 void test('catalog pdf: small sections share the page, full pages spread the slack, nothing below the footer', () => {

@@ -1,8 +1,11 @@
 import {
   GRID,
+  gridFor,
   isDistribution,
   PAGE,
   planCatalogPdf,
+  type PdfColumns,
+  type PdfGrid,
   MODELO_AREA,
   planContents,
   type ContentsEntry,
@@ -22,10 +25,9 @@ const INK = '#1b2340';
 const MUTED = '#6b7591';
 const LINE = '#dde3ef';
 const TINT = '#eef2f9';
-const BASE_IMAGE_BOX = 80;
-/** Lado maior da foto no PDF: ~250 dpi no cartão, ~15 KB por foto. */
+/** Lado maior da foto (imagens das marcas usam o próprio limite; produtos, o da grade). */
 const IMAGE_PIXELS = 260;
-/** Versão para editar e imprimir (CorelDRAW): ~540 dpi no cartão. */
+/** Versão para editar e imprimir (CorelDRAW): ~540 dpi no cartão de 5 por fileira. */
 const PRINT_PIXELS = 600;
 const PARALLEL = 6;
 const ASSETS = '/catalog-pdf';
@@ -38,6 +40,8 @@ export type CatalogPdfLayout = 'classico' | 'moderno' | 'modelo';
 export type CatalogPdfOptions = {
   /** Clássico (o do impresso, padrão) ou moderno (cartões e sumário). */
   layout?: CatalogPdfLayout;
+  /** Produtos por fileira: 5 (padrão), 4 ou 3 com fotos maiores. */
+  columns?: PdfColumns;
   /** Fotos em alta para gráfica e edição no CorelDRAW (arquivo bem maior). */
   print?: boolean;
   /** Nome da seleção na capa (segmento, marca, busca). Vazio = catálogo completo. */
@@ -96,14 +100,16 @@ async function loadPhoto(
   }
 }
 
-async function loadPhotos(products: PdfProduct[], options: CatalogPdfOptions) {
+async function loadPhotos(products: PdfProduct[], options: CatalogPdfOptions, grid: PdfGrid) {
+  // Foto maior com menos colunas; para gráfica já vai em alta em qualquer grade.
+  const limit = options.print ? PRINT_PIXELS : grid.pixels;
   const photos = new Map<number, Photo | null>();
   let next = 0;
   let done = 0;
   const worker = async () => {
     while (next < products.length) {
       const product = products[next++];
-      photos.set(product.id, await loadPhoto(product.image, !!options.print, options.signal));
+      photos.set(product.id, await loadPhoto(product.image, !!options.print, options.signal, limit));
       options.onProgress?.(++done, products.length);
     }
   };
@@ -187,11 +193,13 @@ function drawProduct(
   photo: Photo | null,
   x: number,
   y: number,
+  grid: PdfGrid,
   // Fileira apertada (veja squeezeOneMoreRow): a foto diminui o que faltou.
-  rowHeight: number = GRID.rowHeight,
+  rowHeight: number = grid.rowHeight,
 ) {
-  const IMAGE_BOX = BASE_IMAGE_BOX - (GRID.rowHeight - rowHeight);
-  const cell = (PAGE.width - GRID.marginX * 2) / GRID.columns;
+  const IMAGE_BOX = grid.imageBox - (grid.rowHeight - rowHeight);
+  const cell = (PAGE.width - GRID.marginX * 2) / grid.columns;
+  const s = grid.textScale;
   const center = x + cell / 2;
   const top = y + 6;
   if (photo) {
@@ -218,13 +226,13 @@ function drawProduct(
   }
   doc.setTextColor(CODE);
   doc.setFont(BOLD, 'normal');
-  doc.setFontSize(10.5);
-  doc.text(product.code, center, top + IMAGE_BOX + 13, { align: 'center' });
+  doc.setFontSize(10.5 * s);
+  doc.text(product.code, center, top + IMAGE_BOX + 13 * s, { align: 'center' });
   doc.setTextColor(TEXT);
   doc.setFont(BOLD, 'normal');
-  doc.setFontSize(5.8);
+  doc.setFontSize(5.8 * s);
   const lines = (doc.splitTextToSize(product.name, cell - 10) as string[]).slice(0, 3);
-  doc.text(lines, center, top + IMAGE_BOX + 21, { align: 'center', lineHeightFactor: 1.15 });
+  doc.text(lines, center, top + IMAGE_BOX + 21 * s, { align: 'center', lineHeightFactor: 1.15 });
 }
 
 // ---- Layout moderno: faixa reta, cartões, embalagem e sumário. ----
@@ -325,11 +333,13 @@ function drawProductModern(
   photo: Photo | null,
   x: number,
   y: number,
+  grid: PdfGrid,
   // Fileira apertada (veja squeezeOneMoreRow): a foto diminui o que faltou.
-  rowHeight: number = GRID.rowHeight,
+  rowHeight: number = grid.rowHeight,
 ) {
-  const imageBox = BASE_IMAGE_BOX - (GRID.rowHeight - rowHeight);
-  const cell = (PAGE.width - GRID.marginX * 2) / GRID.columns;
+  const imageBox = grid.imageBox - (grid.rowHeight - rowHeight);
+  const cell = (PAGE.width - GRID.marginX * 2) / grid.columns;
+  const s = grid.textScale;
   // Cartão em volta do mesmo espaço de antes: a foto mantém o tamanho.
   const card = { x: x + 2, y: y + 1, w: cell - 4, h: rowHeight - 3 };
   const pad = 6;
@@ -365,30 +375,30 @@ function drawProductModern(
   }
 
   const left = card.x + pad;
-  const codeY = top + imageBox + 11;
+  const codeY = top + imageBox + 11 * s;
   doc.setTextColor(NAVY);
   doc.setFont(BOLD, 'normal');
-  doc.setFontSize(9.5);
+  doc.setFontSize(9.5 * s);
   doc.text(product.code, left, codeY);
   const codeWidth = doc.getTextWidth(product.code);
 
   const packaging = packagingLabel(product);
   if (packaging) {
     doc.setFont(REGULAR, 'normal');
-    fitText(doc, packaging, 5.4, inner - codeWidth - 10, 4.2);
+    fitText(doc, packaging, 5.4 * s, inner - codeWidth - 10, 4.2);
     const w = doc.getTextWidth(packaging) + 6;
     const pillX = card.x + card.w - pad - w;
     doc.setFillColor(TINT);
-    doc.roundedRect(pillX, codeY - 7, w, 9, 2, 2, 'F');
+    doc.roundedRect(pillX, codeY - 7 * s, w, 9 * s, 2, 2, 'F');
     doc.setTextColor(MUTED);
-    doc.text(packaging, pillX + 3, codeY - 0.8);
+    doc.text(packaging, pillX + 3, codeY - 0.8 * s);
   }
 
   doc.setTextColor(INK);
   doc.setFont(BOLD, 'normal');
-  doc.setFontSize(5.6);
+  doc.setFontSize(5.6 * s);
   const lines = (doc.splitTextToSize(product.name, inner) as string[]).slice(0, 3);
-  doc.text(lines, left, codeY + 8.5, { lineHeightFactor: 1.15 });
+  doc.text(lines, left, codeY + 8.5 * s, { lineHeightFactor: 1.15 });
 }
 
 // Sumário: departamento, seção (com página) e categorias (com pontilhado),
@@ -661,7 +671,9 @@ export async function renderCatalogPdf(products: PdfProduct[], options: CatalogP
     fetchBytes(`${ASSETS}/Poppins-Bold.ttf`, options.signal),
     fetchBytes(`${ASSETS}/capa.jpg`, options.signal),
   ]);
-  const photos = await loadPhotos(withPhoto, options);
+  const modelo = options.layout === 'modelo';
+  const grid = gridFor(options.columns, modelo ? MODELO_AREA : undefined);
+  const photos = await loadPhotos(withPhoto, options, grid);
   options.signal?.throwIfAborted();
 
   // Só as fontes usadas (Poppins): sem isso o jsPDF declara as 14 fontes
@@ -686,9 +698,8 @@ export async function renderCatalogPdf(products: PdfProduct[], options: CatalogP
   }
 
   drawCover(doc, new Uint8Array(cover), options.title ?? '', withPhoto.length);
-  const modelo = options.layout === 'modelo';
   const modern = options.layout === 'moderno' || modelo;
-  const pages = planCatalogPdf(withPhoto, modelo ? MODELO_AREA : undefined);
+  const pages = planCatalogPdf(withPhoto, modelo ? MODELO_AREA : undefined, grid.columns);
   const modeloAssets: ModeloAssets | null = modelo
     ? {
         background: new Uint8Array(await fetchBytes(`${ASSETS}/fundo-modelo.jpg`, options.signal)),
@@ -707,7 +718,7 @@ export async function renderCatalogPdf(products: PdfProduct[], options: CatalogP
   const bar = modelo ? (d: Doc, title: string, y: number) => drawTagModelo(d, title, y + 12) : modern ? drawBarModern : drawBar;
   const product = modern ? drawProductModern : drawProduct;
   const footer = modelo ? drawFooterModelo : modern ? drawFooterModern : drawFooter;
-  const cell = (PAGE.width - GRID.marginX * 2) / GRID.columns;
+  const cell = (PAGE.width - GRID.marginX * 2) / grid.columns;
   for (const page of pages) {
     doc.addPage();
     header(doc, page);
@@ -716,13 +727,14 @@ export async function renderCatalogPdf(products: PdfProduct[], options: CatalogP
       else
         block.products.forEach((item, i) => {
           // Linha incompleta fica centralizada, como no impresso.
-          const offset = ((GRID.columns - block.products.length) * cell) / 2;
+          const offset = ((grid.columns - block.products.length) * cell) / 2;
           product(
             doc,
             item,
             photos.get(item.id) ?? null,
             GRID.marginX + offset + i * cell,
             block.y,
+            grid,
             block.height,
           );
         });
