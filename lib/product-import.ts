@@ -432,13 +432,13 @@ export function previewImages(
     if (
       !/\.(png|jpe?g|webp|gif)$/i.test(file.name) ||
       file.size < 12 ||
-      file.size > 5 * 1024 * 1024
+      file.size > 25 * 1024 * 1024
     )
       return {
         file,
         product,
         action: 'error',
-        note: 'Use PNG, JPEG, WebP ou GIF de até 5 MB.',
+        note: 'Use PNG, JPEG, WebP ou GIF de até 25 MB.',
       };
     if (!product)
       return {
@@ -457,15 +457,30 @@ export function previewImages(
         : 'Pronto para vincular.',
     };
   });
-  const counts = new Map<string, number>();
-  for (const row of rows)
-    if (row.product && row.action !== 'error')
-      counts.set(row.product.code, (counts.get(row.product.code) ?? 0) + 1);
-  for (const row of rows)
-    if (row.product && (counts.get(row.product.code) ?? 0) > 1) {
-      row.action = 'error';
-      row.note =
-        'Mais de uma imagem para este código. Selecione apenas a imagem principal.';
+  // Várias fotos do mesmo código (123.jpg, 123_verso.jpg...): fica uma só,
+  // a de nome igual ao código ou, se não houver, a primeira em ordem
+  // alfabética. As outras são puladas, não viram erro.
+  const chosen = new Map<string, ImagePreview>();
+  const stem = (row: ImagePreview) => row.file.name.replace(/\.[^.]+$/, '').trim();
+  for (const row of rows) {
+    if (!row.product || row.action === 'error') continue;
+    const current = chosen.get(row.product.code);
+    const exact = (r: ImagePreview) => stem(r) === r.product!.code;
+    if (
+      !current ||
+      (exact(row) && !exact(current)) ||
+      (exact(row) === exact(current) &&
+        row.file.name.localeCompare(current.file.name, 'pt-BR') < 0)
+    )
+      chosen.set(row.product.code, row);
+  }
+  for (const row of rows) {
+    if (!row.product || row.action === 'error') continue;
+    const first = chosen.get(row.product.code)!;
+    if (first !== row) {
+      row.action = 'skip';
+      row.note = `Outra foto do mesmo código foi escolhida (${first.file.name}).`;
     }
+  }
   return rows;
 }

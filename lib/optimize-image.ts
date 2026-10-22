@@ -3,6 +3,7 @@ import {
   imageDimensions,
   MAX_IMAGE_BYTES,
   MAX_IMAGE_EDGE,
+  MAX_SOURCE_BYTES,
   TARGET_IMAGE_BYTES,
   isProductFramed,
   productContentBox,
@@ -27,8 +28,8 @@ export async function optimizeImage(
   source: File,
   { product = false }: OptimizeOptions = {},
 ): Promise<OptimizedImage> {
-  if (source.size > MAX_IMAGE_BYTES || source.size < 12)
-    throw new Error('Envie uma imagem de até 5 MB.');
+  if (source.size > MAX_SOURCE_BYTES || source.size < 12)
+    throw new Error('Envie uma imagem de até 25 MB.');
   const info = inspectImage(new Uint8Array(await source.arrayBuffer()));
   imageDimensions(info.width, info.height);
   if (info.animated)

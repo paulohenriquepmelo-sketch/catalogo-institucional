@@ -140,9 +140,9 @@ void test('small WebP is not re-encoded; animations and huge sources fail before
   await assert.rejects(
     () =>
       optimizeImage(
-        new File([new Uint8Array(5 * 1024 * 1024 + 1)], 'huge.png'),
+        new File([new Uint8Array(25 * 1024 * 1024 + 1)], 'huge.png'),
       ),
-    /5 MB/,
+    /25 MB/,
   );
   const summary = optimizationSummary({ ...converted, originalBytes: 1000 });
   assert.match(summary, /% menor/);
