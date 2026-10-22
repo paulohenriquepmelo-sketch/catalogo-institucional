@@ -151,3 +151,38 @@ void test('preview: rows equal to the saved product are skipped, changed rows st
   assert.equal(single(line('OK-1', 'PRODUTO OK-1', 'N')).action, 'update');
   assert.equal(single(line('OK-1B', 'NOVO')).action, 'new');
 });
+
+void test('Expositores/Promocional: rows are ignored in preview and import', async () => {
+  const { previewProducts, ignoredCategory } = await import('../lib/product-import');
+  assert.equal(ignoredCategory('EXPOSITORES/PROMOCIONAL'), true);
+  assert.equal(ignoredCategory('Expositor'), true);
+  assert.equal(ignoredCategory('CHOCOLATES'), false);
+  setIdentity('admin@example.test');
+  const { config } = await getConfig();
+  const path = config.taxonomy[0];
+  const brand = config.brands[0].name;
+  const preview = previewProducts(
+    [
+      ['Código', 'Descrição', 'Descrição do departamento', 'Descrição da seção', 'Nome da categoria', 'Marca'],
+      ['EXP-1', 'DISPLAY HERSHEYS', path.department, path.section, 'EXPOSITORES/PROMOCIONAL', brand],
+    ],
+    0,
+    { code: 0, name: 1, department: 2, section: 3, category: 4, brand: 5 },
+    [],
+    config,
+    { mode: 'upsert', publishNew: true },
+  );
+  assert.equal(preview[0].action, 'skip');
+  assert.match(preview[0].note, /Expositores/);
+  const response = await importProducts(
+    post('/api/import/products', {
+      rows: [{ row: 2, values: { code: 'EXP-1', name: 'DISPLAY HERSHEYS', department: path.department, section: path.section, category: 'EXPOSITORES/PROMOCIONAL', brand } }],
+      mode: 'upsert',
+      publishNew: true,
+      sourceFile: 'erp.xlsx',
+    }),
+  );
+  const { results } = (await response.json()) as { results: { status: string }[] };
+  assert.equal(results[0].status, 'skipped');
+  assert.equal((await listCatalogProducts(true, ['EXP-1'])).length, 0);
+});
