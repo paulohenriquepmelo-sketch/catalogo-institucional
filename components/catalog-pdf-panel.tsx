@@ -8,6 +8,7 @@ import { Panel } from './editor-controls';
 import { api, loadProducts } from '@/lib/client-api';
 import { optimizeImage } from '@/lib/optimize-image';
 import { displayName, isDistribution, planCatalogPdf } from '@/lib/catalog-pdf';
+import type { CatalogPdfLayout } from '@/lib/catalog-pdf-render';
 import { NativeSelect } from '@/components/ui/native-select';
 import { megabytes, useCatalogPdfInfo, type CatalogPdfInfo } from './catalog-pdf-download';
 
@@ -55,6 +56,7 @@ export function CatalogPdfPanel({ onBusy }: { onBusy: (busy: boolean) => void })
   const [brandSections, setBrandSections] = useState<string[]>([]);
   const [sectionImages, setSectionImages] = useState<Record<string, string>>({});
   const [imageBusy, setImageBusy] = useState('');
+  const [layout, setLayout] = useState<CatalogPdfLayout>('classico');
 
   // Seções do que está publicado, para baixar só uma parte no CorelDRAW.
   useEffect(() => {
@@ -140,6 +142,7 @@ export function CatalogPdfPanel({ onBusy }: { onBusy: (busy: boolean) => void })
       const { renderCatalogPdf } = await import('@/lib/catalog-pdf-render');
       const blob = await renderCatalogPdf(products, {
         print: true,
+        layout,
         title: section ? displayName(section) : '',
         sectionImages,
         signal: abort.current.signal,
@@ -174,12 +177,14 @@ export function CatalogPdfPanel({ onBusy }: { onBusy: (busy: boolean) => void })
       setStep('Preparando as fotos…');
       const { renderCatalogPdf } = await import('@/lib/catalog-pdf-render');
       const blob = await renderCatalogPdf(products, {
+        layout,
         sectionImages,
         signal: abort.current.signal,
         onProgress: (done, total) => setProgress({ done, total }),
       });
       setStep(`Enviando o PDF (${megabytes(blob.size)})…`);
-      const pages = planCatalogPdf(products).length + 1;
+      // Capa (+ sumário no moderno) + páginas de produtos.
+      const pages = planCatalogPdf(products).length + (layout === 'moderno' ? 2 : 1);
       const response = await fetch(
         `/api/catalog-pdf?products=${products.length}&pages=${pages}`,
         {
@@ -251,8 +256,9 @@ export function CatalogPdfPanel({ onBusy }: { onBusy: (busy: boolean) => void })
           <p>
             Cada marca da Distribuição começa numa página própria. O espaço que sobra no fim da
             última página da marca recebe a imagem escolhida aqui (foto de produto, banner,
-            embalagem…). A imagem aparece inteira, sem cortes, centralizada na área livre. Sem
-            imagem, o espaço fica em branco.
+            embalagem…). A imagem ocupa a área livre de uma borda à outra da folha, sem distorcer:
+            se for mais alta que a área, o excesso de cima e de baixo é cortado. Use imagens largas
+            (tipo banner, 1500 px de largura ou mais). Sem imagem, o espaço fica em branco.
           </p>
           <ul>
             {brandSections.map((name) => (
@@ -294,6 +300,31 @@ export function CatalogPdfPanel({ onBusy }: { onBusy: (busy: boolean) => void })
           </ul>
         </section>
       )}
+      <fieldset className="catalog-pdf-layout" disabled={!!step}>
+        <legend>Layout do PDF</legend>
+        <label>
+          <input
+            type="radio"
+            name="catalog-pdf-layout"
+            checked={layout === 'classico'}
+            onChange={() => setLayout('classico')}
+          />
+          <span>
+            <strong>Clássico</strong> Igual ao catálogo impresso.
+          </span>
+        </label>
+        <label>
+          <input
+            type="radio"
+            name="catalog-pdf-layout"
+            checked={layout === 'moderno'}
+            onChange={() => setLayout('moderno')}
+          />
+          <span>
+            <strong>Moderno</strong> Cartões com código e embalagem, e sumário depois da capa.
+          </span>
+        </label>
+      </fieldset>
       <div className="catalog-pdf-actions">
         <Button disabled={!!step} onClick={() => void generate()}>
           <RefreshCw /> {current?.available ? 'Gerar de novo' : 'Gerar PDF do catálogo'}
