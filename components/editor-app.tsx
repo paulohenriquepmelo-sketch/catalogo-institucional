@@ -86,6 +86,7 @@ export function EditorApp({ userName }: { userName: string }) {
   const [query, setQuery] = useState('');
   const [productLimit, setProductLimit] = useState(40);
   const [reviewOnly, setReviewOnly] = useState(false);
+  const [noPhotoOnly, setNoPhotoOnly] = useState(false);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [uploads, setUploads] = useState(0);
@@ -207,8 +208,10 @@ export function EditorApp({ userName }: { userName: string }) {
         .includes(query.toLowerCase()) &&
       (!reviewOnly ||
         productIssues(p).length > 0 ||
-        p.segment === 'Sem classificação'),
+        p.segment === 'Sem classificação') &&
+      (!noPhotoOnly || !p.image),
   );
+  const withoutPhoto = items.filter((p) => !p.image).length;
   // Segmentos das regras novas (as mesmas do app e do site) para este produto.
   const draftSegments = useMemo(
     () =>
@@ -523,6 +526,14 @@ export function EditorApp({ userName }: { userName: string }) {
                 value={reviewOnly}
                 onChange={(value) => {
                   setReviewOnly(value);
+                  setProductLimit(40);
+                }}
+              />
+              <Toggle
+                label={`Somente sem foto (${withoutPhoto})`}
+                value={noPhotoOnly}
+                onChange={(value) => {
+                  setNoPhotoOnly(value);
                   setProductLimit(40);
                 }}
               />
@@ -876,6 +887,10 @@ export function EditorApp({ userName }: { userName: string }) {
                   }
                 </strong>
                 <span>Para classificar</span>
+              </article>
+              <article>
+                <strong>{withoutPhoto}</strong>
+                <span>Sem foto</span>
               </article>
               <article>
                 <strong>{savedConfig.brands.length}</strong>

@@ -417,7 +417,7 @@ void test('Acabaram de chegar follows the ERP code, not the import date', async 
     id: Number(code),
     code,
     createdAt: code === '9001' ? new Date().toISOString() : '2026-01-01T00:00:00Z',
-    details: { ...products[0].details, ...extra },
+    details: { ...extra },
   });
   // 9001 foi "criado hoje" por uma importação, mas é código antigo.
   const items = [make('9001'), make('11709'), make('11710'), make('11963'), make('11800', { showAsNew: false }), make('500', { showAsNew: true })];
