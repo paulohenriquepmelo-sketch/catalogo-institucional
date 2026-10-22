@@ -379,10 +379,18 @@ void test('image previews reject duplicate links and uploads only replace with c
     new File([png], `${product.code}.png`),
     new File([png], `${product.code}_frente.png`),
   ];
-  assert.ok(
-    previewImages(files, [product], true).every(
-      (row) => row.action === 'error',
-    ),
+  // Duas fotos do mesmo código: fica a de nome igual ao código, a outra é pulada.
+  assert.deepEqual(
+    previewImages([files[1], files[0]], [product], true).map((row) => row.action),
+    ['skip', 'replace'],
+  );
+  assert.deepEqual(
+    previewImages(
+      [new File([png], `${product.code}_verso.png`), files[1]],
+      [{ ...product, image: '' }],
+      false,
+    ).map((row) => row.action),
+    ['skip', 'link'],
   );
   assert.equal(previewImages([files[0]], [product], false)[0].action, 'skip');
   assert.equal(previewImages([files[0]], [product], true)[0].action, 'replace');

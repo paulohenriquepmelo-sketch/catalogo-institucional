@@ -3214,6 +3214,21 @@ a:focus-visible {
   font-size: 19px;
   margin: 0;
 }
+.import-folder-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  justify-self: start;
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.import-folder-button:hover,
+.import-folder-button:focus-within {
+  border-color: var(--primary);
+}
 .import-dropzone {
   display: flex;
   flex-direction: column;

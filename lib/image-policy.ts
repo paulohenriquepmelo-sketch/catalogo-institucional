@@ -1,4 +1,7 @@
 export const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+// Original escolhido no computador: é convertido para WebP no navegador antes
+// do envio, então pode ser maior que o arquivo que chega ao storage.
+export const MAX_SOURCE_BYTES = 25 * 1024 * 1024;
 export const MAX_IMAGE_EDGE = 1920;
 export const MAX_SOURCE_PIXELS = 40_000_000;
 export const TARGET_IMAGE_BYTES = 512 * 1024;

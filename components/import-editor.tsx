@@ -9,6 +9,7 @@ import { useEffect, useRef, useState } from 'react';
 import {
   FileSpreadsheet,
   Images,
+  FolderOpen,
   Upload,
   CheckCircle2,
   AlertTriangle,
@@ -95,6 +96,28 @@ const messageOf = (error: unknown) =>
 // reenvia o lote até quatro vezes (2 s, 6 s, 15 s, 30 s) antes de parar. O servidor reconhece as
 // linhas que já tinha gravado (retry: true) e não as acusa como alteradas.
 const TRANSIENT = /Não foi possível concluir|Failed to fetch|NetworkError|network|timed? ?out|aborted/i;
+const MAX_IMAGE_FILES = 5000;
+const IMAGE_FILE = /\.(png|jpe?g|webp|gif)$/i;
+// Uma foto por vez; numa pasta grande a rede pode falhar no meio. Tenta de
+// novo antes de parar tudo (o servidor só vincula se o produto ainda não
+// tiver foto, então repetir não duplica).
+async function sendImageWithRetry(form: FormData) {
+  const waits = [2000, 6000, 15000];
+  for (let attempt = 0; ; attempt++) {
+    try {
+      const response = await fetch('/api/import/images', {
+        method: 'POST',
+        body: form,
+        signal: AbortSignal.timeout(60000),
+      });
+      if (response.status < 500 || attempt >= waits.length) return response;
+    } catch (error) {
+      const message = error instanceof Error ? `${error.name} ${error.message}` : '';
+      if (attempt >= waits.length || !TRANSIENT.test(message)) throw error;
+    }
+    await new Promise((resolve) => setTimeout(resolve, waits[attempt]));
+  }
+}
 async function sendBatchWithRetry(body: Record<string, unknown>) {
   const waits = [2000, 6000, 15000, 30000];
   for (let attempt = 0; ; attempt++) {
@@ -206,6 +229,20 @@ export function ImportEditor({
   const successful = report.filter((row) =>
     ['created', 'updated', 'linked'].includes(row.status),
   ).length;
+  // Pasta inteira: fica só com as imagens (ignora Thumbs.db, .txt etc.).
+  function chooseImageFiles(selected: File[]) {
+    const pictures = selected.filter((f) => IMAGE_FILE.test(f.name));
+    resetPreview();
+    if (pictures.length > MAX_IMAGE_FILES) {
+      setFiles([]);
+      setError(
+        `Selecione até ${MAX_IMAGE_FILES.toLocaleString('pt-BR')} imagens por vez.`,
+      );
+    } else if (!pictures.length && selected.length) {
+      setFiles([]);
+      setError('Nenhuma imagem PNG, JPEG, WebP ou GIF na seleção.');
+    } else setFiles(pictures);
+  }
   function resetPreview() {
     setProducts(null);
     setImages(null);
@@ -416,11 +453,7 @@ export function ImportEditor({
           form.append('code', row.product!.code);
           form.append('expectedUpdatedAt', row.product!.updatedAt ?? '');
           form.append('replaceExisting', String(replaceImages));
-          const response = await fetch('/api/import/images', {
-            method: 'POST',
-            body: form,
-            signal: AbortSignal.timeout(60000),
-          });
+          const response = await sendImageWithRetry(form);
           const result = (await response.json()) as {
             error?: string;
             url?: string;
@@ -802,8 +835,8 @@ export function ImportEditor({
                   : 'Selecionar várias imagens'}
               </strong>
               <span>
-                PNG, JPEG, WebP ou GIF estático · até 5 MB cada · até 500
-                arquivos
+                PNG, JPEG, WebP ou GIF estático · até 25 MB cada · até{' '}
+                {MAX_IMAGE_FILES.toLocaleString('pt-BR')} arquivos
               </span>
               <Input
                 type="file"
@@ -811,12 +844,22 @@ export function ImportEditor({
                 accept="image/png,image/jpeg,image/webp,image/gif"
                 aria-label="Selecionar imagens de produtos em lote"
                 onChange={(e) => {
-                  const selected = Array.from(e.target.files ?? []);
-                  resetPreview();
-                  if (selected.length > 500) {
-                    setFiles([]);
-                    setError('Selecione até 500 imagens por vez.');
-                  } else setFiles(selected);
+                  chooseImageFiles(Array.from(e.target.files ?? []));
+                  e.target.value = '';
+                }}
+              />
+            </label>
+            <label className="import-folder-button">
+              <FolderOpen className="size-4" aria-hidden="true" />
+              Selecionar uma pasta inteira
+              <input
+                type="file"
+                className="sr-only"
+                // Atributo não padrão, mas aceito por Chrome, Edge e Firefox.
+                {...{ webkitdirectory: '' }}
+                aria-label="Selecionar uma pasta de imagens de produtos"
+                onChange={(e) => {
+                  chooseImageFiles(Array.from(e.target.files ?? []));
                   e.target.value = '';
                 }}
               />
@@ -838,9 +881,10 @@ export function ImportEditor({
             <p className="source-note">
               Use o código exato no início do nome, seguido de espaço, hífen ou
               sublinhado. Zeros à esquerda e letras maiúsculas/minúsculas
-              precisam coincidir. Cada produto recebe uma imagem principal;
-              nomes sem correspondência ou vários arquivos para o mesmo código
-              ficam para revisão.
+              precisam coincidir. Cada produto recebe uma imagem principal:
+              com várias fotos do mesmo código, vale a de nome igual ao código
+              (ou a primeira em ordem alfabética). Produtos que já têm foto são
+              pulados, a menos que você permita substituir.
             </p>
             <Toggle
               disabled={busy || dirty}
