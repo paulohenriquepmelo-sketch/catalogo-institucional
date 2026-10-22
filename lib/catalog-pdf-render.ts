@@ -3,6 +3,7 @@ import {
   isDistribution,
   PAGE,
   planCatalogPdf,
+  MODELO_AREA,
   planContents,
   type ContentsEntry,
   type PdfPage,
@@ -476,8 +477,6 @@ function drawContents(doc: Doc, entries: ContentsEntry[], title: string) {
 // da seção com traço vermelho, etiqueta da categoria, fundo de polígonos e
 // rodapé azul. Usa os cartões e o sumário do layout moderno. ----
 
-/** Área dos produtos no layout modelo (cabeçalho e título são mais altos). */
-export const MODELO_AREA = { top: 134, bottom: 786 };
 const GOLD = '#f2c230';
 type ModeloAssets = { background: Uint8Array; logo: Uint8Array };
 

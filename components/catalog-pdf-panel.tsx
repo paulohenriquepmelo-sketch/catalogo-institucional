@@ -7,7 +7,7 @@ import { Progress, ProgressLabel, ProgressValue } from '@/components/ui/progress
 import { Panel } from './editor-controls';
 import { api, loadProducts } from '@/lib/client-api';
 import { optimizeImage } from '@/lib/optimize-image';
-import { displayName, isDistribution, planCatalogPdf } from '@/lib/catalog-pdf';
+import { displayName, isDistribution, MODELO_AREA, planCatalogPdf } from '@/lib/catalog-pdf';
 import type { CatalogPdfLayout } from '@/lib/catalog-pdf-render';
 import { NativeSelect } from '@/components/ui/native-select';
 import { megabytes, useCatalogPdfInfo, type CatalogPdfInfo } from './catalog-pdf-download';
@@ -184,7 +184,10 @@ export function CatalogPdfPanel({ onBusy }: { onBusy: (busy: boolean) => void })
       });
       setStep(`Enviando o PDF (${megabytes(blob.size)})…`);
       // Capa (+ sumário no moderno) + páginas de produtos.
-      const pages = planCatalogPdf(products).length + (layout === 'moderno' ? 2 : 1);
+      const pages =
+        layout === 'modelo'
+          ? planCatalogPdf(products, MODELO_AREA).length + 2
+          : planCatalogPdf(products).length + (layout === 'moderno' ? 2 : 1);
       const response = await fetch(
         `/api/catalog-pdf?products=${products.length}&pages=${pages}`,
         {
@@ -322,6 +325,17 @@ export function CatalogPdfPanel({ onBusy }: { onBusy: (busy: boolean) => void })
           />
           <span>
             <strong>Moderno</strong> Cartões com código e embalagem, e sumário depois da capa.
+          </span>
+        </label>
+        <label>
+          <input
+            type="radio"
+            name="catalog-pdf-layout"
+            checked={layout === 'modelo'}
+            onChange={() => setLayout('modelo')}
+          />
+          <span>
+            <strong>Novo modelo</strong> Logo no topo, fundo azul e amarelo, cartões e sumário.
           </span>
         </label>
       </fieldset>

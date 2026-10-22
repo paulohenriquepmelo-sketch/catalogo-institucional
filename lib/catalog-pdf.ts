@@ -143,6 +143,8 @@ const blockHeight = (block: PdfBlock) =>
 /** Páginas de produtos (a capa não conta: a primeira página de produtos é a 01). */
 /** Faixa vertical da página onde entram os produtos (muda com o layout). */
 export type PdfArea = { top: number; bottom: number };
+/** Área dos produtos no layout modelo (cabeçalho e título são mais altos). */
+export const MODELO_AREA: PdfArea = { top: 134, bottom: 786 };
 
 export function planCatalogPdf(
   products: PdfProduct[],
