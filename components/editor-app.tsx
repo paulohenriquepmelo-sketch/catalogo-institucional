@@ -209,9 +209,9 @@ export function EditorApp({ userName }: { userName: string }) {
       (!reviewOnly ||
         productIssues(p).length > 0 ||
         p.segment === 'Sem classificação') &&
-      (!noPhotoOnly || !p.image),
+      (!noPhotoOnly || (p.published && !p.image)),
   );
-  const withoutPhoto = items.filter((p) => !p.image).length;
+  const withoutPhoto = items.filter((p) => p.published && !p.image).length;
   // Segmentos das regras novas (as mesmas do app e do site) para este produto.
   const draftSegments = useMemo(
     () =>
@@ -530,7 +530,7 @@ export function EditorApp({ userName }: { userName: string }) {
                 }}
               />
               <Toggle
-                label={`Somente sem foto (${withoutPhoto})`}
+                label={`Somente publicados sem foto (${withoutPhoto})`}
                 value={noPhotoOnly}
                 onChange={(value) => {
                   setNoPhotoOnly(value);
@@ -890,7 +890,7 @@ export function EditorApp({ userName }: { userName: string }) {
               </article>
               <article>
                 <strong>{withoutPhoto}</strong>
-                <span>Sem foto</span>
+                <span>Publicados sem foto</span>
               </article>
               <article>
                 <strong>{savedConfig.brands.length}</strong>
