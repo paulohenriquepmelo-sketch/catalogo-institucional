@@ -59,12 +59,21 @@ const FAMILIES: string[][] = [
     'sabonete liq', 'sabonete', 'desodorante', 'abs', 'fralda', 'papel hig',
     'papel interf', 'papel toalha', 'curativo', 'acetona',
   ],
-  // Limpeza.
+  // Limpeza, por uso: cozinha (detergente com esponja e palha de aço),
+  // roupas (sabão em pó, em barra, amaciante, alvejante e tira manchas),
+  // desinfecção e banheiro, superfícies e, por fim, os produtos pesados.
   [
-    'detergente', 'sabao', 'amaciante', 'alvejante', 'agua sanitaria', 'cloro', 'clorolimp',
-    'desinfetante', 'multiuso', 'limpa', 'limpador', 'desengordurante', 'desengripante',
-    'alcool', 'soda', 'tira', 'essencia', 'pastilha', 'pedra', 'esponja', 'bombril',
+    'detergente', 'esponja', 'bombril', 'desengordurante', 'limpa aluminio',
   ],
+  [
+    'sabao po', 'sabao', 'amaciante', 'alvejante', 'tira manchas',
+  ],
+  [
+    'agua sanitaria', 'cloro', 'clorolimp', 'desinfetante', 'essencia', 'pastilha', 'pedra',
+    'tira limo', 'tira',
+  ],
+  ['multiuso', 'limpador', 'limpa', 'limpa ceramica', 'limpa vidros', 'limpa pedras'],
+  ['alcool', 'soda', 'desengripante'],
   // Utensílios de limpeza (Utilidades): vassouras, rodos, rastelos e pás
   // juntos, depois escovas, panos e sacos de lixo.
   [

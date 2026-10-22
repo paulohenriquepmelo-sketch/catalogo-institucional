@@ -153,6 +153,15 @@ void test('PDF: dentro da categoria, produtos parecidos ficam juntos', async () 
     'VASSOURA MILEVA PLUMA (2007)', 'VASSOURAO ECONOMICO MILEVA (5017)', 'RODO PLASTICO 60CM DALCIN', 'RASTELO PLASTICO DALCIN',
     'PA PARA LIXO COMPANHEIRA (936)', 'PA (S/CABO) P/LIXO MILEVA PAPATUDO(5001)', 'ESFREGAO MILEVA (3057)',
   ]);
+  // Limpeza por uso: esponja junto do detergente, tira manchas junto das roupas.
+  const cleaningProducts = order([
+    'TIRA MANCHAS CORES 2LT QBOA', 'BOMBRIL 45G LÃ DE ACO (20X06UN)', 'SABAO RAZZO AZUL 180G', 'ESPONJA JEITOSA',
+    'DETERGENTE LIMPOL COCO 500ML', 'SABAO PO SURF SACHE COCO 800G', 'AGUA SANITARIA 01 LT QBOA', 'AMACIANTE SENSE 500ML CARINHO',
+  ]);
+  assert.deepEqual(cleaningProducts, [
+    'DETERGENTE LIMPOL COCO 500ML', 'ESPONJA JEITOSA', 'BOMBRIL 45G LÃ DE ACO (20X06UN)', 'SABAO PO SURF SACHE COCO 800G',
+    'SABAO RAZZO AZUL 180G', 'AMACIANTE SENSE 500ML CARINHO', 'TIRA MANCHAS CORES 2LT QBOA', 'AGUA SANITARIA 01 LT QBOA',
+  ]);
   // Sem família conhecida: continua junto pela primeira palavra.
   assert.deepEqual(order(['XICARA B', 'BULE A', 'XICARA A']), ['BULE A', 'XICARA A', 'XICARA B']);
 });
