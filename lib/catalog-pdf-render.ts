@@ -18,7 +18,7 @@ const MUTED = '#6b7591';
 const LINE = '#dde3ef';
 const TINT = '#eef2f9';
 const WHITE = '#ffffff';
-const BASE_IMAGE_BOX = 72;
+const BASE_IMAGE_BOX = 80;
 /** Lado maior da foto no PDF: ~250 dpi no cartão, ~15 KB por foto. */
 const IMAGE_PIXELS = 260;
 /** Versão para editar e imprimir (CorelDRAW): ~540 dpi no cartão. */
@@ -211,7 +211,8 @@ function drawProduct(
 ) {
   const imageBox = BASE_IMAGE_BOX - (GRID.rowHeight - rowHeight);
   const cell = (PAGE.width - GRID.marginX * 2) / GRID.columns;
-  const card = { x: x + 3, y: y + 3, w: cell - 6, h: rowHeight - 7 };
+  // Cartão em volta do mesmo espaço de antes: a foto mantém o tamanho.
+  const card = { x: x + 2, y: y + 1, w: cell - 4, h: rowHeight - 3 };
   const pad = 6;
   const inner = card.w - pad * 2;
   doc.setDrawColor(LINE);
@@ -219,10 +220,10 @@ function drawProduct(
   doc.setFillColor(WHITE);
   doc.roundedRect(card.x, card.y, card.w, card.h, 5, 5, 'FD');
 
-  const top = card.y + 5;
+  const top = y + 6;
   const center = card.x + card.w / 2;
   if (photo) {
-    const scale = Math.min((card.w - 10) / photo.width, imageBox / photo.height);
+    const scale = Math.min(imageBox / photo.width, imageBox / photo.height);
     const w = photo.width * scale;
     const h = photo.height * scale;
     doc.addImage(
@@ -245,7 +246,7 @@ function drawProduct(
   }
 
   const left = card.x + pad;
-  const codeY = top + imageBox + 12;
+  const codeY = top + imageBox + 11;
   doc.setTextColor(NAVY);
   doc.setFont(BOLD, 'normal');
   doc.setFontSize(9.5);
@@ -353,22 +354,18 @@ function drawContents(doc: Doc, entries: ContentsEntry[], title: string) {
   });
 }
 
-// Imagem da marca na sobra da última página da seção: inteira, centralizada.
+// Imagem da marca na sobra da última página da seção: de uma borda à outra
+// da folha, sem distorcer. Se for mais alta que a sobra, corta o excesso de
+// cima e de baixo (fica o meio); se for mais baixa, fica centralizada.
 function drawFiller(doc: Doc, image: Photo, area: { y: number; height: number }, key: string) {
-  const width = PAGE.width - GRID.marginX * 2;
-  const scale = Math.min(width / image.width, area.height / image.height);
-  const w = image.width * scale;
-  const h = image.height * scale;
-  doc.addImage(
-    image.data,
-    'JPEG',
-    (PAGE.width - w) / 2,
-    area.y + (area.height - h) / 2,
-    w,
-    h,
-    key,
-    'FAST',
-  );
+  const w = PAGE.width;
+  const h = (image.height * w) / image.width;
+  doc.saveGraphicsState();
+  doc.rect(0, area.y, w, area.height, null);
+  doc.clip();
+  doc.discardPath();
+  doc.addImage(image.data, 'JPEG', 0, area.y + (area.height - h) / 2, w, h, key, 'FAST');
+  doc.restoreGraphicsState();
 }
 
 function drawCover(doc: Doc, cover: Uint8Array, title: string, count: number) {
