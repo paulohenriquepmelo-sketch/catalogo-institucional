@@ -1,5 +1,5 @@
 import type { Product } from './catalog-data';
-import { compareBySimilarity, familyKey } from './product-family';
+import { compareBySimilarity } from './product-family';
 
 /**
  * Plano das páginas do catálogo em PDF, no layout do catálogo impresso da
@@ -93,34 +93,13 @@ export function sortForCatalog(products: PdfProduct[]) {
 }
 
 /**
- * Fileiras de uma categoria. Um tipo de produto que cabe numa fileira (até 5
- * itens) não é partido entre duas: se não couber no resto da fileira, começa
- * na próxima (milho verde fica junto, e a ervilha vem logo depois). Tipos
- * maiores seguem preenchendo as fileiras.
+ * Fileiras de uma categoria: sempre 5 produtos por fileira, na ordem por
+ * semelhança (só a última da categoria pode ficar incompleta). Partir o
+ * tipo em fileiras próprias deixava fileiras de 3 e 4 no meio da página.
  */
 export function packRows(group: PdfProduct[]) {
   const rows: PdfProduct[][] = [];
-  let row: PdfProduct[] = [];
-  let i = 0;
-  while (i < group.length) {
-    const key = familyKey(group[i].name);
-    let end = i;
-    while (end < group.length && familyKey(group[end].name) === key) end++;
-    const family = group.slice(i, end);
-    i = end;
-    if (row.length && family.length <= GRID.columns && row.length + family.length > GRID.columns) {
-      rows.push(row);
-      row = [];
-    }
-    for (const product of family) {
-      row.push(product);
-      if (row.length === GRID.columns) {
-        rows.push(row);
-        row = [];
-      }
-    }
-  }
-  if (row.length) rows.push(row);
+  for (let i = 0; i < group.length; i += GRID.columns) rows.push(group.slice(i, i + GRID.columns));
   return rows;
 }
 

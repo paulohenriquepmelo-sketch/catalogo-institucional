@@ -147,7 +147,7 @@ void test('PDF: dentro da categoria, produtos parecidos ficam juntos', async () 
   assert.deepEqual(order(['VELA B', 'PANO A', 'VELA A']), ['PANO A', 'VELA A', 'VELA B']);
 });
 
-void test('PDF: tipo pequeno não se parte entre fileiras e item sozinho não vai para outra página', async () => {
+void test('PDF: 5 por fileira e item sozinho não vai para outra página', async () => {
   const { packRows } = await import('../lib/catalog-pdf');
   const item = (id: number, name: string, category = 'CAT'): PdfProduct => ({
     id, code: String(id), name, department: '1-ATACADO', section: '1-ALIMENTOS', category, brand: 'M', image: '/x.webp',
@@ -157,7 +157,8 @@ void test('PDF: tipo pequeno não se parte entre fileiras e item sozinho não va
     ...[5, 6, 7].map((i) => item(i, `MILHO VERDE LATA ${i}`)),
     ...[8, 9].map((i) => item(i, `ERVILHA LATA ${i}`)),
   ]);
-  assert.deepEqual(rows.map((r) => r.map((p) => p.id)), [[1, 2, 3, 4], [5, 6, 7, 8, 9]]);
+  // Sempre 5 por fileira; o tipo não abre fileira própria.
+  assert.deepEqual(rows.map((r) => r.map((p) => p.id)), [[1, 2, 3, 4, 5], [6, 7, 8, 9]]);
 
   // 10 itens numa categoria + 16 na seguinte: o 16º não pode ir sozinho.
   const list = [
