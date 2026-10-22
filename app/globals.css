@@ -6054,6 +6054,47 @@ a:focus-visible {
   font-weight: 600;
   text-decoration: underline;
 }
+.catalog-pdf-brands {
+  display: grid;
+  gap: 10px;
+  margin-block: 8px 16px;
+}
+.catalog-pdf-brands h2 {
+  font-size: 1rem;
+  font-weight: 700;
+}
+.catalog-pdf-brands ul {
+  display: grid;
+  gap: 8px;
+  padding: 0;
+  list-style: none;
+}
+.catalog-pdf-brands li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.catalog-pdf-brands li strong {
+  flex: 1 1 140px;
+}
+.catalog-pdf-brand-preview {
+  display: grid;
+  place-items: center;
+  width: 96px;
+  height: 56px;
+  border-radius: 6px;
+  background: var(--muted, #f3f5fa);
+  overflow: hidden;
+}
+.catalog-pdf-brand-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
 .catalog-pdf-corel {
   margin-top: 28px;
   padding-top: 20px;
