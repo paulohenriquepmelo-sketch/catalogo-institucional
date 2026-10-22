@@ -20,6 +20,7 @@ import {
   Tags,
   Wrench,
   Archive,
+  FileDown,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -212,6 +213,33 @@ export function EditorApp({ userName }: { userName: string }) {
       (!noPhotoOnly || (p.published && !p.image)),
   );
   const withoutPhoto = items.filter((p) => p.published && !p.image).length;
+  const [listPdfBusy, setListPdfBusy] = useState(false);
+  async function downloadNoPhotoList() {
+    setListPdfBusy(true);
+    setError('');
+    try {
+      const { renderNoPhotoPdf } = await import('@/lib/no-photo-pdf');
+      const blob = await renderNoPhotoPdf(
+        items.filter((p) => p.published && !p.image),
+      );
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `produtos-sem-foto-${new Date().toISOString().slice(0, 10)}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } catch (e) {
+      setError(
+        e instanceof Error && /dynamically imported module/i.test(e.message)
+          ? 'O editor foi atualizado. Recarregue a página e tente de novo.'
+          : 'Não foi possível gerar a lista em PDF.',
+      );
+    } finally {
+      setListPdfBusy(false);
+    }
+  }
   // Segmentos das regras novas (as mesmas do app e do site) para este produto.
   const draftSegments = useMemo(
     () =>
@@ -537,6 +565,17 @@ export function EditorApp({ userName }: { userName: string }) {
                   setProductLimit(40);
                 }}
               />
+              {withoutPhoto > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={listPdfBusy}
+                  onClick={() => void downloadNoPhotoList()}
+                >
+                  {listPdfBusy ? <Loader2 className="animate-spin" /> : <FileDown />}
+                  Baixar lista sem foto (PDF)
+                </Button>
+              )}
               <div className="editor-product-list">
                 {filtered.slice(0, productLimit).map((p) => (
                   <button
