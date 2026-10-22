@@ -131,8 +131,8 @@ void test('PDF: dentro da categoria, produtos parecidos ficam juntos', async () 
     'ERVILHA LATA PREDILECTA 1,700 KG', 'FERMENTO BIOLOGICO SECO MAGEST 500G',
   ]);
   assert.deepEqual(food, [
-    'FARINHA DE TRIGO PREDILETA 25KG PAPEL', 'TRIGO PARA KIBE ELDOURADO 5KG', 'POLVILHO DOCE AMIDOTEC 1KG',
-    'MISTURA BOLO COAMO AIPIM 05KG', 'FERMENTO BIOLOGICO SECO MAGEST 500G', 'MARGARINA COAMO 80% 14,5KG',
+    'FARINHA DE TRIGO PREDILETA 25KG PAPEL', 'POLVILHO DOCE AMIDOTEC 1KG', 'MISTURA BOLO COAMO AIPIM 05KG',
+    'FERMENTO BIOLOGICO SECO MAGEST 500G', 'TRIGO PARA KIBE ELDOURADO 5KG', 'MARGARINA COAMO 80% 14,5KG',
     'MILHO VERDE LATA OLE 1,700 KG', 'MILHO VERDE LATA PREDILECTA 1,500 KG', 'ERVILHA LATA OLE 1,700 KG',
     'ERVILHA LATA PREDILECTA 1,700 KG', 'MOLHO INGLES PRONTO 900ML',
   ]);
@@ -145,4 +145,29 @@ void test('PDF: dentro da categoria, produtos parecidos ficam juntos', async () 
   ]);
   // Sem família conhecida: continua junto pela primeira palavra.
   assert.deepEqual(order(['VELA B', 'PANO A', 'VELA A']), ['PANO A', 'VELA A', 'VELA B']);
+});
+
+void test('PDF: tipo pequeno não se parte entre fileiras e item sozinho não vai para outra página', async () => {
+  const { packRows } = await import('../lib/catalog-pdf');
+  const item = (id: number, name: string, category = 'CAT'): PdfProduct => ({
+    id, code: String(id), name, department: '1-ATACADO', section: '1-ALIMENTOS', category, brand: 'M', image: '/x.webp',
+  });
+  const rows = packRows([
+    ...[1, 2, 3, 4].map((i) => item(i, `MARGARINA ${i}`)),
+    ...[5, 6, 7].map((i) => item(i, `MILHO VERDE LATA ${i}`)),
+    ...[8, 9].map((i) => item(i, `ERVILHA LATA ${i}`)),
+  ]);
+  assert.deepEqual(rows.map((r) => r.map((p) => p.id)), [[1, 2, 3, 4], [5, 6, 7, 8, 9]]);
+
+  // 10 itens numa categoria + 16 na seguinte: o 16º não pode ir sozinho.
+  const list = [
+    ...Array.from({ length: 10 }, (_, i) => item(100 + i, `BARRA DARK ${i}`, 'BARRA DARK')),
+    ...Array.from({ length: 16 }, (_, i) => item(200 + i, `BARRA REGULAR ${i}`, 'BARRA REGULAR')),
+  ];
+  const pages = planCatalogPdf(list);
+  assert.equal(pages.length, 1);
+  const rowsOnPage = pages[0].blocks.filter((b) => b.type === 'row');
+  assert.ok(rowsOnPage.every((b) => b.type === 'row' && b.height && b.height >= GRID.minRowHeight));
+  const last = pages[0].blocks.at(-1)!;
+  assert.ok(last.y + (last.type === 'row' ? last.height! : GRID.barHeight) <= GRID.bottom);
 });

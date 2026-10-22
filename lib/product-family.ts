@@ -10,12 +10,13 @@
  * palavra.
  */
 const FAMILIES: string[][] = [
-  // Panificação e confeitaria: bases.
+  // Panificação: farinha de trigo → polvilho → mistura para bolo (pedido do
+  // cliente), depois o que acompanha.
   [
-    'farinha de trigo', 'trigo', 'farinha de milho', 'farinha rosca', 'farinha mandioca',
-    'farinha', 'farofa', 'aveia', 'polvilho', 'fecula', 'tapioca', 'amido', 'canjica',
-    'mist. prep', 'mistura p/ pao', 'mistura p panif', 'mistura bolo', 'mistura p/ bolo',
-    'mistura', 'fermento', 'reforcador', 'xarope', 'acucar', 'sache acucar', 'adocante',
+    'farinha de trigo', 'polvilho', 'fecula', 'tapioca', 'mistura bolo', 'mistura p/ bolo',
+    'mist. prep', 'mistura p/ pao', 'mistura p panif', 'mistura', 'fermento', 'reforcador',
+    'amido', 'trigo', 'farinha de milho', 'farinha rosca', 'farinha mandioca', 'farinha',
+    'farofa', 'aveia', 'canjica', 'xarope', 'acucar', 'sache acucar', 'adocante',
   ],
   // Confeitaria: chocolates, coberturas, recheios, cremes e decoração.
   [
@@ -94,6 +95,12 @@ export function familyRank(name: string) {
     if (text.startsWith(prefix) && !/[a-z0-9]/.test(text.charAt(prefix.length) || ' '))
       return rank;
   return UNKNOWN;
+}
+
+/** Chave do tipo do produto: produtos com a mesma chave são do mesmo tipo. */
+export function familyKey(name: string) {
+  const rank = familyRank(name);
+  return rank === UNKNOWN ? `?${normalizeName(name).split(' ')[0]}` : String(rank);
 }
 
 /** Compara dois nomes da mesma categoria: tipo, depois nome. */
