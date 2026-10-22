@@ -1,0 +1,72 @@
+name: Publicar APK no site público
+
+# Manual: baixa o APK gerado pelo EAS (expo.dev) e grava no R2, onde o botão
+# "Baixar app" do site público (/api/app-download) busca o arquivo.
+on:
+  workflow_dispatch:
+    inputs:
+      apk_url:
+        description: 'Link do APK no Expo (https://expo.dev/artifacts/eas/....apk)'
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-apk
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Baixar do Expo e gravar no R2
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      APK_URL: ${{ inputs.apk_url }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Só aceita artefatos do EAS; o link vem como variável, nunca
+      # interpolado no script.
+      - name: Download APK
+        shell: bash
+        run: |
+          if [[ ! "$APK_URL" =~ ^https://expo\.dev/artifacts/eas/[A-Za-z0-9_-]+\.apk$ ]]; then
+            echo "Link inválido: use o link do APK em https://expo.dev/artifacts/eas/"
+            exit 1
+          fi
+          curl -fsSL --max-time 600 -o app.apk "$APK_URL"
+          size=$(stat -c %s app.apk)
+          magic=$(head -c 2 app.apk)
+          if [ "$magic" != "PK" ] || [ "$size" -lt 1000000 ] || [ "$size" -gt 300000000 ]; then
+            echo "O arquivo baixado não parece um APK ($size bytes)."
+            exit 1
+          fi
+          unzip -l app.apk AndroidManifest.xml >/dev/null
+          echo "APK ok: $size bytes"
+
+      - name: Upload to R2
+        run: >
+          pnpm exec wrangler r2 object put
+          catalogo-institucional-files/apps/catalogo-institucional.apk
+          --remote --file app.apk
+          --content-type application/vnd.android.package-archive
