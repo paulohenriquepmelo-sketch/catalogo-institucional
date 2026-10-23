@@ -86,6 +86,40 @@ export type PdfPage = {
 /** Altura mínima da sobra para valer pôr a imagem da marca. */
 export const MIN_FILLER_HEIGHT = 90;
 const FILLER_GAP = 14;
+/**
+ * Parte mínima da imagem da marca que precisa aparecer para valer cortar. Nas
+ * laterais quase nada: o nome da marca costuma ir de um lado ao outro.
+ */
+const FILLER_MIN_HEIGHT = 0.75;
+const FILLER_MIN_WIDTH = 0.95;
+
+export type FillerFit = { x: number; y: number; width: number; height: number; cover: boolean };
+
+/**
+ * Como a imagem da marca entra no espaço: preenche tudo (corta as bordas) se
+ * pouco se perde; senão aparece inteira, centralizada, e o resto do espaço
+ * recebe a cor do fundo da imagem. Logo quadrado numa sobra baixa não perde
+ * mais o meio do nome.
+ */
+export function fitFiller(
+  image: { width: number; height: number },
+  box: { x: number; y: number; width: number; height: number },
+): FillerFit {
+  const cover = Math.max(box.width / image.width, box.height / image.height);
+  const fits =
+    box.width / (image.width * cover) >= FILLER_MIN_WIDTH &&
+    box.height / (image.height * cover) >= FILLER_MIN_HEIGHT;
+  const scale = fits ? cover : Math.min(box.width / image.width, box.height / image.height);
+  const width = image.width * scale;
+  const height = image.height * scale;
+  return {
+    x: box.x + (box.width - width) / 2,
+    y: box.y + (box.height - height) / 2,
+    width,
+    height,
+    cover: fits,
+  };
+}
 
 export const isDistribution = (department: string) => /distribui/i.test(department);
 
