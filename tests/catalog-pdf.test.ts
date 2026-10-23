@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { displayName, GRID, gridFor, MODELO_AREA, planCatalogPdf, planContents, sortForCatalog, type PdfProduct } from '../lib/catalog-pdf';
+import { displayName, fitFiller, GRID, gridFor, MODELO_AREA, planCatalogPdf, planContents, sortForCatalog, type PdfProduct } from '../lib/catalog-pdf';
 import { GET as getPdf, POST as postPdf } from '../app/api/catalog-pdf/route';
 import { env, setIdentity } from './runtime';
 
@@ -298,4 +298,27 @@ void test('layout modelo: produtos ficam dentro da área mais baixa da página',
       assert.ok(block.y + (block.type === 'bar' ? GRID.barHeight : (block.height ?? GRID.rowHeight)) <= MODELO_AREA.bottom);
     }
   assert.ok(pages.length > planCatalogPdf(list).length - 1);
+});
+
+void test('catalog pdf: brand image is cropped only a little, otherwise shown whole', () => {
+  const box = { x: 0, y: 500, width: 595, height: 280 };
+  // Faixa larga (16:9): preenche a sobra cortando pouco.
+  const wide = fitFiller({ width: 1280, height: 720 }, box);
+  assert.equal(wide.cover, true);
+  assert.equal(wide.width, 595);
+  assert.ok(wide.height >= 280);
+  // Logo quadrado: aparece inteiro, centralizado, sem passar da sobra.
+  const square = fitFiller({ width: 447, height: 447 }, box);
+  assert.equal(square.cover, false);
+  assert.equal(square.height, 280);
+  assert.equal(square.width, 280);
+  assert.equal(square.x, (595 - 280) / 2);
+  assert.equal(square.y, 500);
+});
+
+void test('catalog pdf: brand image keeps its sides (brand name) whole', () => {
+  // Sobra alta para uma faixa 16:9: cortar as laterais comeria o nome.
+  const fit = fitFiller({ width: 1280, height: 720 }, { x: 30, y: 400, width: 535, height: 380 });
+  assert.equal(fit.cover, false);
+  assert.equal(fit.x >= 30 && fit.x + fit.width <= 565.0001, true);
 });

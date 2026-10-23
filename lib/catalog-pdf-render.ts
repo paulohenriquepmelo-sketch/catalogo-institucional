@@ -1,4 +1,5 @@
 import {
+  fitFiller,
   GRID,
   gridFor,
   isDistribution,
@@ -51,7 +52,13 @@ export type CatalogPdfOptions = {
   /** Imagem da marca por seção da Distribuição (preenche a sobra da seção). */
   sectionImages?: Record<string, string>;
 };
-type Photo = { data: Uint8Array; width: number; height: number };
+type Photo = {
+  data: Uint8Array;
+  width: number;
+  height: number;
+  /** Cor da borda da imagem (só nas imagens das marcas); branco se variada. */
+  background?: string;
+};
 
 type Doc = import('jspdf').jsPDF;
 
@@ -70,11 +77,32 @@ async function fetchBytes(url: string, signal?: AbortSignal) {
 }
 
 // Foto do produto (WebP) → JPEG pequeno com fundo branco, que todo leitor de PDF abre.
+// Cor média da borda da imagem, se for quase lisa (fundo do logo); senão
+// branco. Preenche o espaço que sobra ao lado de uma imagem que não é cortada.
+function borderColor(context: CanvasRenderingContext2D, width: number, height: number) {
+  const strips = [
+    context.getImageData(0, 0, width, 1),
+    context.getImageData(0, height - 1, width, 1),
+    context.getImageData(0, 0, 1, height),
+    context.getImageData(width - 1, 0, 1, height),
+  ];
+  const pixels: number[][] = [];
+  for (const { data } of strips)
+    for (let i = 0; i < data.length; i += 4) pixels.push([data[i], data[i + 1], data[i + 2]]);
+  const mean = [0, 1, 2].map((c) => pixels.reduce((sum, px) => sum + px[c], 0) / pixels.length);
+  const spread =
+    pixels.reduce((sum, px) => sum + Math.abs(px[0] - mean[0]) + Math.abs(px[1] - mean[1]) + Math.abs(px[2] - mean[2]), 0) /
+    pixels.length;
+  if (spread > 40) return WHITE;
+  return `#${mean.map((c) => Math.round(c).toString(16).padStart(2, '0')).join('')}`;
+}
+
 async function loadPhoto(
   url: string,
   print: boolean,
   signal?: AbortSignal,
   limit = print ? PRINT_PIXELS : IMAGE_PIXELS,
+  withBackground = false,
 ): Promise<Photo | null> {
   try {
     const bitmap = await createImageBitmap(new Blob([await fetchBytes(url, signal)]));
@@ -89,11 +117,12 @@ async function loadPhoto(
     context.fillRect(0, 0, width, height);
     context.drawImage(bitmap, 0, 0, width, height);
     bitmap.close();
+    const background = withBackground ? borderColor(context, width, height) : undefined;
     const blob = await new Promise<Blob | null>((resolve) =>
       canvas.toBlob(resolve, 'image/jpeg', print ? 0.9 : 0.8),
     );
     if (!blob) return null;
-    return { data: new Uint8Array(await blob.arrayBuffer()), width, height };
+    return { data: new Uint8Array(await blob.arrayBuffer()), width, height, background };
   } catch (error) {
     if (signal?.aborted) throw error;
     return null;
@@ -629,18 +658,38 @@ function drawFooterModelo(doc: Doc, page: PdfPage) {
   doc.text(`@${INSTAGRAM}`, PAGE.width - 18, 826, { align: 'right' });
 }
 
-// Imagem da marca na sobra da última página da seção: de uma borda à outra
-// da folha, sem distorcer. Se for mais alta que a sobra, corta o excesso de
-// cima e de baixo (fica o meio); se for mais baixa, fica centralizada.
-function drawFiller(doc: Doc, image: Photo, area: { y: number; height: number }, key: string) {
-  const w = PAGE.width;
-  const h = (image.height * w) / image.width;
+// Imagem da marca na sobra da última página da seção, sem distorcer. No
+// clássico vai de uma borda à outra da folha, como no impresso; no moderno e
+// no novo modelo vira um cartão alinhado aos dos produtos (o fundo do modelo
+// continua aparecendo nas margens). Corta só um pouco das bordas; se cortaria
+// mais (logo quadrado numa sobra baixa), aparece inteira sobre a cor do fundo.
+function drawFiller(
+  doc: Doc,
+  image: Photo,
+  area: { y: number; height: number },
+  key: string,
+  framed: boolean,
+) {
+  const x = framed ? GRID.marginX + 2 : 0;
+  const box = { x, y: area.y, width: PAGE.width - x * 2, height: area.height };
+  const fit = fitFiller(image, box);
+  const radius = framed ? 5 : 0;
   doc.saveGraphicsState();
-  doc.rect(0, area.y, w, area.height, null);
+  if (radius) doc.roundedRect(box.x, box.y, box.width, box.height, radius, radius, null);
+  else doc.rect(box.x, box.y, box.width, box.height, null);
   doc.clip();
   doc.discardPath();
-  doc.addImage(image.data, 'JPEG', 0, area.y + (area.height - h) / 2, w, h, key, 'FAST');
+  if (!fit.cover) {
+    doc.setFillColor(image.background ?? WHITE);
+    doc.rect(box.x, box.y, box.width, box.height, 'F');
+  }
+  doc.addImage(image.data, 'JPEG', fit.x, fit.y, fit.width, fit.height, key, 'FAST');
   doc.restoreGraphicsState();
+  if (framed) {
+    doc.setDrawColor(LINE);
+    doc.setLineWidth(0.6);
+    doc.roundedRect(box.x, box.y, box.width, box.height, radius, radius, 'S');
+  }
 }
 
 function drawCover(doc: Doc, cover: Uint8Array, title: string, count: number) {
@@ -693,7 +742,7 @@ export async function renderCatalogPdf(products: PdfProduct[], options: CatalogP
   // Imagens das marcas: maiores que as fotos dos produtos (ocupam a largura).
   const fillers = new Map<string, Photo>();
   for (const [section, url] of Object.entries(options.sectionImages ?? {})) {
-    const image = await loadPhoto(url, false, options.signal, options.print ? 2400 : 1400);
+    const image = await loadPhoto(url, false, options.signal, options.print ? 2400 : 1400, true);
     if (image) fillers.set(section, image);
   }
 
@@ -740,7 +789,7 @@ export async function renderCatalogPdf(products: PdfProduct[], options: CatalogP
         });
     }
     const filler = page.filler && fillers.get(page.filler.section);
-    if (page.filler && filler) drawFiller(doc, filler, page.filler, `f${page.number}`);
+    if (page.filler && filler) drawFiller(doc, filler, page.filler, `f${page.number}`, modern);
     footer(doc, page);
   }
   return doc.output('blob');
