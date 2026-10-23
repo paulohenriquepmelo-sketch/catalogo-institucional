@@ -6,7 +6,7 @@ import { CatalogPdfLink } from './catalog-pdf-download';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { NativeSelect } from '@/components/ui/native-select';
-import { type Product } from '@/lib/catalog-data';
+import { catalogDateKey, type Product } from '@/lib/catalog-data';
 import {
   defaultConfig,
   type CatalogConfig,
@@ -27,8 +27,13 @@ import { catalogLayoutStyle } from '@/lib/catalog-layout';
 import { ProductCard } from './product-card';
 import { ProductDetailsDialog } from './product-details-dialog';
 import { CatalogCampaign } from './catalog-campaign';
-import { defaultCampaign } from '@/lib/catalog-campaign';
-import { ProductShowcaseCarousel } from './product-showcase-carousel';
+import { campaignSkin, defaultCampaign } from '@/lib/catalog-campaign';
+import {
+  HighlightTitle,
+  ProductShowcaseCarousel,
+  selectActiveOffers,
+  selectNewProducts,
+} from './product-showcase-carousel';
 import {
   Dialog,
   DialogContent,
@@ -76,6 +81,8 @@ export function CatalogApp({
   const [items, setItems] = useState<Product[]>([]);
   const [config, setConfig] = useState<CatalogConfig>(defaultConfig);
   const [filters, setFilters] = useState<Filters>(emptyFilters);
+  // Abas rápidas do tema que muda o site (Promoção / Lançamentos).
+  const [quick, setQuick] = useState<'' | 'offers' | 'new'>('');
   const [selected, setSelected] = useState<Product | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
@@ -111,7 +118,18 @@ export function CatalogApp({
   useEffect(() => {
     void load();
   }, [editorPreview]);
-  const filtered = useMemo(() => discover(items, filters), [items, filters]);
+  const filtered = useMemo(() => {
+    const found = discover(items, filters);
+    if (!quick) return found;
+    const picked = new Set(
+      (quick === 'offers'
+        ? selectActiveOffers(items, catalogDateKey(), items.length)
+        : // os mesmos de "Acabaram de chegar"
+          selectNewProducts(items, config.newProducts)
+      ).map((p) => p.id),
+    );
+    return found.filter((p) => picked.has(p.id));
+  }, [items, filters, quick, config.newProducts]);
   const searchResults = useMemo(
     () =>
       searchQuery.trim()
@@ -233,6 +251,8 @@ export function CatalogApp({
       },
     },
   ]);
+  // Tema que muda o site todo (ex.: Black Friday): só com o tema pronto ativo.
+  const skin = campaignSkin(config.campaign);
   const style = {
     ...catalogColorStyle(config),
     ...catalogLayoutStyle(config.layout),
@@ -262,6 +282,29 @@ export function CatalogApp({
         >
           <div className="catalog-filter-band">
             <div className="catalog-toolbar catalog-taxonomy-toolbar">
+              {skin && !fullCatalogPage ? (
+                <div className="category-tabs" aria-label="Mostrar">
+                  {(
+                    [
+                      ['', 'Todos'],
+                      ['offers', 'Promoção'],
+                      ['new', 'Lançamentos'],
+                    ] as const
+                  ).map(([value, label]) => (
+                    <button
+                      key={label}
+                      aria-pressed={quick === value}
+                      className={quick === value ? 'active' : ''}
+                      onClick={() => {
+                        setQuick(value);
+                        setLimit(12);
+                      }}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              ) : (
               <div className="category-tabs" aria-label="Departamento">
                 <button
                   className={!filters.department ? 'active' : ''}
@@ -284,6 +327,7 @@ export function CatalogApp({
                   </button>
                 ))}
               </div>
+              )}
               <Filter
                 label="Seção"
                 value={filters.section}
@@ -315,6 +359,9 @@ export function CatalogApp({
               />
             </div>
           </div>
+          {/* No tema que muda o site, a grade só aparece ao filtrar: a
+              página começa pelas ofertas, como no esboço. */}
+          {(!skin || fullCatalogPage || quick || filters.department || filters.section || filters.category) && (
           <section
             className="catalog-section catalog-results"
             aria-label="Produtos do catálogo"
@@ -377,6 +424,7 @@ export function CatalogApp({
               </div>
             )}
           </section>
+          )}
         </CatalogCampaign>
       );
     if (block.type === 'offers')
@@ -384,7 +432,14 @@ export function CatalogApp({
         <ProductShowcaseCarousel
           key={block.id}
           kind="offers"
-          settings={{ ...config.offers, title: block.title }}
+          // No tema que muda o site, as ofertas são cartões lado a lado.
+          settings={{
+            ...config.offers,
+            title: skin?.offers.title ?? block.title,
+            ...(skin ? { layout: 'carousel' as const } : {}),
+          }}
+          titleHighlight={skin?.offers.highlight}
+          actionLabel={skin ? 'Oferta' : undefined}
           items={items}
           onOpen={setSelected}
         />
@@ -394,7 +449,11 @@ export function CatalogApp({
         <ProductShowcaseCarousel
           key={block.id}
           kind="new-products"
-          settings={{ ...config.newProducts, title: block.title }}
+          settings={{
+            ...config.newProducts,
+            title: skin?.newProducts.title ?? block.title,
+            eyebrow: skin?.newProducts.subtitle ?? config.newProducts.eyebrow,
+          }}
           items={items}
           onOpen={setSelected}
         />
@@ -405,9 +464,14 @@ export function CatalogApp({
           <div className="section-heading light">
             <div>
               <span className="eyebrow">Encontre pela aplicação</span>
-              <h2>{block.title}</h2>
+              <h2>
+                <HighlightTitle
+                  text={skin?.segments.title ?? block.title}
+                  word={skin?.segments.highlight}
+                />
+              </h2>
             </div>
-            <p>{block.body}</p>
+            <p>{skin?.segments.subtitle ?? block.body}</p>
           </div>
           <CatalogSegments
             items={items}
@@ -420,8 +484,13 @@ export function CatalogApp({
       return (
         <section key={block.id} id="marcas" className="brands-section">
           <span className="eyebrow">Conheça nossas marcas</span>
-          <h2>{block.title}</h2>
-          <p>{block.body}</p>
+          <h2>
+            <HighlightTitle
+              text={skin?.brands.title ?? block.title}
+              word={skin?.brands.highlight}
+            />
+          </h2>
+          <p>{skin?.brands.subtitle ?? block.body}</p>
           <CatalogBrands
             brands={config.brands}
             items={items}
@@ -441,7 +510,7 @@ export function CatalogApp({
   return (
     <main
       id="inicio"
-      className={`public-catalog ${fullCatalogPage ? 'full-catalog-page' : ''} ${config.font === 'serif' ? 'serif-headings' : ''}`}
+      className={`public-catalog ${fullCatalogPage ? 'full-catalog-page' : ''} ${config.font === 'serif' ? 'serif-headings' : ''} ${skin ? `skin-${skin.id}` : ''}`}
       style={style}
     >
       <a className="skip-link" href="#catalogo">
@@ -452,7 +521,15 @@ export function CatalogApp({
         <h1 className="sr-only">{`${config.name} — catálogo de produtos`}</h1>
       )}
       <div className="announcement">
-        <span>{config.tagline}</span>
+        {skin ? (
+          <span className="announcement-skin">
+            {skin.announcement.map((text) => (
+              <span key={text}>{text}</span>
+            ))}
+          </span>
+        ) : (
+          <span>{config.tagline}</span>
+        )}
       </div>
       <header className="site-header">
         <a
