@@ -122,6 +122,8 @@ void test('catalog pdf API: editor uploads, everyone downloads the ready file', 
   assert.equal((await postPdf(upload('<html>', 'application/pdf'))).status, 400);
   assert.equal((await postPdf(upload(pdfBytes, 'text/html'))).status, 400);
   assert.equal((await postPdf(upload(pdfBytes, 'application/pdf', '?products=x&pages=3'))).status, 400);
+  assert.equal((await postPdf(upload(pdfBytes, 'application/pdf', '?products=10&pages=3&layout=<x>'))).status, 400);
+  assert.equal((await postPdf(upload(pdfBytes, 'application/pdf', '?products=10&pages=3&columns=9'))).status, 400);
 
   const saved = (await (await postPdf(upload(pdfBytes))).json()) as Record<string, unknown>;
   assert.equal(saved.available, true);
@@ -136,6 +138,11 @@ void test('catalog pdf API: editor uploads, everyone downloads the ready file', 
   assert.match(file.headers.get('content-disposition') ?? '', /attachment; filename="catalogo-laurencini-\d{4}-\d{2}-\d{2}\.pdf"/);
   assert.equal(new TextDecoder().decode(await file.arrayBuffer()), new TextDecoder().decode(pdfBytes));
   assert.equal((await info()).available, true);
+  // O editor volta com o layout e as fileiras do último PDF.
+  await postPdf(upload(pdfBytes, 'application/pdf', '?products=10&pages=3&layout=moderno&columns=4'));
+  const last = await info();
+  assert.equal(last.layout, 'moderno');
+  assert.equal(last.columns, 4);
 });
 
 void test('lista sem foto: ordem por código e PDF válido', async () => {
