@@ -1,0 +1,891 @@
+/*
+ * Tema Black Friday que muda o site todo (lib/catalog-campaign.ts →
+ * campaignSkins). Vale só com a classe `skin-black-friday` no <main>, ou
+ * seja, com o tema pronto Black Friday ativo; sem ele nada aqui se aplica.
+ * Tokens: "Design System & Tokens — Identidade Visual Laurencini (Black
+ * Friday)". Fontes Montserrat/Inter vêm de app/layout.tsx.
+ */
+.public-catalog.skin-black-friday {
+  /* Paleta */
+  --color-primary-500: #e60a14;
+  --color-primary-400: #ff1e27;
+  --color-primary-800: #7e0102;
+  --color-primary-950: #44070b;
+  --color-secondary-700: #063384;
+  --color-secondary-800: #1d3968;
+  --color-accent-400: #687987;
+  --color-bg-canvas: #030509;
+  --color-bg-surface-1: #0b1015;
+  --color-bg-surface-2: #12151c;
+  --color-bg-select: #161c23;
+  --color-bg-input: #232a31;
+  --color-surface-card: #ffffff;
+  --color-text-on-dark: #ffffff;
+  --color-text-muted-dark: #9ca3af;
+  --color-text-on-light: #070b10;
+  --color-text-muted-light: #718096;
+  --gradient-header-metallic: linear-gradient(90deg, #090d12 0%, #ffffff 18%, #dce2ea 24%, #0b1015 38%, #0b1015 100%);
+  --gradient-promo-banner: linear-gradient(90deg, #8a0307 0%, #44070b 35%, #2b0406 70%, #6e0205 100%);
+  --gradient-pill-active: linear-gradient(180deg, #37404a 0%, #1e242b 100%);
+  /* Tipografia */
+  --font-display: var(--font-bf-display), 'Montserrat', 'Arial Black', sans-serif;
+  --font-sans: var(--font-bf-sans), 'Inter', system-ui, sans-serif;
+  /* Espaços, raios, bordas e sombras */
+  --container-max: 1360px;
+  --gutter: 32px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --radius-full: 9999px;
+  --border-subtle-dark: 1px solid #262e38;
+  --border-red-glow: 1px solid rgb(230 10 20 / 65%);
+  --shadow-card: 0 8px 20px -4px rgb(0 0 0 / 65%);
+  --shadow-red-neon: 0 0 18px rgb(230 10 20 / 45%), inset 0 0 8px rgb(230 10 20 / 25%);
+  --shadow-cta-pill: 0 4px 12px rgb(247 17 10 / 40%);
+  /* Movimento */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --duration-fast: 180ms;
+  --duration-normal: 350ms;
+  /* Faixas centralizadas no container de 1360 px */
+  --band-inline: max(var(--gutter), calc((100% - var(--container-max)) / 2));
+  background: var(--color-bg-canvas);
+  color: var(--color-text-on-dark);
+  font-family: var(--font-sans);
+}
+
+/* ---------- Faixa de aviso ---------- */
+.public-catalog.skin-black-friday .announcement {
+  border-bottom: 1px solid rgb(230 10 20 / 35%);
+  background-color: var(--color-bg-canvas) !important;
+  background-image: none !important;
+  color: var(--color-text-on-dark);
+  font-family: var(--font-sans);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+.public-catalog.skin-black-friday .announcement-skin {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+}
+.public-catalog.skin-black-friday .announcement-skin::before,
+.public-catalog.skin-black-friday .announcement-skin::after {
+  content: '//';
+  color: var(--color-primary-400);
+  font-style: italic;
+  letter-spacing: -2px;
+}
+.public-catalog.skin-black-friday .announcement-skin > span + span::before {
+  content: '•';
+  margin-right: var(--space-3);
+  color: var(--color-primary-500);
+}
+
+/* ---------- Cabeçalho ---------- */
+.public-catalog.skin-black-friday .site-header {
+  border-bottom: 1px solid #1a2129;
+  background: var(--gradient-header-metallic);
+  box-shadow: none;
+}
+.public-catalog.skin-black-friday .header-search {
+  border: var(--border-subtle-dark) !important;
+  border-radius: var(--radius-sm) !important;
+  background: var(--color-bg-input) !important;
+  color: var(--color-text-on-dark);
+  box-shadow: none !important;
+}
+.public-catalog.skin-black-friday .header-search input {
+  color: var(--color-text-on-dark);
+  font-family: var(--font-sans);
+}
+.public-catalog.skin-black-friday .header-search input::placeholder {
+  color: var(--color-text-muted-dark);
+}
+.public-catalog.skin-black-friday .header-search > svg {
+  color: var(--color-primary-400);
+}
+.public-catalog.skin-black-friday .main-nav > a {
+  font-family: var(--font-sans);
+}
+.public-catalog.skin-black-friday .main-nav > a:not(.app-download-link):not(.editor-link) {
+  color: var(--color-text-on-dark) !important;
+  transition: color var(--duration-fast) ease;
+}
+.public-catalog.skin-black-friday .main-nav > a:not(.app-download-link):not(.editor-link):hover {
+  color: var(--color-primary-400) !important;
+}
+.public-catalog.skin-black-friday .main-nav .app-download-link {
+  border: var(--border-red-glow) !important;
+  border-radius: var(--radius-sm) !important;
+  background: var(--color-bg-surface-1) !important;
+  color: var(--color-text-on-dark) !important;
+  box-shadow: var(--shadow-red-neon) !important;
+  transition: background var(--duration-fast) ease;
+}
+.public-catalog.skin-black-friday .main-nav .app-download-link:last-of-type {
+  border-color: #c00f0a !important;
+  background: #c00f0a !important;
+}
+.public-catalog.skin-black-friday .main-nav .app-download-link:hover {
+  background: var(--color-primary-500) !important;
+}
+.public-catalog.skin-black-friday .main-nav .editor-link {
+  color: var(--color-text-muted-dark) !important;
+}
+.public-catalog.skin-black-friday .menu-button {
+  color: var(--color-text-on-dark);
+}
+
+/* ---------- Banner: a arte inteira, na proporção do esboço ---------- */
+.public-catalog.skin-black-friday .campaign-intro-band {
+  border-bottom: 0;
+  box-shadow: none;
+  background: var(--color-bg-canvas);
+}
+.public-catalog.skin-black-friday .campaign-visual-spacer {
+  aspect-ratio: 1536 / 221;
+}
+.public-catalog.skin-black-friday .campaign-overlay {
+  display: none;
+}
+.public-catalog.skin-black-friday .campaign-image {
+  object-fit: cover;
+}
+
+/* ---------- Faixa de filtros ---------- */
+.public-catalog.skin-black-friday .catalog-filter-band {
+  border-block: 1px solid #1a2129 !important;
+  background: var(--color-bg-surface-1) !important;
+}
+.public-catalog.skin-black-friday .catalog-filter-band > .catalog-toolbar {
+  max-width: var(--container-max);
+  margin-inline: auto;
+}
+.public-catalog.skin-black-friday .category-tabs button {
+  border: 1px solid transparent !important;
+  border-radius: var(--radius-sm) !important;
+  color: var(--color-text-muted-dark) !important;
+  background: transparent !important;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  text-shadow: none !important;
+  transition: color var(--duration-fast) ease, box-shadow var(--duration-fast) ease;
+}
+.public-catalog.skin-black-friday .category-tabs button:hover {
+  color: var(--color-text-on-dark) !important;
+  box-shadow: var(--shadow-red-neon);
+}
+.public-catalog.skin-black-friday .category-tabs button.active {
+  border-color: #3a434e !important;
+  color: var(--color-text-on-dark) !important;
+  background: var(--gradient-pill-active) !important;
+}
+.public-catalog.skin-black-friday .filter-field {
+  color: var(--color-text-muted-dark) !important;
+  font-family: var(--font-sans);
+  text-shadow: none !important;
+}
+.public-catalog.skin-black-friday :is(.catalog-filter-band, .result-line) select {
+  border: var(--border-subtle-dark) !important;
+  border-radius: var(--radius-sm) !important;
+  color: var(--color-text-on-dark) !important;
+  background-color: var(--color-bg-select) !important;
+  font-family: var(--font-sans);
+  text-shadow: none !important;
+}
+.public-catalog.skin-black-friday :is(.catalog-filter-band, .result-line) select option {
+  color: var(--color-text-on-light);
+  background: var(--color-surface-card);
+}
+.public-catalog.skin-black-friday :is(.catalog-filter-band, .result-line) [data-slot='native-select-icon'] {
+  color: var(--color-text-on-dark) !important;
+}
+
+/* ---------- Faixas: container de 1360 px, 32 px de respiro ---------- */
+.public-catalog.skin-black-friday :is(.catalog-results, .offers-showcase, .new-products-showcase, .brands-section, .segments-section) {
+  padding-inline: var(--band-inline) !important;
+  padding-block: var(--space-8) !important;
+  border-top-width: 0 !important;
+}
+.public-catalog.skin-black-friday :is(.catalog-results, .campaign-catalog-content, .offers-showcase) {
+  background: var(--color-bg-canvas) !important;
+}
+.public-catalog.skin-black-friday .site-footer::before {
+  display: none !important;
+}
+
+/* ---------- Títulos de seção: barra vermelha 4 × 22 px ---------- */
+.public-catalog.skin-black-friday :is(.product-showcase-heading h2, .brands-section > h2, .segments-section .section-heading h2) {
+  position: relative;
+  display: block;
+  margin: 0;
+  padding-left: 0;
+  color: var(--color-text-on-dark) !important;
+  font-family: var(--font-display) !important;
+  font-size: 1.25rem !important;
+  font-weight: 700 !important;
+  line-height: 1.25 !important;
+  letter-spacing: 0.01em !important;
+  text-shadow: none !important;
+}
+.public-catalog.skin-black-friday :is(.product-showcase-heading h2, .brands-section > h2, .segments-section .section-heading h2)::before {
+  content: '';
+  display: inline-block;
+  width: 4px;
+  height: 22px;
+  margin-right: var(--space-2);
+  vertical-align: -4px;
+  border-radius: var(--radius-xs);
+  background: var(--color-primary-500);
+}
+.public-catalog.skin-black-friday .title-highlight {
+  color: var(--color-primary-500);
+}
+.public-catalog.skin-black-friday .product-showcase-heading {
+  margin-bottom: var(--space-6) !important;
+}
+
+/* ---------- Cartões brancos (grade, ofertas, novidades) ---------- */
+.public-catalog.skin-black-friday :is(.product-card, .offer-card) {
+  border: 0 !important;
+  border-radius: var(--radius-md) !important;
+  background: var(--color-surface-card) !important;
+  box-shadow: var(--shadow-card) !important;
+  transition: transform var(--duration-normal) var(--ease-out-expo);
+}
+.public-catalog.skin-black-friday :is(.product-card, .offer-card):hover {
+  transform: translateY(-4px);
+}
+.public-catalog.skin-black-friday :is(.product-card .product-image, .offer-product-image img) {
+  transition: transform 300ms var(--ease-out-expo);
+}
+.public-catalog.skin-black-friday :is(.product-card:hover .product-image, .offer-card:hover .offer-product-image img) {
+  transform: scale(1.06);
+}
+.public-catalog.skin-black-friday .product-card::before {
+  display: none !important;
+}
+.public-catalog.skin-black-friday .product-card-body {
+  padding: var(--space-3) 14px !important;
+  gap: var(--space-1) !important;
+}
+.public-catalog.skin-black-friday .product-card .product-brand {
+  color: var(--color-primary-500) !important;
+  font-family: var(--font-sans);
+  font-size: 0.6875rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.04em !important;
+}
+.public-catalog.skin-black-friday .product-card .product-name {
+  color: var(--color-secondary-800) !important;
+  font-family: var(--font-sans);
+  font-size: 0.75rem !important;
+  font-weight: 700 !important;
+  line-height: 1.35 !important;
+  letter-spacing: 0.01em !important;
+  text-transform: uppercase;
+}
+.public-catalog.skin-black-friday .product-card-meta {
+  color: var(--color-text-muted-light) !important;
+  font-family: var(--font-sans);
+  font-size: 0.6875rem !important;
+  line-height: 1.4 !important;
+  font-variant-numeric: tabular-nums;
+}
+.public-catalog.skin-black-friday .featured-badge {
+  border-radius: var(--radius-xs) !important;
+  background: var(--color-primary-500) !important;
+  font-family: var(--font-sans);
+  letter-spacing: 0.04em;
+}
+.public-catalog.skin-black-friday .result-line,
+.public-catalog.skin-black-friday .result-line label {
+  color: var(--color-text-muted-dark) !important;
+  font-family: var(--font-sans);
+}
+.public-catalog.skin-black-friday .empty-state {
+  color: var(--color-text-on-dark);
+}
+
+/* Botões outline em pílula ("Ver todos", "Mostrar mais marcas") */
+.public-catalog.skin-black-friday :is(.catalog-page-link, .brands-more) {
+  border: var(--border-red-glow) !important;
+  border-radius: var(--radius-full) !important;
+  color: var(--color-text-on-dark) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  transition: background var(--duration-fast) ease, box-shadow var(--duration-fast) ease;
+}
+.public-catalog.skin-black-friday :is(.catalog-page-link, .brands-more):hover {
+  background: var(--color-primary-500) !important;
+  box-shadow: var(--shadow-red-neon) !important;
+}
+
+/* ---------- Ofertas em destaque ---------- */
+.public-catalog.skin-black-friday .offers-showcase {
+  color: var(--color-text-on-dark);
+}
+.public-catalog.skin-black-friday .offers-showcase .product-showcase-heading h2 {
+  text-transform: uppercase;
+}
+.public-catalog.skin-black-friday .offers-showcase .eyebrow {
+  display: none;
+}
+.public-catalog.skin-black-friday :is(.offers-showcase, .new-products-showcase) .showcase-card-track > * {
+  flex-basis: calc(100% / 6) !important;
+}
+.public-catalog.skin-black-friday .offer-card {
+  display: grid !important;
+  grid-template-areas:
+    'tag tag'
+    'image image'
+    'name name'
+    'expiry expiry'
+    'discount action';
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: var(--space-2) 6px !important;
+  height: 100%;
+  min-height: 0 !important;
+  overflow: hidden;
+  padding: var(--space-3) 14px !important;
+  color: var(--color-text-on-light) !important;
+  font-family: var(--font-sans);
+  text-align: left;
+}
+.public-catalog.skin-black-friday .offer-card::before {
+  content: 'Black Friday';
+  grid-area: tag;
+  position: static !important;
+  justify-self: start;
+  width: max-content;
+  height: auto !important;
+  padding: 3px 6px;
+  border-radius: var(--radius-xs) !important;
+  color: var(--color-text-on-dark);
+  background: var(--color-primary-500);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transform: none !important;
+}
+.public-catalog.skin-black-friday .offer-card::after,
+.public-catalog.skin-black-friday .offer-card .offer-perforation {
+  display: none !important;
+}
+.public-catalog.skin-black-friday .offer-card .offer-product-image {
+  grid-area: image;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 100% !important;
+  height: 110px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden;
+  border: 0 !important;
+  background: var(--color-surface-card) !important;
+}
+.public-catalog.skin-black-friday .offer-card .offer-product-image img {
+  width: auto !important;
+  max-width: 100% !important;
+  height: 100% !important;
+  max-height: 100% !important;
+  padding: 0;
+  object-fit: contain !important;
+}
+.public-catalog.skin-black-friday .offer-card strong {
+  grid-area: name;
+  color: var(--color-secondary-800) !important;
+  font-size: 0.75rem !important;
+  font-weight: 700;
+  line-height: 1.35 !important;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+}
+.public-catalog.skin-black-friday .offer-card .offer-expiry {
+  grid-area: expiry;
+  padding: 0 !important;
+  color: var(--color-text-muted-light) !important;
+  background: none !important;
+  font-size: 0.6875rem !important;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+.public-catalog.skin-black-friday .offer-card .offer-discount {
+  grid-area: discount;
+  position: static !important;
+  justify-self: start;
+  padding: 0 !important;
+  border: 0 !important;
+  color: var(--color-text-on-light) !important;
+  background: none !important;
+  box-shadow: none !important;
+  font-size: 1.125rem !important;
+  font-weight: 800 !important;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  transform: none !important;
+}
+.public-catalog.skin-black-friday .offer-card .offer-action {
+  grid-area: action;
+  justify-self: end;
+  padding: 6px 12px !important;
+  border-radius: var(--radius-full) !important;
+  color: var(--color-text-on-dark) !important;
+  background: var(--color-primary-500) !important;
+  font-size: 0.6875rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition: box-shadow var(--duration-fast) ease, transform var(--duration-fast) var(--ease-spring);
+}
+.public-catalog.skin-black-friday .offer-card:hover .offer-action {
+  box-shadow: var(--shadow-cta-pill);
+  transform: scale(1.04);
+}
+
+/* ---------- Acabaram de chegar: faixa vermelha só com as fotos ---------- */
+.public-catalog.skin-black-friday .new-products-showcase {
+  background: var(--gradient-promo-banner) !important;
+  color: var(--color-text-on-dark);
+}
+.public-catalog.skin-black-friday .new-products-showcase > [data-slot='carousel'] {
+  display: grid;
+  grid-template-columns: minmax(220px, 360px) minmax(0, 1fr);
+  align-items: center;
+  column-gap: var(--space-8);
+}
+.public-catalog.skin-black-friday .new-products-showcase .product-showcase-heading {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  margin: 0 !important;
+}
+.public-catalog.skin-black-friday .new-products-showcase .product-showcase-heading > div {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: var(--space-1);
+}
+.public-catalog.skin-black-friday .new-products-showcase .product-showcase-heading h2 {
+  font-size: 1.625rem !important;
+  font-weight: 800 !important;
+  line-height: 1.15 !important;
+  letter-spacing: -0.01em !important;
+  text-transform: uppercase;
+}
+.public-catalog.skin-black-friday .new-products-showcase .product-showcase-heading h2::before {
+  display: none;
+}
+.public-catalog.skin-black-friday .new-products-showcase .eyebrow {
+  color: var(--color-text-on-dark) !important;
+  font-family: var(--font-sans);
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+.public-catalog.skin-black-friday .new-products-showcase [data-slot='carousel-content'] {
+  grid-column: 2;
+}
+.public-catalog.skin-black-friday .new-products-showcase .showcase-controls {
+  grid-column: 2;
+  justify-self: center;
+}
+.public-catalog.skin-black-friday .new-product-badge,
+.public-catalog.skin-black-friday .new-product-card .product-card-body {
+  display: none !important;
+}
+.public-catalog.skin-black-friday .new-product-card,
+.public-catalog.skin-black-friday .new-product-card .product-card,
+.public-catalog.skin-black-friday .new-product-card .product-image-wrap {
+  width: 100% !important;
+}
+.public-catalog.skin-black-friday .new-product-card .product-card {
+  height: auto !important;
+}
+.public-catalog.skin-black-friday .new-product-card .product-image-wrap {
+  height: 72px !important;
+  min-height: 0 !important;
+  aspect-ratio: auto !important;
+  padding: 6px !important;
+  border: 0 !important;
+}
+
+/* ---------- Marcas e segmentos: título à esquerda, fileira à direita ---------- */
+.public-catalog.skin-black-friday :is(.brands-section, .segments-section) {
+  display: grid !important;
+  grid-template-columns: minmax(240px, 340px) minmax(0, 1fr);
+  align-items: center;
+  column-gap: var(--space-8);
+  color: var(--color-text-on-dark) !important;
+  text-align: left !important;
+}
+.public-catalog.skin-black-friday .brands-section {
+  border-block: 1px solid #1a2129;
+  background: var(--color-bg-canvas) !important;
+}
+.public-catalog.skin-black-friday .segments-section {
+  background: linear-gradient(90deg, var(--color-primary-950) 0%, #1a0306 50%, var(--color-bg-canvas) 100%) !important;
+}
+.public-catalog.skin-black-friday .segments-section::before,
+.public-catalog.skin-black-friday .segments-section::after {
+  display: none !important;
+}
+.public-catalog.skin-black-friday :is(.brands-section > .eyebrow, .segments-section .section-heading .eyebrow, .discovery-carousel-toolbar) {
+  display: none !important;
+}
+.public-catalog.skin-black-friday :is(.brands-section > h2, .brands-section > p) {
+  grid-column: 1;
+  margin: 0 !important;
+  text-align: left !important;
+}
+.public-catalog.skin-black-friday :is(.brands-section > p, .segments-section .section-heading > p) {
+  margin-top: var(--space-1) !important;
+  color: var(--color-text-muted-dark) !important;
+  font-family: var(--font-sans);
+  font-size: 0.875rem !important;
+  line-height: 1.5 !important;
+}
+.public-catalog.skin-black-friday .brands-section > p:empty {
+  display: none;
+}
+.public-catalog.skin-black-friday .segments-section .section-heading {
+  display: block !important;
+  margin: 0 !important;
+}
+.public-catalog.skin-black-friday .brands-section > .brand-carousel {
+  grid-column: 2;
+  grid-row: 1 / span 3;
+}
+.public-catalog.skin-black-friday .brands-section > .brands-more {
+  grid-column: 2;
+  justify-self: center;
+}
+.public-catalog.skin-black-friday :is(.brands-section > .brand-carousel, .segments-section > .segment-carousel) {
+  width: 100% !important;
+  min-width: 0;
+  max-width: none !important;
+  margin: 0 !important;
+  overflow: hidden;
+}
+.public-catalog.skin-black-friday .brand-row > * {
+  flex-basis: calc(100% / 7) !important;
+}
+.public-catalog.skin-black-friday .brand-row button {
+  min-height: 0 !important;
+  height: 56px !important;
+  padding: 6px 10px !important;
+  border: 0 !important;
+  border-radius: var(--radius-md) !important;
+  background: var(--color-surface-card) !important;
+  box-shadow: none !important;
+  transition: box-shadow var(--duration-fast) ease;
+}
+.public-catalog.skin-black-friday .brand-row button:hover {
+  box-shadow: var(--shadow-red-neon) !important;
+}
+.public-catalog.skin-black-friday .brand-row button > :not(img):not(:has(img)) {
+  display: none !important;
+}
+.public-catalog.skin-black-friday .brand-row button img {
+  width: auto;
+  max-width: 100%;
+  max-height: 40px !important;
+  object-fit: contain;
+}
+.public-catalog.skin-black-friday .segment-grid > * {
+  /* 5 por fileira: os nomes reais ("Hamburguerias e lanches") não cabem em 7 */
+  flex-basis: calc(100% / 5) !important;
+}
+.public-catalog.skin-black-friday .segment-grid button {
+  display: grid !important;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 0 !important;
+  height: 56px !important;
+  padding: 0 var(--space-3) !important;
+  border: var(--border-subtle-dark) !important;
+  border-radius: var(--radius-md) !important;
+  color: var(--color-text-on-dark) !important;
+  background: var(--color-bg-surface-2) !important;
+  box-shadow: none !important;
+  text-align: left;
+  transition: border-color var(--duration-fast) ease, box-shadow var(--duration-fast) ease;
+}
+.public-catalog.skin-black-friday .segment-grid button:hover {
+  border-color: rgb(230 10 20 / 65%) !important;
+  box-shadow: var(--shadow-red-neon) !important;
+}
+.public-catalog.skin-black-friday :is(.segment-grid button > span, .segment-grid button > small) {
+  display: none !important;
+}
+.public-catalog.skin-black-friday .segment-grid button > svg {
+  width: 24px !important;
+  height: 24px !important;
+  color: var(--color-primary-400) !important;
+  transition: filter var(--duration-fast) ease;
+}
+.public-catalog.skin-black-friday .segment-grid button:hover > svg {
+  filter: drop-shadow(0 0 6px #ff1e27);
+}
+.public-catalog.skin-black-friday .segment-grid button > strong {
+  display: -webkit-box;
+  overflow: hidden;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+  color: var(--color-text-on-dark) !important;
+  font-family: var(--font-sans);
+  font-size: 0.7rem !important;
+  font-weight: 600;
+  line-height: 1.2 !important;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.public-catalog.skin-black-friday .segment-grid button > em {
+  color: var(--color-text-on-dark) !important;
+  font-size: 0 !important;
+  transition: transform var(--duration-fast) ease;
+}
+.public-catalog.skin-black-friday .segment-grid button:hover > em {
+  transform: translateX(4px);
+}
+.public-catalog.skin-black-friday .segment-grid button > em svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* ---------- Setas dos carrosséis: círculos vermelhos ---------- */
+.public-catalog.skin-black-friday .catalog-carousel-controls {
+  border-color: #1a2129 !important;
+  background: rgb(11 16 21 / 92%) !important;
+  box-shadow: none !important;
+}
+.public-catalog.skin-black-friday .showcase-controls {
+  margin-top: var(--space-4) !important;
+}
+.public-catalog.skin-black-friday .catalog-carousel-controls button {
+  border-color: var(--color-primary-500) !important;
+  border-radius: var(--radius-full) !important;
+  background: var(--color-primary-500) !important;
+  transition: box-shadow var(--duration-fast) ease;
+}
+.public-catalog.skin-black-friday .catalog-carousel-controls button:hover:not(:disabled) {
+  background: var(--color-primary-400) !important;
+  box-shadow: var(--shadow-red-neon) !important;
+}
+
+/* ---------- Rodapé ---------- */
+.public-catalog.skin-black-friday .site-footer {
+  border-top: 1px solid #1a2129 !important;
+  background: var(--color-bg-surface-1) !important;
+  color: var(--color-text-muted-dark) !important;
+  font-family: var(--font-sans);
+}
+.public-catalog.skin-black-friday .site-footer strong {
+  color: var(--color-text-on-dark) !important;
+}
+.public-catalog.skin-black-friday .footer-navigation a {
+  color: var(--color-accent-400) !important;
+  transition: color var(--duration-fast) ease;
+}
+.public-catalog.skin-black-friday .footer-navigation a:hover {
+  color: var(--color-text-on-dark) !important;
+}
+.public-catalog.skin-black-friday .footer-commercial {
+  border: var(--border-red-glow) !important;
+  border-radius: var(--radius-lg) !important;
+  background: rgb(230 10 20 / 6%) !important;
+  box-shadow: var(--shadow-red-neon) !important;
+}
+.public-catalog.skin-black-friday .footer-commercial > span {
+  color: var(--color-primary-400) !important;
+}
+.public-catalog.skin-black-friday .footer-commercial h2 {
+  color: var(--color-text-on-dark) !important;
+  font-size: 1.5rem !important;
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+.public-catalog.skin-black-friday .footer-commercial a {
+  border-radius: var(--radius-full) !important;
+  color: var(--color-text-on-dark) !important;
+  background: var(--color-primary-500) !important;
+}
+.public-catalog.skin-black-friday .footer-bottom {
+  border-top-color: #1a2129 !important;
+  color: var(--color-accent-400) !important;
+}
+
+/* ---------- Telas médias ---------- */
+@media (max-width: 1100px) {
+  .public-catalog.skin-black-friday :is(.brands-section, .segments-section) {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: var(--space-4);
+  }
+  .public-catalog.skin-black-friday :is(.brands-section > h2, .brands-section > p, .brands-section > .brand-carousel, .brands-section > .brands-more, .segments-section > *) {
+    grid-column: 1;
+    grid-row: auto;
+  }
+  .public-catalog.skin-black-friday .new-products-showcase > [data-slot='carousel'] {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 14px;
+  }
+  .public-catalog.skin-black-friday .new-products-showcase :is(.product-showcase-heading, [data-slot='carousel-content'], .showcase-controls) {
+    grid-column: 1;
+    grid-row: auto;
+  }
+  .public-catalog.skin-black-friday :is(.offers-showcase, .new-products-showcase) .showcase-card-track > * {
+    flex-basis: calc(100% / 3) !important;
+  }
+  .public-catalog.skin-black-friday .brand-row > * {
+    flex-basis: calc(100% / 4) !important;
+  }
+  .public-catalog.skin-black-friday .segment-grid > * {
+    flex-basis: calc(100% / 3) !important;
+  }
+}
+
+/* ---------- Celular: 2 colunas, 16 px de margem ---------- */
+@media (max-width: 640px) {
+  .public-catalog.skin-black-friday {
+    --gutter: 16px;
+  }
+  .public-catalog.skin-black-friday .site-header {
+    background: linear-gradient(90deg, #ffffff 0%, #dce2ea 48%, #0b1015 66%, #0b1015 100%);
+  }
+  .public-catalog.skin-black-friday .announcement {
+    justify-content: center !important;
+    height: auto !important;
+    padding-block: 6px !important;
+    white-space: normal !important;
+  }
+  .public-catalog.skin-black-friday .announcement-skin {
+    gap: 2px 10px;
+    font-size: 0.6rem;
+  }
+  .public-catalog.skin-black-friday .announcement-skin::before,
+  .public-catalog.skin-black-friday .announcement-skin::after {
+    display: none;
+  }
+  .public-catalog.skin-black-friday .announcement-skin > span:last-child {
+    display: inline !important;
+  }
+  .public-catalog.skin-black-friday .announcement-skin > span + span::before {
+    margin-right: 10px;
+  }
+  .public-catalog.skin-black-friday :is(.offers-showcase, .new-products-showcase) .showcase-card-track > * {
+    flex-basis: 50% !important;
+  }
+  .public-catalog.skin-black-friday .brand-row > * {
+    flex-basis: calc(100% / 3) !important;
+  }
+  .public-catalog.skin-black-friday .segment-grid > * {
+    flex-basis: 50% !important;
+  }
+  .public-catalog.skin-black-friday .offer-card {
+    grid-template-areas:
+      'tag'
+      'image'
+      'name'
+      'expiry'
+      'discount'
+      'action';
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .public-catalog.skin-black-friday .offer-card .offer-action {
+    justify-self: stretch;
+    justify-content: center;
+  }
+}
+
+/* Sem animação para quem pede menos movimento */
+@media (prefers-reduced-motion: reduce) {
+  .public-catalog.skin-black-friday *,
+  .public-catalog.skin-black-friday *::before,
+  .public-catalog.skin-black-friday *::after {
+    transition: none !important;
+  }
+  .public-catalog.skin-black-friday :is(.product-card, .offer-card):hover,
+  .public-catalog.skin-black-friday :is(.product-card:hover .product-image, .offer-card:hover .offer-product-image img) {
+    transform: none;
+  }
+}
+
+/* Botão "OFERTA" dos cartões: pílula do mesmo tamanho em todos, ao lado do desconto */
+.public-catalog.skin-black-friday .offer-card .offer-discount {
+  font-size: 1rem !important;
+}
+.public-catalog.skin-black-friday .offer-card .offer-action {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  justify-self: end;
+  align-self: center;
+  box-sizing: border-box;
+  width: auto !important;
+  min-width: 76px;
+  height: 28px;
+  padding: 0 14px !important;
+  border-radius: var(--radius-full) !important;
+  color: var(--color-text-on-dark) !important;
+  background: var(--color-primary-500) !important;
+  box-shadow: var(--shadow-cta-pill);
+  font-size: 0.6875rem !important;
+  font-weight: 700 !important;
+  line-height: 1;
+  letter-spacing: 0.04em;
+}
+.public-catalog.skin-black-friday .offer-card .offer-action svg {
+  display: none;
+}
+.public-catalog.skin-black-friday .offer-card:hover .offer-action,
+.public-catalog.skin-black-friday .offer-card:focus-visible .offer-action {
+  background: var(--color-primary-400) !important;
+  box-shadow: 0 6px 16px rgb(247 17 10 / 55%);
+  transform: scale(1.04);
+}
+@media (max-width: 640px) {
+  .public-catalog.skin-black-friday .offer-card {
+    grid-template-areas:
+      'tag tag'
+      'image image'
+      'name name'
+      'expiry expiry'
+      'discount action';
+    grid-template-columns: 1fr auto;
+  }
+  .public-catalog.skin-black-friday .offer-card {
+    column-gap: var(--space-2) !important;
+    padding-inline: 10px !important;
+  }
+  .public-catalog.skin-black-friday .offer-card .offer-discount {
+    font-size: 0.875rem !important;
+  }
+  .public-catalog.skin-black-friday .offer-card .offer-action {
+    justify-self: end;
+    min-width: 0;
+    height: 26px;
+    padding: 0 10px !important;
+    font-size: 0.625rem !important;
+  }
+}

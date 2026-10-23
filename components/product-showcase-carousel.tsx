@@ -83,16 +83,34 @@ export function selectActiveOffers(
     .slice(0, limit);
 }
 
+/** Título com uma palavra destacada (tema que muda o site, ex.: Black Friday). */
+export function HighlightTitle({ text, word }: { text: string; word?: string }) {
+  const at = word ? text.toLowerCase().lastIndexOf(word.toLowerCase()) : -1;
+  if (!word || at < 0) return <>{text}</>;
+  return (
+    <>
+      {text.slice(0, at)}
+      <span className="title-highlight">{text.slice(at, at + word.length)}</span>
+      {text.slice(at + word.length)}
+    </>
+  );
+}
+
 export function ProductShowcaseCarousel({
   kind,
   settings,
   items,
   onOpen,
+  titleHighlight,
+  actionLabel = 'Ver produto',
 }: {
   kind: 'offers' | 'new-products';
   settings: ProductShowcase;
   items: Product[];
   onOpen: (product: Product) => void;
+  titleHighlight?: string;
+  /** Texto do botão do cartão de oferta ("Oferta" no tema Black Friday). */
+  actionLabel?: string;
 }) {
   const [api, setApi] = useState<CarouselApi>();
   const [interacting, setInteracting] = useState(false);
@@ -162,7 +180,9 @@ export function ProductShowcaseCarousel({
         <div className="product-showcase-heading">
           <div>
             <span className="eyebrow">{settings.eyebrow}</span>
-            <h2>{settings.title}</h2>
+            <h2>
+              <HighlightTitle text={settings.title} word={titleHighlight} />
+            </h2>
           </div>
         </div>
         <CarouselContent
@@ -203,7 +223,7 @@ export function ProductShowcaseCarousel({
                     {offerTimeLabel(product.details!.offer!.endsAt, now)}
                   </time>
                   <span className="offer-action">
-                    Ver produto <ArrowRight />
+                    {actionLabel} <ArrowRight />
                   </span>
                 </button>
               ) : (

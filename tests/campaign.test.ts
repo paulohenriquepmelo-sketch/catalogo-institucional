@@ -9,6 +9,7 @@ import {
   defaultCampaign,
   campaignPreset,
   campaignSlides,
+  campaignSkin,
 } from '../lib/catalog-campaign';
 import {
   defaultConfig,
@@ -420,4 +421,17 @@ void test('legacy settings receive campaign defaults without overwriting saved i
   assert.equal((await postConfig(req('https://catalog.test'))).status, 403);
   setIdentity('admin@example.test');
   assert.equal((await postConfig(req('https://other.test'))).status, 403);
+});
+
+void test('Black Friday theme changes the whole site only with the ready-made theme active', () => {
+  assert.equal(
+    campaignSkin({ enabled: true, mode: 'theme', theme: 'black-friday' })?.id,
+    'black-friday',
+  );
+  // "Minha imagem" e carrossel guardam o último tema, mas não mudam o site.
+  assert.equal(campaignSkin({ enabled: true, mode: 'image', theme: 'black-friday' }), null);
+  assert.equal(campaignSkin({ enabled: true, mode: 'carousel', theme: 'black-friday' }), null);
+  assert.equal(campaignSkin({ enabled: false, mode: 'theme', theme: 'black-friday' }), null);
+  assert.equal(campaignSkin({ enabled: true, mode: 'theme', theme: 'natal' }), null);
+  assert.equal(campaignSkin(undefined), null);
 });

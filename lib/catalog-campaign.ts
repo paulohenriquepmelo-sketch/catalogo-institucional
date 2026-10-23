@@ -27,9 +27,9 @@ export const campaignThemes = [
     id: 'black-friday',
     name: 'Black Friday',
     image: '/themes/black-friday.png',
-    color: '#a84415',
-    ink: '#202128',
-    background: '#edebe7',
+    color: '#e3141b',
+    ink: '#ffffff',
+    background: '#0b0b0e',
     eyebrow: 'Prepare sua operação',
     title: 'Seu mix preparado para a Black Friday.',
     description:
@@ -85,6 +85,49 @@ export const campaignThemes = [
   },
 ] as const;
 export type CampaignThemeId = (typeof campaignThemes)[number]['id'];
+
+// Temas que mudam o site inteiro (cores, cabeçalho, seções e rodapé), não
+// só o banner. Só valem com o tema pronto escolhido: "Minha imagem" e o
+// carrossel guardam o último tema, mas mantêm o visual comum do site.
+// `highlight` é a palavra do título que fica em vermelho.
+export type SkinTitle = { title: string; subtitle?: string; highlight?: string };
+export type CampaignSkin = {
+  announcement: string[];
+  offers: SkinTitle;
+  newProducts: SkinTitle;
+  brands: SkinTitle;
+  segments: SkinTitle;
+};
+export const campaignSkins: Partial<Record<CampaignThemeId, CampaignSkin>> = {
+  'black-friday': {
+    announcement: [
+      'Só na Distribuidora Laurencini',
+      'As melhores marcas',
+      'Condições especiais',
+    ],
+    offers: { title: 'Ofertas em destaque', highlight: 'destaque' },
+    newProducts: {
+      title: 'Acabaram de chegar',
+      subtitle: 'Novidades e lançamentos para o seu negócio.',
+    },
+    brands: {
+      title: 'As marcas do nosso catálogo',
+      subtitle: 'Qualidade e variedade das melhores marcas',
+    },
+    segments: {
+      title: 'Produtos por segmento',
+      subtitle: 'Tudo o que o seu negócio precisa, em um só lugar',
+      highlight: 'segmento',
+    },
+  },
+};
+export function campaignSkin(
+  campaign: Pick<CatalogCampaign, 'enabled' | 'mode' | 'theme'> | undefined,
+) {
+  if (!campaign?.enabled || campaign.mode !== 'theme') return null;
+  const skin = campaignSkins[campaign.theme];
+  return skin ? { id: campaign.theme, ...skin } : null;
+}
 export type CampaignSlide = {
   id: string;
   image: string;
