@@ -6,7 +6,20 @@ import { authorizeMutation } from '@/lib/editor-access';
 const KEY = 'catalog-pdf/catalogo.pdf';
 const MAX_BYTES = 90 * 1048576;
 
-type Info = { available: boolean; generatedAt?: string; products?: number; pages?: number; size?: number };
+// Layout e produtos por fileira do PDF publicado: o editor abre com eles
+// marcados, em vez de voltar sempre ao clássico com 5.
+const LAYOUTS = ['classico', 'moderno', 'modelo'];
+const COLUMNS = ['3', '4', '5'];
+
+type Info = {
+  available: boolean;
+  generatedAt?: string;
+  products?: number;
+  pages?: number;
+  size?: number;
+  layout?: string;
+  columns?: number;
+};
 
 function infoOf(
   object: { size: number; customMetadata?: Record<string, string> } | null,
@@ -19,6 +32,8 @@ function infoOf(
     products: Number(meta.products) || undefined,
     pages: Number(meta.pages) || undefined,
     size: object.size,
+    layout: LAYOUTS.includes(meta.layout) ? meta.layout : undefined,
+    columns: COLUMNS.includes(meta.columns) ? Number(meta.columns) : undefined,
   };
 }
 
@@ -58,16 +73,24 @@ export async function POST(request: Request) {
     };
     const products = count('products');
     const pages = count('pages');
+    const choice = (name: string, allowed: string[]) => {
+      const value = params.get(name);
+      if (value === null) return {};
+      if (!allowed.includes(value)) throw new Error('Dados do catálogo inválidos.');
+      return { [name]: value };
+    };
+    const options = { ...choice('layout', LAYOUTS), ...choice('columns', COLUMNS) };
     const body = await request.arrayBuffer();
     const head = new TextDecoder().decode(new Uint8Array(body, 0, Math.min(5, body.byteLength)));
     if (body.byteLength > MAX_BYTES) throw new Error('O PDF passou de 90 MB.');
     if (head !== '%PDF-') throw new Error('O arquivo enviado não é um PDF.');
     const generatedAt = new Date().toISOString();
+    const customMetadata = { generatedAt, products, pages, ...options };
     await env.FILES.put(KEY, body, {
       httpMetadata: { contentType: 'application/pdf' },
-      customMetadata: { generatedAt, products, pages },
+      customMetadata,
     });
-    return Response.json(infoOf({ size: body.byteLength, customMetadata: { generatedAt, products, pages } }));
+    return Response.json(infoOf({ size: body.byteLength, customMetadata }));
   } catch (error) {
     return Response.json(
       { error: error instanceof Error ? error.message : 'Falha ao salvar o PDF.' },

@@ -8,6 +8,8 @@ export type CatalogPdfInfo = {
   products?: number;
   pages?: number;
   size?: number;
+  layout?: 'classico' | 'moderno' | 'modelo';
+  columns?: 3 | 4 | 5;
 };
 
 export function useCatalogPdfInfo() {

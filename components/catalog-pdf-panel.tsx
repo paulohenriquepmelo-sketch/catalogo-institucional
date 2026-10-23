@@ -43,6 +43,12 @@ function save(blob: Blob, filename: string) {
   setTimeout(() => URL.revokeObjectURL(url), 60000);
 }
 
+const LAYOUT_NAMES: Record<CatalogPdfLayout, string> = {
+  classico: 'Clássico',
+  moderno: 'Moderno',
+  modelo: 'Novo modelo',
+};
+
 /**
  * Gera o catálogo completo em PDF a partir do que está PUBLICADO no site e
  * guarda no storage: o botão do site público só baixa o arquivo pronto.
@@ -63,9 +69,16 @@ export function CatalogPdfPanel({ onBusy }: { onBusy: (busy: boolean) => void })
   const [brandSections, setBrandSections] = useState<string[]>([]);
   const [sectionImages, setSectionImages] = useState<Record<string, string>>({});
   const [imageBusy, setImageBusy] = useState('');
-  const [layout, setLayout] = useState<CatalogPdfLayout>('classico');
+  // Abre com o layout e as fileiras do PDF publicado; sem ele, moderno com 4.
+  const [layout, setLayout] = useState<CatalogPdfLayout>('moderno');
   // Produtos por fileira: menos colunas, fotos maiores (e mais páginas).
-  const [columns, setColumns] = useState<PdfColumns>(5);
+  const [columns, setColumns] = useState<PdfColumns>(4);
+  const [restored, setRestored] = useState(false);
+  if (!restored && loaded) {
+    setRestored(true);
+    if (loaded.layout) setLayout(loaded.layout);
+    if (loaded.columns) setColumns(loaded.columns);
+  }
 
   // Seções do que está publicado, para baixar só uma parte no CorelDRAW.
   useEffect(() => {
@@ -200,7 +213,7 @@ export function CatalogPdfPanel({ onBusy }: { onBusy: (busy: boolean) => void })
           ? planCatalogPdf(products, MODELO_AREA, columns).length + 2
           : planCatalogPdf(products, undefined, columns).length + (layout === 'moderno' ? 2 : 1);
       const response = await fetch(
-        `/api/catalog-pdf?products=${products.length}&pages=${pages}`,
+        `/api/catalog-pdf?products=${products.length}&pages=${pages}&layout=${layout}&columns=${columns}`,
         {
           method: 'POST',
           headers: { 'content-type': 'application/pdf' },
@@ -237,7 +250,7 @@ export function CatalogPdfPanel({ onBusy }: { onBusy: (busy: boolean) => void })
     >
       <p className="catalog-pdf-status">
         {current?.available
-          ? `Último PDF: ${when} · ${current.products ?? '?'} produtos · ${current.pages ?? '?'} páginas · ${megabytes(current.size)}`
+          ? `Último PDF: ${when}${current.layout ? ` · ${LAYOUT_NAMES[current.layout]}` : ''}${current.columns ? ` com ${current.columns} por fileira` : ''} · ${current.products ?? '?'} produtos · ${current.pages ?? '?'} páginas · ${megabytes(current.size)}`
           : 'Nenhum PDF gerado ainda: o botão do site fica escondido até a primeira geração.'}
       </p>
       {progress && (
