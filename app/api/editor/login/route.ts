@@ -1,8 +1,10 @@
 import { env } from 'cloudflare:workers';
 import {
   createEditorSession,
+  createMfaChallenge,
   setEditorSessionCookie,
 } from '@/app/chatgpt-auth';
+import { activeTotpSecret } from '@/lib/editor-totp';
 import { verifyEditorPassword } from '@/lib/editor-credentials';
 
 export async function POST(request: Request) {
@@ -36,6 +38,16 @@ export async function POST(request: Request) {
       new URL(`/editor/login?error=1&return_to=${encodeURIComponent(safeReturnTo)}`, request.url),
       303,
     );
+  // Autenticador ativo: a senha só abre a etapa do código.
+  if (await activeTotpSecret())
+    return new Response(null, {
+      status: 303,
+      headers: {
+        Location: `/editor/login?etapa=codigo&return_to=${encodeURIComponent(safeReturnTo)}`,
+        'Set-Cookie': await createMfaChallenge(request.url),
+        'Cache-Control': 'private, no-store',
+      },
+    });
   const session = await createEditorSession();
   return new Response(null, {
     status: 303,

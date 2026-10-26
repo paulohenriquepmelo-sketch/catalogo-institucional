@@ -1,4 +1,5 @@
 import { env } from 'cloudflare:workers';
+import { activeTotpSecret } from './editor-totp';
 
 // Senha do editor trocada pelo próprio editor. Guardada só como hash
 // PBKDF2-SHA256 com sal aleatório (100 mil iterações, o máximo aceito pelo
@@ -89,10 +90,14 @@ export async function verifyEditorPassword(password: string) {
 
 // Chave que assina o cookie de sessão. Com senha trocada é o próprio hash
 // (nunca sai do servidor): trocar a senha invalida todas as sessões abertas.
+// Com o autenticador ativo, o segredo dele também entra na chave: saber a
+// senha não basta para forjar o cookie de sessão.
 export async function editorSessionKey() {
   const row = await readCredential();
-  if (row) return `credential:${row.hash}`;
-  return env.EDITOR_PASSWORD ?? null;
+  const base = row ? `credential:${row.hash}` : (env.EDITOR_PASSWORD ?? null);
+  if (!base) return null;
+  const totp = await activeTotpSecret();
+  return totp ? `${base}:totp:${totp}` : base;
 }
 
 export function validateNewPassword(next: string, current: string) {

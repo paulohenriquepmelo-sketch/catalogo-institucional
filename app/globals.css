@@ -7040,3 +7040,86 @@ a:focus-visible {
   flex-wrap: wrap;
   gap: 4px 14px;
 }
+
+/* Aba Segurança: autenticador. */
+.security-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.security-status svg {
+  width: 18px;
+  color: #1d7a43;
+}
+.totp-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.totp-scan {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+.totp-scan img {
+  width: 220px;
+  max-width: 100%;
+  border: 1px solid #d7deeb;
+  border-radius: 10px;
+  background: #fff;
+  image-rendering: pixelated;
+}
+.totp-scan > div {
+  min-width: 0;
+  display: grid;
+  gap: 10px;
+}
+.totp-scan ol {
+  margin: 0;
+  padding-left: 20px;
+}
+.totp-scan span {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.totp-scan code,
+.totp-codes code {
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: #fff;
+  font: 15px/1.5 ui-monospace, Menlo, monospace;
+  letter-spacing: 0.08em;
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+.totp-codes {
+  padding: 16px;
+  display: grid;
+  gap: 12px;
+  border: 2px solid #1d7a43;
+  border-radius: 10px;
+  background: #eef9f2;
+}
+.totp-codes strong {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.totp-codes ol {
+  margin: 0;
+  padding-left: 24px;
+  display: grid;
+  grid-template-columns: repeat(2, max-content);
+  gap: 6px 32px;
+}
+@media (max-width: 600px) {
+  .totp-scan {
+    grid-template-columns: 1fr;
+  }
+  .totp-codes ol {
+    grid-template-columns: 1fr;
+  }
+}
