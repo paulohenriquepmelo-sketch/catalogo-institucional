@@ -85,6 +85,7 @@ export function UploadField({
   onChange,
   onBusy,
   product = false,
+  logo = false,
 }: {
   label: string;
   value: string;
@@ -92,6 +93,8 @@ export function UploadField({
   onBusy?: (busy: boolean) => void;
   // Product photos are cropped and centered in a square frame.
   product?: boolean;
+  // Brand logos have their empty border cropped.
+  logo?: boolean;
 }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -103,7 +106,7 @@ export function UploadField({
     setBusy(true);
     onBusy?.(true);
     try {
-      const optimized = await optimizeImage(file, { product });
+      const optimized = await optimizeImage(file, { product, logo });
       const form = new FormData();
       form.append('file', optimized.file);
       const res = await fetch('/api/uploads', { method: 'POST', body: form });

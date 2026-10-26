@@ -254,7 +254,11 @@ export function productFrame(contentWidth: number, contentHeight: number) {
 // True when the photo already looks like the output of productFrame: square,
 // product centered, margin close to PRODUCT_IMAGE_MARGIN. Lets the bulk tool
 // skip photos framed before instead of re-encoding them again.
-export function isProductFramed(box: ContentBox, width: number, height: number) {
+export function isProductFramed(
+  box: ContentBox,
+  width: number,
+  height: number,
+) {
   const tolerance = Math.max(3, width * 0.015);
   const inner = Math.max(box.width, box.height);
   return (
@@ -262,5 +266,77 @@ export function isProductFramed(box: ContentBox, width: number, height: number) 
     Math.abs(inner / (1 - 2 * PRODUCT_IMAGE_MARGIN) - width) <= tolerance &&
     Math.abs(box.x - (width - box.width) / 2) <= tolerance &&
     Math.abs(box.y - (height - box.height) / 2) <= tolerance
+  );
+}
+
+// Brand logos keep their own proportions; only the empty border is cropped,
+// leaving LOGO_IMAGE_MARGIN of the longest side so every logo fills its card.
+export const LOGO_IMAGE_MARGIN = 0.04;
+
+// Like productContentBox, but white artwork on a transparent logo (white
+// lettering, outlines) is content: with transparency only alpha decides.
+export function logoContentBox(
+  rgba: ArrayLike<number>,
+  width: number,
+  height: number,
+): ContentBox | undefined {
+  let transparent = false;
+  for (let i = 3; i < rgba.length && !transparent; i += 4)
+    transparent = rgba[i] < 250;
+  if (!transparent) return productContentBox(rgba, width, height);
+  let left = width;
+  let top = height;
+  let right = -1;
+  let bottom = -1;
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      if (rgba[(y * width + x) * 4 + 3] < 16) continue;
+      if (x < left) left = x;
+      if (x > right) right = x;
+      if (y < top) top = y;
+      if (y > bottom) bottom = y;
+    }
+  }
+  if (right < 0) return undefined;
+  return {
+    x: left,
+    y: top,
+    width: right - left + 1,
+    height: bottom - top + 1,
+    transparent,
+  };
+}
+
+// Canvas size and destination rectangle for a cropped logo. Never upscales.
+export function logoFrame(contentWidth: number, contentHeight: number) {
+  const pad = Math.round(
+    Math.max(contentWidth, contentHeight) * LOGO_IMAGE_MARGIN,
+  );
+  const canvas = imageDimensions(
+    contentWidth + 2 * pad,
+    contentHeight + 2 * pad,
+  );
+  const scale = canvas.width / (contentWidth + 2 * pad);
+  return {
+    canvasWidth: canvas.width,
+    canvasHeight: canvas.height,
+    x: Math.round(pad * scale),
+    y: Math.round(pad * scale),
+    width: Math.max(1, Math.round(contentWidth * scale)),
+    height: Math.max(1, Math.round(contentHeight * scale)),
+  };
+}
+
+// True when no side has more empty border than the logo margin would leave,
+// so already cropped logos are not re-encoded.
+export function isLogoTrimmed(box: ContentBox, width: number, height: number) {
+  const limit =
+    Math.round(Math.max(box.width, box.height) * LOGO_IMAGE_MARGIN) +
+    Math.max(2, Math.max(width, height) * 0.01);
+  return (
+    box.x <= limit &&
+    box.y <= limit &&
+    width - box.x - box.width <= limit &&
+    height - box.y - box.height <= limit
   );
 }

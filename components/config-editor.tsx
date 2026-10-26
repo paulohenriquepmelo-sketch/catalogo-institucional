@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Field, Choice, Toggle, Panel, UploadField } from './editor-controls';
 import { ArrowDown, ArrowUp, Plus, Trash2 } from 'lucide-react';
 import { BrandLogoPicker } from './brand-logo-picker';
+import { trimBrandLogos } from '@/lib/import-brand-logo';
 import { LayoutEditor } from './layout-editor';
 import type { Block, CatalogConfig } from '@/lib/catalog-config';
 import { ColorEditor } from './color-editor';
@@ -46,6 +47,8 @@ export function ConfigEditor({
 }) {
   const [brandQuery, setBrandQuery] = useState('');
   const [brandLimit, setBrandLimit] = useState(20);
+  const [trimStatus, setTrimStatus] = useState('');
+  const [trimming, setTrimming] = useState(false);
   const [promotionQuery, setPromotionQuery] = useState('');
   const [promotionLimit, setPromotionLimit] = useState(30);
   const selectedBrands = config.brands
@@ -256,9 +259,13 @@ export function ConfigEditor({
             <Field
               label="Mostrar a partir do código (vazio = os códigos mais altos)"
               type="number"
-              value={settings.fromCode === undefined ? '' : String(settings.fromCode)}
+              value={
+                settings.fromCode === undefined ? '' : String(settings.fromCode)
+              }
               onChange={(value) =>
-                update({ fromCode: value.trim() === '' ? undefined : Number(value) })
+                update({
+                  fromCode: value.trim() === '' ? undefined : Number(value),
+                })
               }
             />
           )}
@@ -375,6 +382,49 @@ export function ConfigEditor({
             })
           }
         />
+        <div className="brand-trim">
+          <Button
+            variant="outline"
+            disabled={trimming}
+            onClick={async () => {
+              setTrimming(true);
+              onBusy(true);
+              try {
+                const { replaced, failed, total } = await trimBrandLogos(
+                  config.brands.map((b) => b.logo),
+                  (done, all) =>
+                    setTrimStatus(`Recortando logos… ${done} de ${all}`),
+                );
+                if (replaced.size)
+                  change(
+                    'brands',
+                    config.brands.map((b) =>
+                      replaced.has(b.logo)
+                        ? { ...b, logo: replaced.get(b.logo)! }
+                        : b,
+                    ),
+                  );
+                setTrimStatus(
+                  (replaced.size
+                    ? `${replaced.size} de ${total} logos recortados. Salve e publique para aplicar no site.`
+                    : `Nenhum dos ${total} logos tinha margem para recortar.`) +
+                    (failed
+                      ? ` ${failed} não puderam ser lidos e ficaram como estavam.`
+                      : ''),
+                );
+              } finally {
+                setTrimming(false);
+                onBusy(false);
+              }
+            }}
+          >
+            {trimming ? 'Recortando…' : 'Recortar margens dos logos'}
+          </Button>
+          <p className="source-note">
+            {trimStatus ||
+              'Tira o espaço em branco em volta dos logos para eles ocuparem o cartão por igual. Os arquivos originais continuam guardados.'}
+          </p>
+        </div>
         <Field
           label={`Buscar entre ${config.brands.length} marcas`}
           value={brandQuery}
@@ -408,6 +458,7 @@ export function ConfigEditor({
               />
               <UploadField
                 label="Logo da marca"
+                logo
                 value={brand.logo}
                 onBusy={onBusy}
                 onChange={(logo) =>
@@ -816,8 +867,12 @@ export function ConfigEditor({
 function SegmentsOverview({ products }: { products: Product[] }) {
   const segments = useMemo(() => buildSegments(products), [products]);
   const unclassified = useMemo(() => {
-    const inSegment = new Set(segments.flatMap((s) => s.products.map((p) => p.id)));
-    return products.filter((p) => p.published !== false && !inSegment.has(p.id));
+    const inSegment = new Set(
+      segments.flatMap((s) => s.products.map((p) => p.id)),
+    );
+    return products.filter(
+      (p) => p.published !== false && !inSegment.has(p.id),
+    );
   }, [segments, products]);
   return (
     <>
@@ -838,7 +893,9 @@ function SegmentsOverview({ products }: { products: Product[] }) {
                 return (
                   <li key={group.name}>
                     {group.name}: <strong>{found?.products.length ?? 0}</strong>
-                    {group.minSize ? ` (embalagem a partir de ${group.minSize} g/ml)` : ''}
+                    {group.minSize
+                      ? ` (embalagem a partir de ${group.minSize} g/ml)`
+                      : ''}
                   </li>
                 );
               })}

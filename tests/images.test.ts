@@ -3,7 +3,10 @@ import assert from 'node:assert/strict';
 import {
   imageDimensions,
   inspectImage,
+  isLogoTrimmed,
   isProductFramed,
+  logoContentBox,
+  logoFrame,
   productContentBox,
   productFrame,
 } from '../lib/image-policy';
@@ -300,4 +303,48 @@ void test('framed photos are recognized so the bulk tool can skip them', () => {
     false,
   );
   assert.equal(isProductFramed(box, 1080, 1350), false);
+});
+
+void test('logo crop keeps white lettering on transparency and its proportions', () => {
+  // White block on a transparent canvas is artwork, not background.
+  const block = { x: 20, y: 40, width: 60, height: 10 };
+  const white = pixels(
+    100,
+    100,
+    { x: 0, y: 0, width: 0, height: 0 },
+    [0, 0, 0, 0],
+  );
+  for (let y = block.y; y < block.y + block.height; y++)
+    for (let x = block.x; x < block.x + block.width; x++)
+      white.set([255, 255, 255, 255], (y * 100 + x) * 4);
+  assert.deepEqual(logoContentBox(white, 100, 100), {
+    ...block,
+    transparent: true,
+  });
+  // Opaque logos still treat the white background as margin.
+  assert.deepEqual(logoContentBox(pixels(100, 100, block), 100, 100), {
+    ...block,
+    transparent: false,
+  });
+  // Wide logo stays wide, with 4% of the longest side around it.
+  assert.deepEqual(logoFrame(400, 100), {
+    canvasWidth: 432,
+    canvasHeight: 132,
+    x: 16,
+    y: 16,
+    width: 400,
+    height: 100,
+  });
+  assert.equal(
+    isLogoTrimmed({ ...block, transparent: false }, 100, 100),
+    false,
+  );
+  assert.equal(
+    isLogoTrimmed(
+      { x: 3, y: 3, width: 94, height: 30, transparent: true },
+      100,
+      36,
+    ),
+    true,
+  );
 });
