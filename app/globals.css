@@ -6318,3 +6318,46 @@ a:focus-visible {
 .out-catalog-info small {
   color: #5d6a85;
 }
+
+/* Link do RCA na faixa do topo: mensagem centralizada e contato à direita. */
+.announcement:has(> .announcement-rca) {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+}
+.announcement:has(> .announcement-rca) > :first-child {
+  grid-column: 2;
+}
+.announcement-rca {
+  grid-column: 3;
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  color: inherit;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.announcement-rca:hover {
+  background: rgb(255 255 255 / 14%);
+}
+@media (max-width: 900px) {
+  /* Duas linhas: a mensagem em cima e o contato do RCA embaixo. */
+  .public-catalog .announcement:has(> .announcement-rca) {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center !important;
+    gap: 4px 12px;
+    height: auto !important;
+    padding-block: 6px !important;
+  }
+  .announcement:has(> .announcement-rca) > :first-child {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
