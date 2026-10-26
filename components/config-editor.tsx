@@ -703,10 +703,22 @@ export function ConfigEditor({
         <div>
           <h2 id="contact-settings-title">Contato comercial</h2>
           <p>
-            Este e-mail cria o botão “Solicitar informações” dentro do popup de
-            cada produto.
+            O WhatsApp e o e-mail viram botões no popup de cada produto. Os três
+            contatos aparecem no rodapé do site.
           </p>
         </div>
+        <Field
+          label="WhatsApp comercial (com DDD, ex.: (44) 99999-9999)"
+          value={config.whatsapp}
+          type="tel"
+          onChange={(v) => change('whatsapp', v)}
+        />
+        <Field
+          label="Telefone comercial"
+          value={config.phone}
+          type="tel"
+          onChange={(v) => change('phone', v)}
+        />
         <Field
           label="E-mail do contato comercial"
           value={config.email}
@@ -714,9 +726,9 @@ export function ConfigEditor({
           onChange={(v) => change('email', v)}
         />
         <output>
-          {config.email
-            ? `Os pedidos de informação serão enviados para ${config.email}.`
-            : 'Sem e-mail, o catálogo informa que o contato comercial ainda não foi cadastrado.'}
+          {config.whatsapp || config.email || config.phone
+            ? 'Os clientes poderão falar com o comercial pelo popup do produto e pelo rodapé.'
+            : 'Sem contatos, o catálogo informa que o contato comercial ainda não foi cadastrado.'}
         </output>
       </section>
       <UploadField

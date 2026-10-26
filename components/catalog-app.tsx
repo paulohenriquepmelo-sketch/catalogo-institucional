@@ -9,6 +9,7 @@ import { NativeSelect } from '@/components/ui/native-select';
 import { catalogDateKey, type Product } from '@/lib/catalog-data';
 import {
   defaultConfig,
+  whatsappNumber,
   type CatalogConfig,
   type Block,
 } from '@/lib/catalog-config';
@@ -20,6 +21,7 @@ import {
 } from '@/lib/catalog-discovery';
 import { api, loadProducts } from '@/lib/client-api';
 import { useCatalogTools } from '@/hooks/use-catalog-tools';
+import { useAutoLoad } from '@/hooks/use-auto-load';
 import { CatalogBanners } from './catalog-banners';
 import { CatalogBrands } from './catalog-brands';
 import { CatalogSegments } from './catalog-segments';
@@ -130,6 +132,12 @@ export function CatalogApp({
     );
     return found.filter((p) => picked.has(p.id));
   }, [items, filters, quick, config.newProducts]);
+  // Página de produtos: o próximo lote entra sozinho ao chegar perto do fim.
+  const moreProducts = useAutoLoad(
+    () => setLimit((current) => current + 48),
+    fullCatalogPage && filtered.length > limit,
+    limit,
+  );
   const searchResults = useMemo(
     () =>
       searchQuery.trim()
@@ -410,12 +418,9 @@ export function CatalogApp({
             {filtered.length > limit && (
               <div className="load-more">
                 {fullCatalogPage ? (
-                  <Button
-                    variant="outline"
-                    onClick={() => setLimit((current) => current + 48)}
-                  >
-                    Mostrar mais produtos ({filtered.length - limit})
-                  </Button>
+                  <output ref={moreProducts} className="auto-load">
+                    Carregando mais produtos… {limit} de {filtered.length}
+                  </output>
                 ) : (
                   <a className="catalog-page-link" href="/produtos">
                     Ver todos os produtos ({filtered.length})
@@ -475,7 +480,7 @@ export function CatalogApp({
           </div>
           <CatalogSegments
             items={items}
-            email={config.email}
+            contact={config}
             style={style}
           />
         </section>
@@ -494,7 +499,7 @@ export function CatalogApp({
           <CatalogBrands
             brands={config.brands}
             items={items}
-            email={config.email}
+            contact={config}
             style={style}
           />
         </section>
@@ -660,6 +665,28 @@ export function CatalogApp({
                 Marcas parceiras
               </a>
             )}
+            {(config.whatsapp || config.phone || config.email) && (
+              <div className="footer-contact">
+                <strong>Contato comercial</strong>
+                {config.whatsapp && (
+                  <a
+                    href={`https://wa.me/${whatsappNumber(config.whatsapp)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    WhatsApp {config.whatsapp}
+                  </a>
+                )}
+                {config.phone && (
+                  <a href={`tel:+${whatsappNumber(config.phone)}`}>
+                    Telefone {config.phone}
+                  </a>
+                )}
+                {config.email && (
+                  <a href={`mailto:${config.email}`}>{config.email}</a>
+                )}
+              </div>
+            )}
           </div>
           <div className="footer-commercial">
             <span>PARCERIA COMERCIAL</span>
@@ -714,7 +741,7 @@ export function CatalogApp({
         selected={selected}
         onSelect={setSelected}
         items={items}
-        email={config.email}
+        contact={config}
         style={style}
       />
     </main>

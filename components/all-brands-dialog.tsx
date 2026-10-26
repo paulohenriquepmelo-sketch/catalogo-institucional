@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { normalize, type Brand } from '@/lib/catalog-config';
+import { normalize, type Brand, type CommercialContact } from '@/lib/catalog-config';
 import { publishedBrands } from '@/lib/catalog-brands';
 import type { Product } from '@/lib/catalog-data';
 import { BrandChoice } from './brand-choice';
@@ -20,11 +20,11 @@ type Props = {
   brands: Brand[];
   items: Product[];
   counts: Record<string, number>;
-  email: string;
+  contact: CommercialContact;
   style?: CSSProperties;
 };
 
-export function AllBrandsList({ brands, items, counts, email, style }: Props) {
+export function AllBrandsList({ brands, items, counts, contact, style }: Props) {
   const searchId = useId();
   const [query, setQuery] = useState('');
   const [selected, setSelected] = useState<Brand | null>(null);
@@ -66,7 +66,7 @@ export function AllBrandsList({ brands, items, counts, email, style }: Props) {
               name={selected.name}
               logo={selected.logo}
               items={items}
-              email={email}
+              contact={contact}
               style={style}
             />
           )}
