@@ -5,7 +5,10 @@ import {
   MAX_IMAGE_EDGE,
   MAX_SOURCE_BYTES,
   TARGET_IMAGE_BYTES,
+  isLogoTrimmed,
   isProductFramed,
+  logoContentBox,
+  logoFrame,
   productContentBox,
   productFrame,
 } from './image-policy';
@@ -15,18 +18,21 @@ export type OptimizedImage = {
   originalBytes: number;
   width: number;
   height: number;
-  // Product photo was already square and centered; returned untouched.
+  // Product photo was already square and centered, or the logo had no extra
+  // border; returned untouched.
   alreadyFramed?: boolean;
 };
 
 export type OptimizeOptions = {
   // Crop empty margins and center the product in a square frame.
   product?: boolean;
+  // Crop the empty border of a brand logo, keeping its proportions.
+  logo?: boolean;
 };
 
 export async function optimizeImage(
   source: File,
-  { product = false }: OptimizeOptions = {},
+  { product = false, logo = false }: OptimizeOptions = {},
 ): Promise<OptimizedImage> {
   if (source.size > MAX_SOURCE_BYTES || source.size < 12)
     throw new Error('Envie uma imagem de até 25 MB.');
@@ -53,6 +59,7 @@ export async function optimizeImage(
   // Already small WebP images do not need another lossy encoding pass.
   if (
     !product &&
+    !logo &&
     info.format === 'webp' &&
     Math.max(info.width, info.height) <= MAX_IMAGE_EDGE &&
     source.size <= TARGET_IMAGE_BYTES
@@ -68,17 +75,18 @@ export async function optimizeImage(
     canvas = document.createElement('canvas');
     canvas.width = width;
     canvas.height = height;
+    const measure = product || logo;
     const context = canvas.getContext(
       '2d',
-      product ? { willReadFrequently: true } : undefined,
+      measure ? { willReadFrequently: true } : undefined,
     );
     if (!context) throw new Error('Não foi possível preparar a imagem.');
     context.imageSmoothingEnabled = true;
     context.imageSmoothingQuality = 'high';
     // A transparent canvas preserves transparent logos and product cutouts.
     context.drawImage(bitmap, 0, 0, width, height);
-    const box = product
-      ? productContentBox(
+    const box = measure
+      ? (product ? productContentBox : logoContentBox)(
           context.getImageData(0, 0, width, height).data,
           width,
           height,
@@ -89,7 +97,7 @@ export async function optimizeImage(
       box &&
       info.format === 'webp' &&
       source.size <= TARGET_IMAGE_BYTES &&
-      isProductFramed(box, width, height)
+      (product ? isProductFramed : isLogoTrimmed)(box, width, height)
     )
       return {
         ...result(source, info.width, info.height),
@@ -103,14 +111,16 @@ export async function optimizeImage(
       const sy = box.y * ratio;
       const sw = box.width * ratio;
       const sh = box.height * ratio;
-      const frame = productFrame(sw, sh);
+      const frame = product ? productFrame(sw, sh) : logoFrame(sw, sh);
       // Resizing the canvas clears it and resets the context state.
-      canvas.width = canvas.height = width = height = frame.side;
+      canvas.width = width = 'side' in frame ? frame.side : frame.canvasWidth;
+      canvas.height = height =
+        'side' in frame ? frame.side : frame.canvasHeight;
       context.imageSmoothingEnabled = true;
       context.imageSmoothingQuality = 'high';
       if (!box.transparent) {
         context.fillStyle = '#fff';
-        context.fillRect(0, 0, frame.side, frame.side);
+        context.fillRect(0, 0, width, height);
       }
       context.drawImage(
         bitmap,

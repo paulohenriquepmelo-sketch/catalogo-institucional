@@ -11,10 +11,7 @@ import {
   retrieveProductImage,
   boundedLogoResponse,
 } from '../lib/logo-search';
-import {
-  importBrandLogo,
-  importProductImage,
-} from '../lib/import-brand-logo';
+import { importBrandLogo, importProductImage } from '../lib/import-brand-logo';
 import { BrandLogoPicker } from '../components/brand-logo-picker';
 import { ProductImagePicker } from '../components/product-image-picker';
 import { GET as searchRoute } from '../app/api/logos/search/route';
@@ -203,10 +200,7 @@ void test('product image selection uses its protected endpoint and the same opti
     },
   );
   const result = await importProductImage(42, 'Produto teste');
-  assert.equal(
-    result.url,
-    '/api/uploads?key=images%2Fproduto.webp',
-  );
+  assert.equal(result.url, '/api/uploads?key=images%2Fproduto.webp');
   assert.match(result.summary, /WebP/);
   assert.equal(drawn, 1);
 });
@@ -236,6 +230,32 @@ void test('selecting a logo uploads WebP and returns the new URL only after succ
         : Response.json({ url: '/api/uploads?key=images%2Fabc.webp' });
     },
   );
+  // A logo with no empty border is uploaded as is, without re-encoding.
+  const opaque = (w: number, h: number) =>
+    new Uint8ClampedArray(w * h * 4).fill(255).map((v, i) => (i % 4 ? v : 200));
+  Object.defineProperty(globalThis, 'createImageBitmap', {
+    configurable: true,
+    value: async () => ({ width: 2, height: 3, close: () => {} }),
+  });
+  Object.defineProperty(globalThis, 'document', {
+    configurable: true,
+    value: {
+      createElement: () => ({
+        width: 0,
+        height: 0,
+        getContext: () => ({
+          drawImage: () => {},
+          getImageData: (_x: number, _y: number, w: number, h: number) => ({
+            data: opaque(w, h),
+          }),
+        }),
+      }),
+    },
+  });
+  t.after(() => {
+    Reflect.deleteProperty(globalThis, 'createImageBitmap');
+    Reflect.deleteProperty(globalThis, 'document');
+  });
   const result = await importBrandLogo(42, 'Marca');
   assert.equal(uploaded, true);
   assert.equal(result.url, '/api/uploads?key=images%2Fabc.webp');
