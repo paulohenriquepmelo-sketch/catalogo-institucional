@@ -721,7 +721,11 @@ footer p {
     overflow: hidden;
     white-space: nowrap;
   }
-  .announcement span:last-child,
+  .announcement:has(> span:only-child) {
+    justify-content: center;
+  }
+  /* Only drops the second message; a single tagline stays visible. */
+  .announcement > span:last-child:not(:first-child),
   .announcement-rule {
     display: none;
   }
