@@ -2043,6 +2043,40 @@ footer p {
   gap: inherit;
   margin-top: 18px;
 }
+/* No celular os contatos sobem para logo abaixo do nome do produto, antes da
+   ficha técnica, para não exigir rolagem dentro do popup. */
+@media (max-width: 600px) {
+  .product-dialog .dialog-product-info {
+    display: flex;
+    flex-direction: column;
+  }
+  .product-dialog .dialog-product-info > * {
+    order: 2;
+  }
+  .product-dialog .dialog-product-info > [data-slot='dialog-header'] {
+    order: 0;
+  }
+  .product-dialog
+    .dialog-product-info
+    > :is(.product-contact-actions, .product-contact-phone, .contact-empty) {
+    order: 1;
+  }
+  .product-dialog .dialog-product-info > .product-contact-actions {
+    margin-top: 6px;
+  }
+  .product-dialog
+    .dialog-product-info
+    > .product-contact-actions:not(:has(+ .product-contact-phone)) {
+    margin-bottom: 18px;
+  }
+  .product-dialog .dialog-product-info > .product-contact-actions > a {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+  .product-dialog .dialog-product-info > :is(.product-contact-phone, .contact-empty) {
+    margin-bottom: 18px;
+  }
+}
 .auto-load {
   display: block;
   font-size: 13px;
