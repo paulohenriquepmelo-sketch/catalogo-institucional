@@ -370,7 +370,7 @@ void test('product details use strong text and the editor exposes a dedicated co
     /\.product-dialog \.product-specifications[\s\S]*?font-weight: 600/,
   );
   const editor = readFileSync('components/config-editor.tsx', 'utf8');
-  assert.match(editor, /contact-settings-title/);
+  assert.match(editor, /aria-label="Contato comercial"/);
   assert.match(editor, /E-mail do contato comercial/);
   assert.match(editor, /onChange\(\{ \.\.\.config, email: v \}\)/);
   assert.match(editor, /onChange\(\{ \.\.\.config, whatsapp: v \}\)/);

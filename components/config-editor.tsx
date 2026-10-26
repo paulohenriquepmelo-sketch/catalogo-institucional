@@ -851,18 +851,7 @@ export function CommercialContactSettings({
   onChange: (config: CatalogConfig) => void;
 }) {
   return (
-    <section
-      className="contact-settings"
-      aria-labelledby="contact-settings-title"
-    >
-      <div>
-        <h2 id="contact-settings-title">Contato comercial</h2>
-        <p>
-          O WhatsApp e o e-mail viram botões no popup de cada produto e no link
-          “Qual é o RCA da sua região?” do topo. Os três contatos aparecem no
-          rodapé do site.
-        </p>
-      </div>
+    <section className="contact-settings" aria-label="Contato comercial">
       <Field
         label="WhatsApp comercial (com DDD, ex.: (44) 99999-9999)"
         value={config.whatsapp}
@@ -883,7 +872,7 @@ export function CommercialContactSettings({
       />
       <output>
         {config.whatsapp || config.email || config.phone
-          ? 'Os clientes poderão falar com o comercial pelo popup do produto e pelo rodapé.'
+          ? 'Os clientes poderão falar com o comercial pelo popup do produto, pelo rodapé e pelo link do RCA no topo.'
           : 'Sem contatos, o catálogo informa que o contato comercial ainda não foi cadastrado.'}
       </output>
     </section>
