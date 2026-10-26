@@ -7012,3 +7012,31 @@ a:focus-visible {
 .compras-page .compras-send input::placeholder {
   color: #65738e;
 }
+/* Filtros de categoria e fornecedor na página do compras. */
+.compras-filter {
+  min-width: 0;
+  flex: 1 1 220px;
+  max-width: 340px;
+  display: grid;
+  gap: 2px;
+}
+.compras-filter span {
+  color: #65738e;
+  font-size: 12px;
+  font-weight: 700;
+}
+.compras-filter select {
+  min-width: 0;
+  height: 42px;
+  padding: 0 10px;
+  border: 1px solid #c9d3e5;
+  border-radius: 8px;
+  color: #15213d;
+  background: #fff;
+  font: inherit;
+}
+.compras-filter-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+}

@@ -33,6 +33,7 @@ const STATUS: Record<ReviewRequest['status'], string> = {
 };
 
 function filterSummary(filter: ReviewFilter) {
+  if (filter.kind === 'all') return 'Catálogo inteiro';
   const kind = filter.kind === 'category' ? 'Categorias' : 'Fornecedores';
   const shown = filter.values.slice(0, 3).join(', ');
   const rest = filter.values.length - 3;
@@ -66,7 +67,7 @@ export function PurchaseReviewEditor({
   const [message, setMessage] = useState('');
   const [working, setWorking] = useState(false);
   // Nova chave
-  const [kind, setKind] = useState<ReviewFilter['kind']>('supplier');
+  const [kind, setKind] = useState<ReviewFilter['kind']>('all');
   const [values, setValues] = useState<string[]>([]);
   const [search, setSearch] = useState('');
   const [label, setLabel] = useState('');
@@ -115,14 +116,17 @@ export function PurchaseReviewEditor({
 
   const options = useMemo(() => {
     const list =
-      (kind === 'category' ? state?.options.categories : state?.options.suppliers) ??
-      [];
+      (kind === 'category'
+        ? state?.options.categories
+        : state?.options.suppliers) ?? [];
     const q = search.trim().toLowerCase();
     return q ? list.filter(([name]) => name.toLowerCase().includes(q)) : list;
   }, [state, kind, search]);
   const chosenCount = useMemo(() => {
     const all = new Map(
-      (kind === 'category' ? state?.options.categories : state?.options.suppliers) ?? [],
+      (kind === 'category'
+        ? state?.options.categories
+        : state?.options.suppliers) ?? [],
     );
     return values.reduce((sum, v) => sum + (all.get(v) ?? 0), 0);
   }, [state, kind, values]);
@@ -173,13 +177,25 @@ export function PurchaseReviewEditor({
       api('/api/purchase-review', { action: 'restore', code }),
     );
     if (ok === undefined) return;
-    setMessage(`Produto ${code} voltou ao catálogo. Publique para aparecer no site.`);
+    setMessage(
+      `Produto ${code} voltou ao catálogo. Publique para aparecer no site.`,
+    );
     await onRefresh();
   }
 
   function downloadReport() {
     const rows = [
-      ['Enviado em', 'Comprador', 'Revisão', 'Código', 'Produto', 'Marca', 'Situação', 'Decidido em', 'Observação'],
+      [
+        'Enviado em',
+        'Comprador',
+        'Revisão',
+        'Código',
+        'Produto',
+        'Marca',
+        'Situação',
+        'Decidido em',
+        'Observação',
+      ],
     ];
     for (const r of state?.requests ?? []) {
       const approved = new Set(r.approved);
@@ -202,7 +218,9 @@ export function PurchaseReviewEditor({
     }
     // Ponto e vírgula e BOM: o Excel em português abre direto com acentos.
     const csv = rows
-      .map((row) => row.map((cell) => `"${cell.replace(/"/g, '""')}"`).join(';'))
+      .map((row) =>
+        row.map((cell) => `"${cell.replace(/"/g, '""')}"`).join(';'),
+      )
       .join('\r\n');
     const url = URL.createObjectURL(
       new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' }),
@@ -218,7 +236,9 @@ export function PurchaseReviewEditor({
   const decided = state?.requests.filter((r) => r.status !== 'pendente') ?? [];
   const excluded = items.filter((p) => p.details?.purchaseExcluded);
   const pageUrl =
-    typeof window === 'undefined' ? '/compras' : `${window.location.origin}/compras`;
+    typeof window === 'undefined'
+      ? '/compras'
+      : `${window.location.origin}/compras`;
 
   return (
     <>
@@ -233,10 +253,17 @@ export function PurchaseReviewEditor({
         title="Revisão do compras"
         note="Gere uma chave para o comprador revisar o catálogo, igual ao PDF, filtrado por categorias ou fornecedores. Ele marca o que saiu de linha e envia; nada sai do catálogo antes da sua aprovação aqui."
       >
-        <section className="review-create" aria-labelledby="review-create-title">
+        <section
+          className="review-create"
+          aria-labelledby="review-create-title"
+        >
           <h2 id="review-create-title">Nova chave de acesso</h2>
-          <div className="review-kind" role="radiogroup" aria-label="Filtrar por">
-            {(['supplier', 'category'] as const).map((k) => (
+          <div
+            className="review-kind"
+            role="radiogroup"
+            aria-label="Filtrar por"
+          >
+            {(['all', 'supplier', 'category'] as const).map((k) => (
               <label key={k}>
                 <input
                   type="radio"
@@ -248,51 +275,61 @@ export function PurchaseReviewEditor({
                     setSearch('');
                   }}
                 />
-                {k === 'supplier' ? 'Por fornecedor' : 'Por categoria'}
+                {k === 'all'
+                  ? 'Catálogo inteiro (o comprador filtra na página)'
+                  : k === 'supplier'
+                    ? 'Só alguns fornecedores'
+                    : 'Só algumas categorias'}
               </label>
             ))}
           </div>
-          <label className="editor-field" htmlFor="review-search">
-            <span>
-              {kind === 'supplier' ? 'Buscar fornecedor' : 'Buscar categoria'}
-            </span>
-            <Input
-              id="review-search"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </label>
-          <div className="review-options">
-            {state === null ? (
-              <output>
-                <Loader2 className="animate-spin" /> Carregando…
-              </output>
-            ) : !options.length ? (
-              <p>
-                {kind === 'supplier'
-                  ? 'Nenhum fornecedor encontrado. O fornecedor vem da coluna "Nome do fornecedor" da planilha do ERP.'
-                  : 'Nenhuma categoria encontrada.'}
-              </p>
-            ) : (
-              options.map(([name, count]) => (
-                <label key={name}>
-                  <input
-                    type="checkbox"
-                    checked={values.includes(name)}
-                    onChange={(e) =>
-                      setValues((current) =>
-                        e.target.checked
-                          ? [...current, name]
-                          : current.filter((v) => v !== name),
-                      )
-                    }
-                  />
-                  <span>{name}</span>
-                  <small>{count}</small>
-                </label>
-              ))
-            )}
-          </div>
+          {kind !== 'all' && (
+            <>
+              <label className="editor-field" htmlFor="review-search">
+                <span>
+                  {kind === 'supplier'
+                    ? 'Buscar fornecedor'
+                    : 'Buscar categoria'}
+                </span>
+                <Input
+                  id="review-search"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+              </label>
+              <div className="review-options">
+                {state === null ? (
+                  <output>
+                    <Loader2 className="animate-spin" /> Carregando…
+                  </output>
+                ) : !options.length ? (
+                  <p>
+                    {kind === 'supplier'
+                      ? 'Nenhum fornecedor encontrado. O fornecedor vem da coluna "Nome do fornecedor" da planilha do ERP.'
+                      : 'Nenhuma categoria encontrada.'}
+                  </p>
+                ) : (
+                  options.map(([name, count]) => (
+                    <label key={name}>
+                      <input
+                        type="checkbox"
+                        checked={values.includes(name)}
+                        onChange={(e) =>
+                          setValues((current) =>
+                            e.target.checked
+                              ? [...current, name]
+                              : current.filter((v) => v !== name),
+                          )
+                        }
+                      />
+                      <span>{name}</span>
+                      <small>{count}</small>
+                    </label>
+                  ))
+                )}
+              </div>
+            </>
+          )}
           <div className="review-create-row">
             <label className="editor-field" htmlFor="review-label">
               <span>Nome da revisão (opcional)</span>
@@ -320,12 +357,14 @@ export function PurchaseReviewEditor({
             </label>
           </div>
           <p className="review-hint">
-            {values.length
-              ? `${values.length} ${kind === 'supplier' ? 'fornecedor(es)' : 'categoria(s)'} · ${chosenCount} produtos publicados`
-              : 'Escolha pelo menos um item da lista.'}
+            {kind === 'all'
+              ? 'O comprador vê todos os produtos publicados e filtra por categoria ou fornecedor na própria página.'
+              : values.length
+                ? `${values.length} ${kind === 'supplier' ? 'fornecedor(es)' : 'categoria(s)'} · ${chosenCount} produtos publicados`
+                : 'Escolha pelo menos um item da lista.'}
           </p>
           <Button
-            disabled={!values.length || working}
+            disabled={(kind !== 'all' && !values.length) || working}
             onClick={() => void createKey()}
           >
             <KeyRound /> Gerar chave
@@ -348,7 +387,9 @@ export function PurchaseReviewEditor({
                   size="sm"
                   variant="outline"
                   onClick={() =>
-                    void copy(pageUrl).then((ok) => setCopied(ok ? 'url' : 'erro'))
+                    void copy(pageUrl).then((ok) =>
+                      setCopied(ok ? 'url' : 'erro'),
+                    )
                   }
                 >
                   <Copy /> Copiar endereço
@@ -364,7 +405,11 @@ export function PurchaseReviewEditor({
                 >
                   <Copy /> Copiar chave
                 </Button>
-                <Button size="sm" variant="outline" onClick={() => setCreated(null)}>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setCreated(null)}
+                >
                   Já enviei, esconder
                 </Button>
               </div>
@@ -459,7 +504,9 @@ export function PurchaseReviewEditor({
                   </div>
                 )}
                 {dirty && (
-                  <small>Salve ou desfaça o produto aberto antes de aprovar.</small>
+                  <small>
+                    Salve ou desfaça o produto aberto antes de aprovar.
+                  </small>
                 )}
               </article>
             );

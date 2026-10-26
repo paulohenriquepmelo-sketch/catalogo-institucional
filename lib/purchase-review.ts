@@ -11,8 +11,9 @@ import type { Product } from './catalog-data';
 // hexadecimais (256 bits, como a de um certificado); só o hash SHA-256 dela
 // fica guardado, e a sessão do comprador é assinada com esse hash.
 
+// 'all' = catálogo inteiro; o comprador filtra dentro da página.
 export type ReviewFilter = {
-  kind: 'category' | 'supplier';
+  kind: 'all' | 'category' | 'supplier';
   values: string[];
 };
 export type ReviewLink = {
@@ -76,8 +77,9 @@ const text = (value: unknown, max: number) =>
 
 export function validateReviewFilter(value: unknown): ReviewFilter {
   const input = value as Partial<ReviewFilter> | null;
+  if (input?.kind === 'all') return { kind: 'all', values: [] };
   if (!input || (input.kind !== 'category' && input.kind !== 'supplier'))
-    throw new Error('Escolha filtrar por categorias ou por fornecedores.');
+    throw new Error('Escolha catálogo inteiro, categorias ou fornecedores.');
   const values = Array.isArray(input.values)
     ? [...new Set(input.values.map((v) => text(v, 180)).filter(Boolean))]
     : [];
@@ -93,6 +95,7 @@ export function validateReviewFilter(value: unknown): ReviewFilter {
 }
 
 function matches(product: Product, filter: ReviewFilter) {
+  if (filter.kind === 'all') return true;
   const value =
     filter.kind === 'category' ? product.category : (product.details?.supplier ?? '');
   return filter.values.includes(value);
@@ -109,9 +112,11 @@ export async function createReviewLink(input: {
     throw new Error(`Validade de 1 a ${REVIEW_MAX_DAYS} dias.`);
   const label =
     text(input.label, 80) ||
-    (filter.kind === 'category' ? 'Categorias' : 'Fornecedores') +
-      ': ' +
-      filter.values.slice(0, 3).join(', ');
+    (filter.kind === 'all'
+      ? 'Catálogo inteiro'
+      : (filter.kind === 'category' ? 'Categorias' : 'Fornecedores') +
+        ': ' +
+        filter.values.slice(0, 3).join(', '));
   await ensureTables();
   const token = toHex(crypto.getRandomValues(new Uint8Array(32)));
   const id = crypto.randomUUID();
