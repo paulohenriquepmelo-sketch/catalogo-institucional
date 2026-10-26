@@ -3,6 +3,7 @@ import {
   createEditorSession,
   setEditorSessionCookie,
 } from '@/app/chatgpt-auth';
+import { verifyEditorPassword } from '@/lib/editor-credentials';
 
 export async function POST(request: Request) {
   if (env.WORKER_ROLE === 'public')
@@ -30,7 +31,7 @@ export async function POST(request: Request) {
       ),
       303,
     );
-  if (!env.EDITOR_PASSWORD || password !== env.EDITOR_PASSWORD)
+  if (!(await verifyEditorPassword(password)))
     return Response.redirect(
       new URL(`/editor/login?error=1&return_to=${encodeURIComponent(safeReturnTo)}`, request.url),
       303,

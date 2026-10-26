@@ -16,6 +16,11 @@ export function setIdentity(email?: string) {
       : {},
   );
 }
+// Cookie enviado pelo navegador nas próximas chamadas (sessão do editor).
+export function setCookie(value?: string) {
+  if (value) identity.set('cookie', value);
+  else identity.delete('cookie');
+}
 export async function headers() {
   return identity;
 }

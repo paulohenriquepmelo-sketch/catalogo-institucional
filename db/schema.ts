@@ -96,6 +96,16 @@ export const erpFixes = sqliteTable('erp_fixes', {
   revision: integer('revision').notNull().default(1),
 });
 
+// Senha do editor trocada no próprio editor (hash PBKDF2, linha id=1).
+export const editorCredentials = sqliteTable('editor_credentials', {
+  id: integer('id').primaryKey(),
+  algorithm: text('algorithm').notNull(),
+  iterations: integer('iterations').notNull(),
+  salt: text('salt').notNull(),
+  hash: text('hash').notNull(),
+  updatedAt: text('updated_at').notNull(),
+});
+
 export const publishedCatalogConfig = sqliteTable('published_catalog_config', {
   id: integer('id').primaryKey(),
   body: text('body').notNull(),

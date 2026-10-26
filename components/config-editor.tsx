@@ -25,7 +25,8 @@ export type EditorView =
   | 'erp'
   | 'outOfCatalog'
   | 'banners'
-  | 'appearance';
+  | 'appearance'
+  | 'security';
 export function ConfigEditor({
   view,
   config,
