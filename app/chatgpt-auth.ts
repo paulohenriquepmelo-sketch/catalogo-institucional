@@ -80,6 +80,45 @@ export function setEditorSessionCookie(value: string, requestUrl: string) {
   return `${EDITOR_SESSION_COOKIE}=${value}; Path=/; Max-Age=${EDITOR_SESSION_TTL_SECONDS}; HttpOnly; SameSite=Lax${secure ? '; Secure' : ''}`;
 }
 
+// Etapa do código do autenticador: depois da senha certa, um cookie de 5
+// minutos prova que a senha já foi conferida. Assinado com a chave da sessão.
+export const EDITOR_MFA_COOKIE = 'catalogo_editor_mfa';
+const MFA_TTL_SECONDS = 5 * 60;
+
+export async function createMfaChallenge(requestUrl: string) {
+  const key = await editorSessionKey();
+  if (!key) throw new Error('Senha do editor não configurada.');
+  const timestamp = Math.floor(Date.now() / 1000).toString();
+  const signature = await signSessionValue(`mfa:${timestamp}`, key);
+  const secure = new URL(requestUrl).protocol === 'https:';
+  return `${EDITOR_MFA_COOKIE}=${timestamp}.${signature}; Path=/; Max-Age=${MFA_TTL_SECONDS}; HttpOnly; SameSite=Strict${secure ? '; Secure' : ''}`;
+}
+
+export function clearMfaChallenge(requestUrl: string) {
+  const secure = new URL(requestUrl).protocol === 'https:';
+  return `${EDITOR_MFA_COOKIE}=; Path=/; Max-Age=0; HttpOnly; SameSite=Strict${secure ? '; Secure' : ''}`;
+}
+
+export async function hasValidMfaChallenge(cookieHeader: string | null) {
+  const value = (cookieHeader ?? '')
+    .split(';')
+    .map((part) => part.trim())
+    .find((part) => part.startsWith(`${EDITOR_MFA_COOKIE}=`))
+    ?.slice(EDITOR_MFA_COOKIE.length + 1);
+  const [timestamp, signature] = (value ?? '').split('.');
+  const issuedAt = Number(timestamp);
+  if (!timestamp || !signature || !Number.isInteger(issuedAt)) return false;
+  const now = Math.floor(Date.now() / 1000);
+  if (issuedAt > now + 60 || now - issuedAt > MFA_TTL_SECONDS) return false;
+  const key = await editorSessionKey();
+  if (!key) return false;
+  try {
+    return await verifySessionValue(`mfa:${timestamp}`, signature, key);
+  } catch {
+    return false;
+  }
+}
+
 export function clearEditorSessionCookie(requestUrl: string) {
   const secure = new URL(requestUrl).protocol === 'https:';
   return `${EDITOR_SESSION_COOKIE}=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax${secure ? '; Secure' : ''}`;

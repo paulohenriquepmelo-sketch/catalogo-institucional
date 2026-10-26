@@ -51,6 +51,7 @@ import { ErpFixesEditor } from './erp-fixes-editor';
 import { CatalogPdfPanel } from './catalog-pdf-panel';
 import { PublicationHistory } from './publication-history';
 import { SecuritySettings } from './security-settings';
+import { TotpSettings } from './totp-settings';
 import { PurchaseReviewEditor } from './purchase-review-editor';
 import { OutOfCatalogArea } from './out-of-catalog-area';
 import { CampaignEditor } from './campaign-editor';
@@ -1007,7 +1008,10 @@ export function EditorApp({ userName }: { userName: string }) {
             onRefresh={refreshAfterImport}
           />
         ) : view === 'security' ? (
-          <SecuritySettings onBusy={onBusy} />
+          <>
+            <SecuritySettings onBusy={onBusy} />
+            <TotpSettings onBusy={onBusy} />
+          </>
         ) : view === 'overview' ? (
           <>
           <Panel
