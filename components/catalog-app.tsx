@@ -542,7 +542,7 @@ export function CatalogApp({
       {!fullCatalogPage && (
         <h1 className="sr-only">{`${config.name} — catálogo de produtos`}</h1>
       )}
-      <div className="announcement">
+      <div className={rcaHref ? 'announcement has-rca' : 'announcement'}>
         {skin ? (
           <span className="announcement-skin">
             {skin.announcement.map((text) => (
