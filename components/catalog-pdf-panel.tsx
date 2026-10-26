@@ -195,7 +195,29 @@ export function CatalogPdfPanel({ onBusy }: { onBusy: (busy: boolean) => void })
     }
   }
 
+  // O PDF sai do catálogo publicado: com alterações ainda não publicadas
+  // (ex.: exclusões aprovadas do compras), avisa antes de gerar.
+  const [unpublished, setUnpublished] = useState(false);
+  async function checkThenGenerate() {
+    setError('');
+    setNotice('');
+    try {
+      const status = await api<{ hasChanges: boolean; publishedAt: string }>(
+        '/api/publication',
+      );
+      setPublishedAt(status.publishedAt);
+      if (status.hasChanges) {
+        setUnpublished(true);
+        return;
+      }
+    } catch {
+      // Sem o status, gera do mesmo jeito: o PDF sai do que está publicado.
+    }
+    void generate();
+  }
+
   async function generate() {
+    setUnpublished(false);
     setError('');
     setNotice('');
     abort.current = new AbortController();
@@ -405,8 +427,22 @@ export function CatalogPdfPanel({ onBusy }: { onBusy: (busy: boolean) => void })
           </label>
         ))}
       </fieldset>
+      {unpublished && !step && (
+        <div className="catalog-pdf-outdated" role="alert">
+          Há alterações que ainda não foram publicadas (por exemplo, itens
+          aprovados na revisão do compras). O PDF é montado com o que está
+          publicado no site, então elas não entrariam. Publique primeiro e
+          depois gere o PDF.{' '}
+          <Button size="sm" variant="outline" onClick={() => void generate()}>
+            Gerar mesmo assim
+          </Button>{' '}
+          <Button size="sm" variant="ghost" onClick={() => setUnpublished(false)}>
+            Cancelar
+          </Button>
+        </div>
+      )}
       <div className="catalog-pdf-actions">
-        <Button disabled={!!step} onClick={() => void generate()}>
+        <Button disabled={!!step} onClick={() => void checkThenGenerate()}>
           <RefreshCw /> {current?.available ? 'Gerar de novo' : 'Gerar PDF do catálogo'}
         </Button>
         {step && (

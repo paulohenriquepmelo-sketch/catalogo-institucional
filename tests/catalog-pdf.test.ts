@@ -340,3 +340,10 @@ void test('editor warns when the PDF is older than the last publication', () => 
   );
   assert.match(panel, /PDF desatualizado/);
 });
+
+void test('generating the PDF with unpublished changes asks to publish first', () => {
+  const panel = readFileSync('components/catalog-pdf-panel.tsx', 'utf8');
+  assert.match(panel, /onClick=\{\(\) => void checkThenGenerate\(\)\}/);
+  assert.match(panel, /if \(status\.hasChanges\) \{\s*setUnpublished\(true\);\s*return;/);
+  assert.match(panel, /Publique primeiro/);
+});
