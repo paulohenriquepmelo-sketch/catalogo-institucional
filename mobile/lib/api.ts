@@ -404,6 +404,7 @@ export async function getCacheAge(): Promise<number | null> {
 
 // Temas de campanha do site (lib/catalog-campaign.ts): a arte fica em /themes.
 const CAMPAIGN_THEMES = [
+  'padrao',
   'natal',
   'ano-novo',
   'black-friday',
