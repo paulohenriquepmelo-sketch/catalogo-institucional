@@ -1223,7 +1223,7 @@ footer p {
 }
 .contact-settings {
   display: grid;
-  grid-template-columns: minmax(220px, 0.8fr) minmax(260px, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   align-items: end;
   gap: 14px 24px;
   margin: 24px 0;

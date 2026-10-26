@@ -989,7 +989,7 @@ export function EditorApp({ userName }: { userName: string }) {
           </Panel>
           <Panel
             title="Contato comercial"
-            note="Usado no popup dos produtos, no rodapé e no link do RCA da faixa do topo."
+            note="O WhatsApp e o e-mail viram botões no popup de cada produto e no link “Qual é o RCA da sua região?” do topo. Os três contatos aparecem no rodapé do site."
           >
             <fieldset
               disabled={busy || uploads > 0}
