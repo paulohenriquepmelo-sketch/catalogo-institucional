@@ -6388,7 +6388,11 @@ a:focus-visible {
 .editor-logout {
   display: contents;
 }
-.editor-shell .editor-logout button {
+/* Mais específico que a regra geral .editor-shell button:not(...):not(...). */
+.editor-shell
+  .editor-topbar
+  .editor-logout
+  button:not([data-slot='switch']):not([role='switch']) {
   display: inline-flex;
   align-items: center;
   gap: 7px;
@@ -6412,7 +6416,7 @@ a:focus-visible {
   outline: 2px solid #ed1c23;
   outline-offset: 2px;
 }
-.editor-shell .editor-logout svg {
+.editor-shell .editor-topbar .editor-logout svg {
   width: 15px;
   color: inherit;
 }
