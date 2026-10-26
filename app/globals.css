@@ -6388,15 +6388,21 @@ a:focus-visible {
 .editor-logout {
   display: contents;
 }
-.editor-logout button {
+.editor-shell .editor-logout button {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: #203976;
+  width: auto !important;
+  min-width: 0 !important;
+  height: auto !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: none !important;
+  box-shadow: none !important;
+  color: #203976 !important;
   font: inherit;
+  white-space: nowrap;
   cursor: pointer;
 }
 .editor-logout button:hover {
@@ -6406,8 +6412,9 @@ a:focus-visible {
   outline: 2px solid #ed1c23;
   outline-offset: 2px;
 }
-.editor-logout svg {
+.editor-shell .editor-logout svg {
   width: 15px;
+  color: inherit;
 }
 .editor-login-notice {
   display: block;
