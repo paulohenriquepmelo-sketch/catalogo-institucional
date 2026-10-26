@@ -87,20 +87,23 @@ export function PurchaseReviewApp({
     update(next);
   }
 
-  // Opções dos filtros: categorias na ordem do catálogo, fornecedores por nome.
+  // Opções dos filtros: cada um mostra só o que combina com o outro.
+  // Categorias na ordem do catálogo, fornecedores por nome.
   const filterOptions = useMemo(() => {
     const categories = new Map<string, { label: string; count: number }>();
     const suppliers = new Map<string, number>();
     for (const p of products ?? []) {
       const key = `${p.section}|${p.category}`;
-      const current = categories.get(key);
-      if (current) current.count++;
-      else
-        categories.set(key, {
-          label: `${displayName(p.section)} · ${displayName(p.category)}`,
-          count: 1,
-        });
-      if (p.supplier)
+      if (!supplier || p.supplier === supplier) {
+        const current = categories.get(key);
+        if (current) current.count++;
+        else
+          categories.set(key, {
+            label: `${displayName(p.section)} · ${displayName(p.category)}`,
+            count: 1,
+          });
+      }
+      if (p.supplier && (!category || key === category))
         suppliers.set(p.supplier, (suppliers.get(p.supplier) ?? 0) + 1);
     }
     return {
@@ -109,7 +112,7 @@ export function PurchaseReviewApp({
         a[0].localeCompare(b[0], 'pt-BR'),
       ),
     };
-  }, [products]);
+  }, [products, category, supplier]);
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
