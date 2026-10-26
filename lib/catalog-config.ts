@@ -62,6 +62,15 @@ export type ProductShowcase = {
   /** Novidades: só códigos do ERP a partir deste (vazio = os mais altos). */
   fromCode?: number;
 };
+// Contato comercial mostrado no rodapé e no popup do produto.
+export type CommercialContact = Pick<CatalogConfig, 'email' | 'phone' | 'whatsapp'>;
+
+// Número no formato do wa.me: só dígitos, com o 55 do Brasil quando faltar.
+export function whatsappNumber(value: string) {
+  const digits = value.replace(/\D/g, '');
+  return digits.length <= 11 ? `55${digits}` : digits;
+}
+
 export type CatalogConfig = {
   layout: CatalogLayout;
   colors: CatalogColors;
@@ -69,6 +78,10 @@ export type CatalogConfig = {
   tagline: string;
   logo: string;
   email: string;
+  /** Telefone comercial exibido no rodapé. */
+  phone: string;
+  /** WhatsApp comercial: botão no popup do produto e link no rodapé. */
+  whatsapp: string;
   footer: string;
   primary: string;
   accent: string;
@@ -117,6 +130,8 @@ export const defaultConfig: CatalogConfig = {
   tagline: 'Marcas fortes, produtos certos e parceria para o seu negócio.',
   logo: '/distribuidora-laurencini-logo.jpeg',
   email: '',
+  phone: '',
+  whatsapp: '',
   footer:
     'Distribuição, variedade e atendimento comercial para fortalecer o seu ponto de venda.',
   primary: '#263f85',
@@ -439,6 +454,8 @@ export function validateConfig(value: unknown): CatalogConfig {
     tagline: field(v.tagline, 'slogan', 250),
     logo: imageUrl(v.logo),
     email: field(v.email, 'e-mail', 254, true),
+    phone: field(v.phone ?? '', 'telefone', 40, true),
+    whatsapp: field(v.whatsapp ?? '', 'WhatsApp', 40, true),
     footer: field(v.footer, 'rodapé', 1000, true),
     primary: v.primary,
     accent: v.accent,
@@ -501,6 +518,14 @@ export function validateConfig(value: unknown): CatalogConfig {
   };
   if (config.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(config.email))
     throw new Error('E-mail inválido.');
+  for (const [value, label] of [
+    [config.phone, 'Telefone'],
+    [config.whatsapp, 'WhatsApp'],
+  ] as const)
+    if (value && !/^\+?[\d\s().-]{8,}$/.test(value))
+      throw new Error(`${label} inválido. Use só números, espaços, parênteses e traço.`);
+  if (config.whatsapp && whatsappNumber(config.whatsapp).length < 12)
+    throw new Error('WhatsApp inválido. Informe o DDD, por exemplo (44) 99999-9999.');
   const unique = (keys: string[]) => new Set(keys).size === keys.length;
   if (
     !unique(config.brands.map((b) => normalize(b.name))) ||

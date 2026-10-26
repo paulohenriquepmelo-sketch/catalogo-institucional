@@ -3,7 +3,7 @@ import { useState, type CSSProperties } from 'react';
 import { Dialog } from '@/components/ui/dialog';
 import { CarouselItem } from '@/components/ui/carousel';
 import { DiscoveryCarousel } from './discovery-carousel';
-import type { Brand } from '@/lib/catalog-config';
+import type { Brand, CommercialContact } from '@/lib/catalog-config';
 import { publishedBrands } from '@/lib/catalog-brands';
 import type { Product } from '@/lib/catalog-data';
 import { CollectionProducts } from './collection-products';
@@ -13,12 +13,12 @@ import { AllBrandsDialog } from './all-brands-dialog';
 export function CatalogBrands({
   brands,
   items,
-  email,
+  contact,
   style,
 }: {
   brands: Brand[];
   items: Product[];
-  email: string;
+  contact: CommercialContact;
   style?: CSSProperties;
 }) {
   const [brand, setBrand] = useState<Brand | null>(null);
@@ -67,7 +67,7 @@ export function CatalogBrands({
             name={brand.name}
             logo={brand.logo}
             items={items}
-            email={email}
+            contact={contact}
             style={style}
           />
         )}
@@ -76,7 +76,7 @@ export function CatalogBrands({
         brands={visibleBrands}
         items={items}
         counts={counts}
-        email={email}
+        contact={contact}
         style={style}
       />
     </>

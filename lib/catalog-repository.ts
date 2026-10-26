@@ -67,6 +67,8 @@ function normalizeConfig(row: { body: string; revision: number }) {
         featured: brand.featured === true,
       })),
       colors: { ...defaultColors, ...stored.colors },
+      phone: stored.phone ?? '',
+      whatsapp: stored.whatsapp ?? '',
       campaign: stored.campaign ?? structuredClone(defaultCampaign),
       offers: stored.offers ?? structuredClone(defaultConfig.offers),
       newProducts:

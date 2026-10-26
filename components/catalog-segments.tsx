@@ -7,6 +7,7 @@ import { DiscoveryCarousel } from './discovery-carousel';
 import { CollectionProducts } from './collection-products';
 import { segmentIconById } from '@/lib/segment-icons';
 import type { Product } from '@/lib/catalog-data';
+import type { CommercialContact } from '@/lib/catalog-config';
 import { buildSegments, type Segment } from '@/lib/segments';
 
 /**
@@ -17,11 +18,11 @@ import { buildSegments, type Segment } from '@/lib/segments';
  */
 export function CatalogSegments({
   items,
-  email,
+  contact,
   style,
 }: {
   items: Product[];
-  email: string;
+  contact: CommercialContact;
   style?: CSSProperties;
 }) {
   const segments = useMemo(
@@ -67,7 +68,7 @@ export function CatalogSegments({
           name={segment.rule.name}
           items={items}
           groups={segment.groups}
-          email={email}
+          contact={contact}
           style={style}
         />
       )}

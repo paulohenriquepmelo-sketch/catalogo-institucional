@@ -11,15 +11,17 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { discover, emptyFilters } from '@/lib/catalog-discovery';
 import type { Product } from '@/lib/catalog-data';
+import type { CommercialContact } from '@/lib/catalog-config';
 import { ProductCard } from './product-card';
 import { ProductDetailsDialog } from './product-details-dialog';
+import { useAutoLoad } from '@/hooks/use-auto-load';
 export function CollectionProducts({
   kind,
   name,
   logo,
   items,
   groups,
-  email,
+  contact,
   style,
 }: {
   kind: 'brand' | 'segment';
@@ -31,7 +33,7 @@ export function CollectionProducts({
    * revenda...). Sem grupos, a lista é filtrada pelo campo `kind` do produto.
    */
   groups?: { name: string; products: Product[] }[];
-  email: string;
+  contact: CommercialContact;
   style?: CSSProperties;
 }) {
   const [productQuery, setProductQuery] = useState('');
@@ -55,6 +57,11 @@ export function CollectionProducts({
         ? discover(groupProducts, { ...emptyFilters, query: productQuery })
         : discover(items, { ...emptyFilters, [kind]: name, query: productQuery }),
     [groupProducts, items, kind, name, productQuery],
+  );
+  const moreProducts = useAutoLoad(
+    () => setProductLimit((n) => n + 12),
+    products.length > productLimit,
+    productLimit,
   );
   return (
     <DialogContent className="brand-products-dialog" style={style}>
@@ -119,7 +126,7 @@ export function CollectionProducts({
             : 'produtos encontrados'}
         </output>
       </div>
-      <div className="brand-products-results">
+      <div className="brand-products-results" data-autoload-root>
         <div className="product-grid">
           {products.slice(0, productLimit).map((p) => (
             <ProductCard key={p.id} product={p} onOpen={setSelected} />
@@ -141,12 +148,9 @@ export function CollectionProducts({
         )}
         {products.length > productLimit && (
           <div className="load-more">
-            <Button
-              variant="outline"
-              onClick={() => setProductLimit((n) => n + 12)}
-            >
-              Mostrar mais produtos ({products.length - productLimit})
-            </Button>
+            <output ref={moreProducts} className="auto-load">
+              Carregando mais produtos… {productLimit} de {products.length}
+            </output>
           </div>
         )}
       </div>
@@ -154,7 +158,7 @@ export function CollectionProducts({
         selected={selected}
         onSelect={setSelected}
         items={items}
-        email={email}
+        contact={contact}
         style={style}
       />
     </DialogContent>

@@ -2003,6 +2003,51 @@ footer p {
   justify-content: center;
   padding-top: 30px;
 }
+/* Contato comercial no popup do produto e no rodapé. */
+.product-contact-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+/* Verde do WhatsApp; vence o fundo da cor principal do botão. */
+.product-dialog .primary-action.whatsapp-action {
+  background: #128c4a !important;
+  border-color: #128c4a;
+  color: #fff;
+}
+.product-dialog .secondary-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 12px 18px;
+  border: 1px solid currentColor;
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+  color: inherit;
+}
+.product-contact-phone {
+  margin: 4px 0 0;
+  font-size: 13px;
+}
+.product-contact-phone a {
+  font-weight: 700;
+  color: inherit;
+}
+.footer-contact {
+  display: grid;
+  gap: inherit;
+  margin-top: 18px;
+}
+.auto-load {
+  display: block;
+  font-size: 13px;
+  color: var(--muted-foreground, #647368);
+}
 .empty-state > svg {
   margin: 0 auto 15px;
 }

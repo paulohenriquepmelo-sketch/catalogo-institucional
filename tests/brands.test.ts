@@ -16,7 +16,11 @@ import {
   MULTIBRAND,
 } from '../lib/catalog-brands';
 import { GET as getProductsRoute } from '../app/api/products/route';
-import { defaultConfig, validateConfig } from '../lib/catalog-config';
+import {
+  defaultConfig,
+  validateConfig,
+  whatsappNumber,
+} from '../lib/catalog-config';
 import {
   getConfig,
   publishCatalog,
@@ -43,7 +47,7 @@ void test('brand buttons open dialogs without anchor navigation or global catalo
         { name: 'Outra marca', logo: '', published: true, featured: true },
       ],
       items: products,
-      email: '',
+      contact: { email: '', phone: '', whatsapp: '' },
     }),
   );
   assert.match(html, /aria-haspopup="dialog"/);
@@ -74,7 +78,7 @@ void test('segments use distinct activity icons and open the same collection pop
     { name: 'CERVEJA HEINEKEN LATA 473 ML', category: '4.1-CERVEJAS' },
   ].map((row, i) => ({ ...products[0], ...row, id: 9000 + i, published: true }));
   const html = renderToStaticMarkup(
-    createElement(CatalogSegments, { items: real, email: '' }),
+    createElement(CatalogSegments, { items: real, contact: { email: '', phone: '', whatsapp: '' } }),
   );
   // Segmentos com as regras do app: só os que têm produto, sem as coleções de data.
   const visible = buildSegments(real).filter(
@@ -117,7 +121,7 @@ void test('unpublished brands never appear, even if featured; featured published
     ['Zeta destaque', 'Alfa comum'],
   );
   const html = renderToStaticMarkup(
-    createElement(CatalogBrands, { brands, items: [], email: '' }),
+    createElement(CatalogBrands, { brands, items: [], contact: { email: '', phone: '', whatsapp: '' } }),
   );
   assert.doesNotMatch(html, /Rascunho secreto/);
   assert.match(html, /Zeta destaque/);
@@ -369,6 +373,30 @@ void test('product details use strong text and the editor exposes a dedicated co
   assert.match(editor, /contact-settings-title/);
   assert.match(editor, /E-mail do contato comercial/);
   assert.match(editor, /change\('email', v\)/);
+  assert.match(editor, /change\('whatsapp', v\)/);
+  assert.match(editor, /change\('phone', v\)/);
+});
+
+void test('commercial WhatsApp and phone are validated and old configs default to empty', () => {
+  assert.equal(whatsappNumber('(44) 99999-9999'), '5544999999999');
+  assert.equal(whatsappNumber('+55 44 99999-9999'), '5544999999999');
+  const saved = validateConfig({
+    ...defaultConfig,
+    whatsapp: '(44) 99999-9999',
+    phone: '(44) 3333-3333',
+  });
+  assert.equal(saved.whatsapp, '(44) 99999-9999');
+  assert.equal(saved.phone, '(44) 3333-3333');
+  const { phone: _phone, whatsapp: _whatsapp, ...legacy } = defaultConfig;
+  assert.equal(validateConfig(legacy).whatsapp, '');
+  assert.throws(
+    () => validateConfig({ ...defaultConfig, whatsapp: '9999-9999' }),
+    /WhatsApp inválido/,
+  );
+  assert.throws(
+    () => validateConfig({ ...defaultConfig, phone: 'ligue já' }),
+    /Telefone inválido/,
+  );
 });
 
 void test('only featured public brands enter the carousel; the searchable popup includes all published brands', () => {
@@ -379,7 +407,7 @@ void test('only featured public brands enter the carousel; the searchable popup 
     featured: false,
   }));
   const carousel = renderToStaticMarkup(
-    createElement(CatalogBrands, { brands, items: [], email: '' }),
+    createElement(CatalogBrands, { brands, items: [], contact: { email: '', phone: '', whatsapp: '' } }),
   );
   assert.doesNotMatch(carousel, /data-slot="carousel-item"/);
   assert.match(carousel, /Mostrar mais marcas/);
@@ -391,7 +419,7 @@ void test('only featured public brands enter the carousel; the searchable popup 
       ],
       items: [],
       counts: {},
-      email: '',
+      contact: { email: '', phone: '', whatsapp: '' },
     }),
   );
   assert.equal((html.match(/aria-haspopup="dialog"/g) ?? []).length, 35);
@@ -403,7 +431,7 @@ void test('only featured public brands enter the carousel; the searchable popup 
       brands: [],
       items: [],
       counts: {},
-      email: '',
+      contact: { email: '', phone: '', whatsapp: '' },
     }),
   );
   assert.match(empty, /Nenhuma marca encontrada/);

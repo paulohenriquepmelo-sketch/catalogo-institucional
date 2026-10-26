@@ -1,6 +1,6 @@
 "use client";
 /* oxlint-disable next/no-img-element -- Display the already optimized uploaded image directly. */
-import { ArrowRight, Package } from "lucide-react";
+import { ArrowRight, MessageCircle, Package } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -9,6 +9,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { detailFields, type Product } from "@/lib/catalog-data";
+import {
+  whatsappNumber,
+  type CommercialContact,
+} from "@/lib/catalog-config";
 import { similarProducts } from "@/lib/catalog-discovery";
 import { complementProducts } from "@/lib/complements";
 import { useEffect, useMemo, useRef, type CSSProperties } from "react";
@@ -20,13 +24,13 @@ export function ProductDetailsDialog({
   selected,
   onSelect,
   items,
-  email,
+  contact,
   style,
 }: {
   selected: Product | null;
   onSelect: (product: Product | null) => void;
   items: Product[];
-  email: string;
+  contact: CommercialContact;
   style?: CSSProperties;
 }) {
   // Até 8 parecidos (mesma linha de produto primeiro, como no app). Se
@@ -105,14 +109,42 @@ export function ProductDetailsDialog({
                         </div>
                       ))}
                   </dl>
-                  {email ? (
-                    <a
-                      className="primary-action"
-                      href={`mailto:${email}?subject=${encodeURIComponent(`Informações sobre ${selected.name} (${selected.code})`)}`}
-                    >
-                      Solicitar informações <ArrowRight className="size-4" />
-                    </a>
-                  ) : (
+                  {contact.whatsapp || contact.email ? (
+                    <div className="product-contact-actions">
+                      {contact.whatsapp && (
+                        <a
+                          className="primary-action whatsapp-action"
+                          href={`https://wa.me/${whatsappNumber(contact.whatsapp)}?text=${encodeURIComponent(`Olá! Quero informações sobre ${selected.name} (código ${selected.code}).`)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <MessageCircle className="size-4" /> Falar no WhatsApp
+                        </a>
+                      )}
+                      {contact.email && (
+                        <a
+                          className={
+                            contact.whatsapp
+                              ? "secondary-action"
+                              : "primary-action"
+                          }
+                          href={`mailto:${contact.email}?subject=${encodeURIComponent(`Informações sobre ${selected.name} (${selected.code})`)}`}
+                        >
+                          Solicitar por e-mail{" "}
+                          <ArrowRight className="size-4" />
+                        </a>
+                      )}
+                    </div>
+                  ) : null}
+                  {contact.phone && (
+                    <p className="product-contact-phone">
+                      Telefone comercial:{" "}
+                      <a href={`tel:+${whatsappNumber(contact.phone)}`}>
+                        {contact.phone}
+                      </a>
+                    </p>
+                  )}
+                  {!contact.whatsapp && !contact.email && !contact.phone && (
                     <p className="contact-empty">
                       Contato comercial ainda não cadastrado.
                     </p>
