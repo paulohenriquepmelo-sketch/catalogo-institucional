@@ -5,7 +5,12 @@ import {
   hasValidMfaChallenge,
   setEditorSessionCookie,
 } from '@/app/chatgpt-auth';
-import { verifySecondFactor } from '@/lib/editor-totp';
+import {
+  recordTotpFailure,
+  resetTotpFailures,
+  totpLockedUntil,
+  verifySecondFactor,
+} from '@/lib/editor-totp';
 
 // Segunda etapa do login: código do autenticador (ou de recuperação), só
 // depois da senha certa (cookie de desafio válido por 5 minutos).
@@ -41,9 +46,14 @@ export async function POST(request: Request) {
   // Sem a senha conferida há pouco, volta para a senha.
   if (!(await hasValidMfaChallenge(request.headers.get('cookie'))))
     return back('expirou', false);
+  if (await totpLockedUntil()) return back('bloqueado');
   const rawCode = form?.get('codigo');
   const code = typeof rawCode === 'string' ? rawCode.slice(0, 40) : '';
-  if (!(await verifySecondFactor(code))) return back('codigo');
+  if (!(await verifySecondFactor(code))) {
+    await recordTotpFailure();
+    return back('codigo');
+  }
+  await resetTotpFailures();
   const headers = new Headers({
     Location: safeReturnTo,
     'Cache-Control': 'private, no-store',

@@ -3,6 +3,7 @@ import {
   authorizeMutation,
   getEditorUser,
   readJson,
+  publicError,
 } from '@/lib/editor-access';
 import {
   createReviewLink,
@@ -55,7 +56,7 @@ export async function POST(request: Request) {
     return Response.json(
       {
         error:
-          error instanceof Error ? error.message : 'Não foi possível concluir.',
+          publicError(error, 'Não foi possível concluir.'),
       },
       { status: 400 },
     );

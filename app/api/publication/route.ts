@@ -3,6 +3,7 @@ import {
   authorizeMutation,
   getEditorUser,
   readJson,
+  publicError,
 } from '@/lib/editor-access';
 import { getPublicationStatus, publishCatalog } from '@/lib/catalog-repository';
 
@@ -39,9 +40,7 @@ export async function POST(request: Request) {
     return Response.json(
       {
         error:
-          error instanceof Error
-            ? error.message
-            : 'Não foi possível publicar o catálogo.',
+          publicError(error, 'Não foi possível publicar o catálogo.'),
       },
       { status: 400 },
     );

@@ -1,5 +1,5 @@
 import { env } from 'cloudflare:workers';
-import { readJson } from '@/lib/editor-access';
+import { readJson, publicError } from '@/lib/editor-access';
 import { reviewLinkFromCookie, submitReview } from '@/lib/purchase-review';
 
 // Envio do comprador: itens marcados como fora de linha, para aprovação.
@@ -27,7 +27,7 @@ export async function POST(request: Request) {
     return Response.json(await submitReview(link, await readJson(request)));
   } catch (error) {
     return Response.json(
-      { error: error instanceof Error ? error.message : 'Não foi possível enviar.' },
+      { error: publicError(error, 'Não foi possível enviar.') },
       { status: 400 },
     );
   }

@@ -1,4 +1,4 @@
-import { getEditorUser } from '@/lib/editor-access';
+import { getEditorUser, publicError } from '@/lib/editor-access';
 import { searchLogos } from '@/lib/logo-search';
 export async function GET(request: Request) {
   if (!(await getEditorUser()))
@@ -16,9 +16,7 @@ export async function GET(request: Request) {
     return Response.json(
       {
         error:
-          error instanceof Error
-            ? error.message
-            : 'Não foi possível buscar as logos.',
+          publicError(error, 'Não foi possível buscar as logos.'),
       },
       { status: 400 },
     );

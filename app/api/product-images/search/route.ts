@@ -1,4 +1,4 @@
-import { getEditorUser } from '@/lib/editor-access';
+import { getEditorUser, publicError } from '@/lib/editor-access';
 import { searchProductImages } from '@/lib/logo-search';
 
 export async function GET(request: Request) {
@@ -17,9 +17,7 @@ export async function GET(request: Request) {
     return Response.json(
       {
         error:
-          error instanceof Error
-            ? error.message
-            : 'Não foi possível buscar fotos de produtos.',
+          publicError(error, 'Não foi possível buscar fotos de produtos.'),
       },
       { status: 400 },
     );

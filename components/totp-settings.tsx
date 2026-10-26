@@ -9,6 +9,8 @@ import { Panel } from './editor-controls';
 import { api } from '@/lib/client-api';
 
 type Status = {
+  recentFailures: number;
+  lockedUntil: string | null;
   enabled: boolean;
   enabledAt: string | null;
   recoveryLeft: number;
@@ -197,6 +199,16 @@ export function TotpSettings({
               : '—'}{' '}
             · {status.recoveryLeft} códigos de recuperação restantes
           </p>
+          {(status.recentFailures > 0 || status.lockedUntil) && (
+            <p role="alert" className="error-message">
+              {status.recentFailures} código(s) errado(s) nos últimos 15
+              minutos
+              {status.lockedUntil
+                ? `; tentativas pausadas até ${new Date(status.lockedUntil).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`
+                : ''}
+              . Se não foi você, troque a senha e encerre as outras sessões.
+            </p>
+          )}
           {step.kind === 'disable' ? (
             <form
               className="security-form"

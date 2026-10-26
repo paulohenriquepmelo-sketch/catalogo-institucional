@@ -67,3 +67,20 @@ export async function boundedBody(request: Request, limit: number) {
   }
   return result;
 }
+
+// Mensagem de erro que pode ir para a tela. Erros escritos pelo sistema
+// (Error simples, em português) passam; erros técnicos (banco, rede, tipo)
+// viram a mensagem genérica e ficam só no log do Worker.
+const TECHNICAL =
+  /D1_|SQLITE|sqlite|no such (table|column)|constraint failed|undefined|null|is not a function|fetch failed|network|stack|\bat\s+\S+\s+\(/i;
+export function publicError(error: unknown, fallback: string) {
+  if (
+    error instanceof Error &&
+    error.name === 'Error' &&
+    error.message &&
+    !TECHNICAL.test(error.message)
+  )
+    return error.message;
+  console.error(error);
+  return fallback;
+}

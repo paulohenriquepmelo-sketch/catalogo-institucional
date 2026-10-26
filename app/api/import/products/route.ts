@@ -1,5 +1,5 @@
 import { env } from 'cloudflare:workers';
-import { authorizeMutation, readJson } from '@/lib/editor-access';
+import { authorizeMutation, readJson, publicError } from '@/lib/editor-access';
 import {
   getConfig,
   ensurePublishedCatalog,
@@ -200,7 +200,7 @@ export async function POST(request: Request) {
           row: rowNumber,
           code,
           status: 'error',
-          message: error instanceof Error ? error.message : 'Linha inválida.',
+          message: publicError(error, 'Linha inválida.'),
         });
       }
     }
@@ -244,7 +244,7 @@ export async function POST(request: Request) {
           code: product.code,
           status: 'error',
           message:
-            error instanceof Error ? error.message : 'Falha ao salvar a linha.',
+            publicError(error, 'Falha ao salvar a linha.'),
         });
       }
     }
@@ -252,7 +252,7 @@ export async function POST(request: Request) {
   } catch (error) {
     return Response.json(
       {
-        error: error instanceof Error ? error.message : 'Falha na importação.',
+        error: publicError(error, 'Falha na importação.'),
       },
       { status: 400 },
     );
