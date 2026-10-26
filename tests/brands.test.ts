@@ -372,9 +372,15 @@ void test('product details use strong text and the editor exposes a dedicated co
   const editor = readFileSync('components/config-editor.tsx', 'utf8');
   assert.match(editor, /contact-settings-title/);
   assert.match(editor, /E-mail do contato comercial/);
-  assert.match(editor, /change\('email', v\)/);
-  assert.match(editor, /change\('whatsapp', v\)/);
-  assert.match(editor, /change\('phone', v\)/);
+  assert.match(editor, /onChange\(\{ \.\.\.config, email: v \}\)/);
+  assert.match(editor, /onChange\(\{ \.\.\.config, whatsapp: v \}\)/);
+  assert.match(editor, /onChange\(\{ \.\.\.config, phone: v \}\)/);
+  // O contato comercial fica na Visão geral, com o botão de publicar.
+  const app = readFileSync('components/editor-app.tsx', 'utf8');
+  assert.match(
+    app,
+    /view === 'overview'[\s\S]*?<CommercialContactSettings[\s\S]*?\{pageSaveBar\}/,
+  );
 });
 
 void test('commercial WhatsApp and phone are validated and old configs default to empty', () => {
