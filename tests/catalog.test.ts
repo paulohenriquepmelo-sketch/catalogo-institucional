@@ -29,6 +29,14 @@ import {
 import { POST as postConfig } from '../app/api/config/route';
 import { POST as postLogout } from '../app/api/editor/logout/route';
 import {
+  GET as getHistory,
+  POST as postHistory,
+} from '../app/api/publication/history/route';
+import {
+  PUBLICATION_HISTORY_LIMIT,
+  listPublicationHistory,
+} from '../lib/published-catalog';
+import {
   GET as getPublication,
   POST as postPublication,
 } from '../app/api/publication/route';
@@ -642,5 +650,69 @@ void test('editor session: expired session is identifiable, logout clears the co
     }),
   );
   assert.equal(forged.status, 403);
+  setIdentity('admin@example.test');
+});
+
+void test('publication history: each publish archives the previous version, keeps the latest 10 and can restore one', async () => {
+  setIdentity('admin@example.test');
+  const snapshot = (n: number) => ({
+    version: 1 as const,
+    revision: n,
+    publishedAt: new Date(Date.UTC(2030, 0, n)).toISOString(),
+    config: clone(),
+    products: products.slice(0, n),
+  });
+  for (const id of (await listPublicationHistory()).map((e) => e.id))
+    await testEnv.FILES.delete('catalog/history/' + id);
+  for (let n = 1; n <= PUBLICATION_HISTORY_LIMIT + 3; n++)
+    await writePublishedCatalogSnapshot(snapshot(n));
+  const entries = await listPublicationHistory();
+  assert.equal(entries.length, PUBLICATION_HISTORY_LIMIT);
+  // Mais recente primeiro: a versão anterior à atual (12).
+  assert.equal(entries[0].revision, PUBLICATION_HISTORY_LIMIT + 2);
+  assert.equal(
+    entries[0].products,
+    Math.min(products.length, PUBLICATION_HISTORY_LIMIT + 2),
+  );
+  assert.equal(entries.at(-1)?.revision, 3);
+
+  const listed = await getHistory();
+  assert.equal(listed.status, 200);
+  const target = entries.find((e) => e.revision === 5)!;
+  const restored = await postHistory(
+    request('/api/publication/history', { id: target.id, confirm: true }),
+  );
+  assert.equal(restored.status, 200);
+  assert.equal(((await restored.json()) as { productCount: number }).productCount, 5);
+  assert.equal((await readPublishedCatalogSnapshot())?.revision, 5);
+  // A versão que estava no ar (13) foi guardada: a volta pode ser desfeita.
+  assert.equal(
+    (await listPublicationHistory())[0].revision,
+    PUBLICATION_HISTORY_LIMIT + 3,
+  );
+
+  for (const body of [
+    { id: target.id },
+    { id: '../published-v1.json', confirm: true },
+    { id: '2030-01-01T00-00-00-000Z.json', confirm: true },
+  ])
+    assert.equal(
+      (await postHistory(request('/api/publication/history', body))).status,
+      400,
+    );
+  assert.equal(
+    (
+      await postHistory(
+        request(
+          '/api/publication/history',
+          { id: target.id, confirm: true },
+          'https://attacker.test',
+        ),
+      )
+    ).status,
+    403,
+  );
+  setIdentity();
+  assert.equal((await getHistory()).status, 403);
   setIdentity('admin@example.test');
 });

@@ -6427,3 +6427,55 @@ a:focus-visible {
 .editor-maintenance .editor-field {
   max-width: 320px;
 }
+
+/* Histórico de publicações na Visão geral. */
+.publication-history {
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+  list-style: none;
+}
+.publication-history li {
+  padding: 12px 14px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid #d7deeb;
+  border-radius: 10px;
+  background: #fff;
+}
+.publication-history li > svg {
+  width: 18px;
+  color: #52657b;
+}
+.publication-history li > span:not(.publication-history-confirm) {
+  display: grid;
+}
+.publication-history strong {
+  color: #17284f;
+  font-variant-numeric: tabular-nums;
+}
+.publication-history small {
+  color: #65738e;
+}
+.publication-history-confirm {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.publication-history-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #65738e;
+}
+@media (max-width: 600px) {
+  .publication-history li {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .publication-history li > :last-child {
+    grid-column: 1 / -1;
+  }
+}
