@@ -1,7 +1,14 @@
 'use client';
 /* oxlint-disable next/no-img-element -- Fotos já otimizadas (WebP) pelo editor. */
 import { useEffect, useMemo, useState } from 'react';
-import { CheckSquare, LogOut, Package, Search, Send, Square } from 'lucide-react';
+import {
+  CheckSquare,
+  LogOut,
+  Package,
+  Search,
+  Send,
+  Square,
+} from 'lucide-react';
 import { api } from '@/lib/client-api';
 import { displayName } from '@/lib/catalog-pdf';
 import { useAutoLoad } from '@/hooks/use-auto-load';
@@ -48,6 +55,8 @@ export function PurchaseReviewApp({
   const [note, setNote] = useState('');
   const [query, setQuery] = useState('');
   const [onlyMarked, setOnlyMarked] = useState(false);
+  const [category, setCategory] = useState('');
+  const [supplier, setSupplier] = useState('');
   const [limit, setLimit] = useState(120);
   const [confirming, setConfirming] = useState(false);
   const [sending, setSending] = useState(false);
@@ -78,17 +87,43 @@ export function PurchaseReviewApp({
     update(next);
   }
 
+  // Opções dos filtros: categorias na ordem do catálogo, fornecedores por nome.
+  const filterOptions = useMemo(() => {
+    const categories = new Map<string, { label: string; count: number }>();
+    const suppliers = new Map<string, number>();
+    for (const p of products ?? []) {
+      const key = `${p.section}|${p.category}`;
+      const current = categories.get(key);
+      if (current) current.count++;
+      else
+        categories.set(key, {
+          label: `${displayName(p.section)} · ${displayName(p.category)}`,
+          count: 1,
+        });
+      if (p.supplier)
+        suppliers.set(p.supplier, (suppliers.get(p.supplier) ?? 0) + 1);
+    }
+    return {
+      categories: [...categories],
+      suppliers: [...suppliers].sort((a, b) =>
+        a[0].localeCompare(b[0], 'pt-BR'),
+      ),
+    };
+  }, [products]);
+
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
     return (products ?? []).filter(
       (p) =>
         (!onlyMarked || marked.has(p.code)) &&
+        (!category || `${p.section}|${p.category}` === category) &&
+        (!supplier || p.supplier === supplier) &&
         (!q ||
           `${p.code} ${p.name} ${p.brand} ${p.supplier}`
             .toLowerCase()
             .includes(q)),
     );
-  }, [products, query, onlyMarked, marked]);
+  }, [products, query, onlyMarked, marked, category, supplier]);
 
   // Seção e categoria como as faixas do catálogo impresso.
   const groups = useMemo(() => {
@@ -157,7 +192,9 @@ export function PurchaseReviewApp({
         <div>
           <span>Revisão do catálogo</span>
           <h1>{label}</h1>
-          <small>Acesso válido até {dateFormat.format(Date.parse(expiresAt))}</small>
+          <small>
+            Acesso válido até {dateFormat.format(Date.parse(expiresAt))}
+          </small>
         </div>
         <form method="post" action="/api/compras/logout">
           <button type="submit" className="compras-link-button">
@@ -186,6 +223,42 @@ export function PurchaseReviewApp({
               }}
             />
           </label>
+          <label className="compras-filter" htmlFor="compras-categoria">
+            <span>Categoria</span>
+            <select
+              id="compras-categoria"
+              value={category}
+              onChange={(e) => {
+                setCategory(e.target.value);
+                setLimit(120);
+              }}
+            >
+              <option value="">Todas as categorias</option>
+              {filterOptions.categories.map(([key, option]) => (
+                <option key={key} value={key}>
+                  {option.label} ({option.count})
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="compras-filter" htmlFor="compras-fornecedor">
+            <span>Fornecedor</span>
+            <select
+              id="compras-fornecedor"
+              value={supplier}
+              onChange={(e) => {
+                setSupplier(e.target.value);
+                setLimit(120);
+              }}
+            >
+              <option value="">Todos os fornecedores</option>
+              {filterOptions.suppliers.map(([name, count]) => (
+                <option key={name} value={name}>
+                  {name} ({count})
+                </option>
+              ))}
+            </select>
+          </label>
           <label className="compras-only" htmlFor="compras-so-marcados">
             <input
               id="compras-so-marcados"
@@ -196,8 +269,45 @@ export function PurchaseReviewApp({
             Mostrar só os marcados
           </label>
           <span className="compras-count">
-            {total} produtos · {marked.size} marcados
+            {visible.length === total
+              ? `${total} produtos`
+              : `${visible.length} de ${total} produtos`}{' '}
+            · {marked.size} marcados
           </span>
+          {(category || supplier || query) && (
+            <span className="compras-filter-actions">
+              {visible.length > 0 && (
+                <button
+                  type="button"
+                  className="compras-link-button"
+                  onClick={() => {
+                    const all = visible.every((p) => marked.has(p.code));
+                    const next = new Set(marked);
+                    for (const p of visible)
+                      if (all) next.delete(p.code);
+                      else next.add(p.code);
+                    update(next);
+                  }}
+                >
+                  {visible.every((p) => marked.has(p.code))
+                    ? 'Desmarcar todos os filtrados'
+                    : `Marcar todos os filtrados (${visible.length})`}
+                </button>
+              )}
+              <button
+                type="button"
+                className="compras-link-button"
+                onClick={() => {
+                  setCategory('');
+                  setSupplier('');
+                  setQuery('');
+                  setLimit(120);
+                }}
+              >
+                Limpar filtros
+              </button>
+            </span>
+          )}
         </div>
       </section>
 
@@ -212,7 +322,9 @@ export function PurchaseReviewApp({
         <output className="compras-status">Carregando produtos…</output>
       ) : !visible.length ? (
         <p className="compras-status">
-          {onlyMarked ? 'Nenhum produto marcado.' : 'Nenhum produto encontrado.'}
+          {onlyMarked
+            ? 'Nenhum produto marcado.'
+            : 'Nenhum produto encontrado.'}
         </p>
       ) : (
         groups.map((group) => {
@@ -229,7 +341,9 @@ export function PurchaseReviewApp({
                   className="compras-link-button"
                   onClick={() => toggleGroup(group.key, !all)}
                 >
-                  {all ? 'Desmarcar todos' : `Marcar todos (${groupCodes.length})`}
+                  {all
+                    ? 'Desmarcar todos'
+                    : `Marcar todos (${groupCodes.length})`}
                 </button>
               </div>
               <div className="compras-grid">
@@ -320,7 +434,9 @@ export function PurchaseReviewApp({
             className="compras-primary"
             disabled={!marked.size || buyer.trim().length < 2}
             title={
-              buyer.trim().length < 2 ? 'Informe seu nome para enviar.' : undefined
+              buyer.trim().length < 2
+                ? 'Informe seu nome para enviar.'
+                : undefined
             }
             onClick={() => setConfirming(true)}
           >

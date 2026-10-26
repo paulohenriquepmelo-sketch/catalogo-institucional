@@ -171,6 +171,20 @@ void test('purchase review: 64-char key, filtered catalog, approval takes items 
   );
   assert.match((await login(created.token)).headers.get('location') ?? '', /erro=chave/);
 
+  // Chave do catálogo inteiro: o comprador filtra na página.
+  setIdentity('admin@example.test');
+  const whole = (await (
+    await postReview(post('/api/purchase-review', { action: 'create', filter: { kind: 'all', values: [] }, days: 3 }))
+  ).json()) as { token: string; label: string };
+  assert.equal(whole.label, 'Catálogo inteiro');
+  setIdentity();
+  const wholeSession = cookieOf(await login(whole.token));
+  const all = (await (
+    await buyerProducts(new Request(`${origin}/api/compras/products`, { headers: { cookie: wholeSession } }))
+  ).json()) as { products: { code: string }[] };
+  for (const code of ['CP-1', 'CP-2', 'CP-3', 'CP-4'])
+    assert.ok(all.products.some((p) => p.code === code), code);
+
   // Chave vencida também não entra.
   setIdentity('admin@example.test');
   const expiring = (await (
