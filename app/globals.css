@@ -6479,3 +6479,13 @@ a:focus-visible {
     grid-column: 1 / -1;
   }
 }
+
+/* Aviso de PDF gerado antes da última publicação. */
+.catalog-pdf-outdated {
+  padding: 10px 12px;
+  border: 1px solid #e0a43a;
+  border-radius: 8px;
+  color: #6b4200 !important;
+  background: #fff4dc;
+  font-weight: 600;
+}

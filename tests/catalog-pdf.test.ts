@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { displayName, fitFiller, GRID, gridFor, MODELO_AREA, planCatalogPdf, planContents, sortForCatalog, type PdfProduct } from '../lib/catalog-pdf';
 import { GET as getPdf, POST as postPdf } from '../app/api/catalog-pdf/route';
 import { env, setIdentity } from './runtime';
@@ -328,4 +329,14 @@ void test('catalog pdf: brand image keeps its sides (brand name) whole', () => {
   const fit = fitFiller({ width: 1280, height: 720 }, { x: 30, y: 400, width: 535, height: 380 });
   assert.equal(fit.cover, false);
   assert.equal(fit.x >= 30 && fit.x + fit.width <= 565.0001, true);
+});
+
+void test('editor warns when the PDF is older than the last publication', () => {
+  const panel = readFileSync('components/catalog-pdf-panel.tsx', 'utf8');
+  assert.match(panel, /api<\{ publishedAt: string \}>\('\/api\/publication'\)/);
+  assert.match(
+    panel,
+    /Date\.parse\(publishedAt\) > Date\.parse\(current\?\.generatedAt \?\? ''\)/,
+  );
+  assert.match(panel, /PDF desatualizado/);
 });

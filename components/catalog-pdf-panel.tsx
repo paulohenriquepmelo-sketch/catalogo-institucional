@@ -74,6 +74,13 @@ export function CatalogPdfPanel({ onBusy }: { onBusy: (busy: boolean) => void })
   // Produtos por fileira: menos colunas, fotos maiores (e mais páginas).
   const [columns, setColumns] = useState<PdfColumns>(4);
   const [restored, setRestored] = useState(false);
+  // Data da última publicação: o PDF gerado antes dela está desatualizado.
+  const [publishedAt, setPublishedAt] = useState('');
+  useEffect(() => {
+    api<{ publishedAt: string }>('/api/publication')
+      .then((status) => setPublishedAt(status.publishedAt))
+      .catch(() => setPublishedAt(''));
+  }, []);
   if (!restored && loaded) {
     setRestored(true);
     if (loaded.layout) setLayout(loaded.layout);
@@ -243,6 +250,9 @@ export function CatalogPdfPanel({ onBusy }: { onBusy: (busy: boolean) => void })
   const when = current?.generatedAt
     ? new Date(current.generatedAt).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })
     : '';
+  const outdated =
+    Boolean(current?.available && publishedAt) &&
+    Date.parse(publishedAt) > Date.parse(current?.generatedAt ?? '');
   return (
     <Panel
       title="Catálogo em PDF"
@@ -253,6 +263,17 @@ export function CatalogPdfPanel({ onBusy }: { onBusy: (busy: boolean) => void })
           ? `Último PDF: ${when}${current.layout ? ` · ${LAYOUT_NAMES[current.layout]}` : ''}${current.columns ? ` com ${current.columns} por fileira` : ''} · ${current.products ?? '?'} produtos · ${current.pages ?? '?'} páginas · ${megabytes(current.size)}`
           : 'Nenhum PDF gerado ainda: o botão do site fica escondido até a primeira geração.'}
       </p>
+      {outdated && (
+        <p role="alert" className="catalog-pdf-outdated">
+          PDF desatualizado: o site foi publicado em{' '}
+          {new Date(publishedAt).toLocaleString('pt-BR', {
+            dateStyle: 'short',
+            timeStyle: 'short',
+          })}
+          , depois deste PDF. Gere de novo para o site entregar o catálogo
+          atual.
+        </p>
+      )}
       {progress && (
         <Progress value={progress.total ? (progress.done / progress.total) * 100 : 0}>
           <ProgressLabel>
