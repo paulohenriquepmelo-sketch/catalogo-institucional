@@ -5,6 +5,7 @@ import {
   Blocks,
   CircleUserRound,
   LogOut,
+  ClipboardCheck,
   ShieldCheck,
   Eye,
   FileSpreadsheet,
@@ -50,6 +51,7 @@ import { ErpFixesEditor } from './erp-fixes-editor';
 import { CatalogPdfPanel } from './catalog-pdf-panel';
 import { PublicationHistory } from './publication-history';
 import { SecuritySettings } from './security-settings';
+import { PurchaseReviewEditor } from './purchase-review-editor';
 import { OutOfCatalogArea } from './out-of-catalog-area';
 import { CampaignEditor } from './campaign-editor';
 import { ProductImagePicker } from './product-image-picker';
@@ -60,6 +62,7 @@ const navigation: { key: EditorView; label: string; icon: typeof Package }[] = [
   { key: 'imports', label: 'Importações', icon: FileSpreadsheet },
   { key: 'erp', label: 'Correções do ERP', icon: Wrench },
   { key: 'outOfCatalog', label: 'Fora de linha', icon: Archive },
+  { key: 'purchaseReview', label: 'Revisão do compras', icon: ClipboardCheck },
   { key: 'promotions', label: 'Ofertas e novidades', icon: BadgePercent },
   { key: 'taxonomy', label: 'Hierarquia', icon: Blocks },
   { key: 'brands', label: 'Marcas e logos', icon: Tags },
@@ -992,6 +995,13 @@ export function EditorApp({ userName }: { userName: string }) {
           <ErpFixesEditor
             items={items}
             taxonomy={savedConfig.taxonomy}
+            dirty={dirty}
+            onBusy={onBusy}
+            onRefresh={refreshAfterImport}
+          />
+        ) : view === 'purchaseReview' ? (
+          <PurchaseReviewEditor
+            items={items}
             dirty={dirty}
             onBusy={onBusy}
             onRefresh={refreshAfterImport}

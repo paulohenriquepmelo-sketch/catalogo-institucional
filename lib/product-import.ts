@@ -116,6 +116,9 @@ export const importColumns = [
  * foto e dados guardados no editor, na área "Fora de linha"). Devolve o
  * motivo, ou '' quando o produto segue normal.
  */
+/** Excluído pelo compras mas ativo na planilha do ERP: avisar na importação. */
+export const PURCHASE_EXCLUDED_NOTE =
+  'Excluído pelo compras e ainda ativo no ERP: continua fora do catálogo. Marque como fora de linha no ERP.';
 export function outOfCatalog(values: ImportValues) {
   const flag = (value?: string) => (value ?? '').trim().toUpperCase();
   return [
@@ -250,7 +253,11 @@ export function mergeImport(
   const details: ProductDetails = { ...existing?.details };
   for (const [key] of detailFields) if (values[key]) details[key] = values[key];
   // A planilha decide de novo a cada importação: desmarcou, sai da área.
-  const out = outOfCatalog(values);
+  // Exceção: o que o compras excluiu continua fora até ser desfeito no editor.
+  const out = [outOfCatalog(values), details.purchaseExcluded]
+    .filter(Boolean)
+    .join(' · ')
+    .slice(0, 120);
   if (out) details.outOfCatalog = out;
   else delete details.outOfCatalog;
   const p: Product = {

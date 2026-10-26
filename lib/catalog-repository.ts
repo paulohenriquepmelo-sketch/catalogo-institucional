@@ -437,6 +437,8 @@ export function validateProduct(
     details.sourceRow = v.details?.sourceRow;
   if (v.details?.outOfCatalog)
     details.outOfCatalog = String(v.details.outOfCatalog).slice(0, 120);
+  if (v.details?.purchaseExcluded)
+    details.purchaseExcluded = String(v.details.purchaseExcluded).slice(0, 120);
   if (v.details?.showAsNew !== undefined) {
     if (typeof v.details.showAsNew !== 'boolean')
       throw new Error('Revise a publicação na vitrine de novidades.');

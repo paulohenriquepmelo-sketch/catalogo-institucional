@@ -15,6 +15,9 @@ export type ProductDetails = {
   showAsNew?: boolean;
   /** Marcação do ERP que tirou o produto do site ("Fora de linha · Revenda: N"). */
   outOfCatalog?: string;
+  /** Excluído pela revisão do compras ("Compras: Nome em dd/mm/aaaa"). Vale
+   *  até ser desfeito no editor, mesmo que o ERP traga o item como ativo. */
+  purchaseExcluded?: string;
 };
 export type ProductOffer = {
   enabled: boolean;

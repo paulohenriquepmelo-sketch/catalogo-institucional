@@ -11,6 +11,7 @@ import { normalize, validateConfig } from '@/lib/catalog-config';
 import {
   mergeImport,
   outOfCatalog,
+  PURCHASE_EXCLUDED_NOTE,
   ignoredCategory,
   IGNORED_CATEGORY_NOTE,
   OUT_OF_CATALOG_NOTE,
@@ -57,7 +58,12 @@ export async function POST(request: Request) {
       (await listCatalogProducts(true, codes)).map((p) => [p.code, p]),
     );
     const config = structuredClone(context.config);
-    const pending: { row: number; product: Product; out: boolean }[] = [];
+    const pending: {
+      row: number;
+      product: Product;
+      out: boolean;
+      purchase: boolean;
+    }[] = [];
     const rows = input.rows as ProductImportInput[];
     const counts = new Map<string, number>();
     for (const row of rows)
@@ -183,7 +189,12 @@ export async function POST(request: Request) {
         const validProduct = validateProduct(product, validConfig);
         config.brands = validConfig.brands;
         config.taxonomy = validConfig.taxonomy;
-        pending.push({ row: row.row, product: validProduct, out: !!outOfCatalog(values) });
+        pending.push({
+          row: row.row,
+          product: validProduct,
+          out: !!outOfCatalog(values),
+          purchase: !outOfCatalog(values) && !!validProduct.details?.purchaseExcluded,
+        });
       } catch (error) {
         results.push({
           row: rowNumber,
@@ -210,14 +221,16 @@ export async function POST(request: Request) {
       revision++;
     }
     // Small independent batches allow progress reporting and safe stopping.
-    for (const { row, product, out } of pending) {
+    for (const { row, product, out, purchase } of pending) {
       try {
         await saveCatalogProduct(product, { config, revision });
         results.push({
           row,
           code: product.code,
           status: product.id ? 'updated' : 'created',
-          message: out
+          message: purchase
+            ? PURCHASE_EXCLUDED_NOTE
+            : out
             ? OUT_OF_CATALOG_NOTE
             : product.id
             ? 'Atualizado; imagem e publicação preservadas.'
