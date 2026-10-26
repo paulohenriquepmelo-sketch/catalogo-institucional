@@ -721,7 +721,11 @@ footer p {
     overflow: hidden;
     white-space: nowrap;
   }
-  .announcement span:last-child,
+  .announcement:has(> span:only-child) {
+    justify-content: center;
+  }
+  /* Only drops the second message; a single tagline stays visible. */
+  .announcement > span:last-child:not(:first-child),
   .announcement-rule {
     display: none;
   }
@@ -2753,6 +2757,11 @@ a:focus-visible {
   padding: clamp(18px, 3vw, 32px);
   gap: 20px;
   background: var(--background);
+}
+/* Segment dialogs add the group chips row before the search; without the
+   extra row the search lands in the flexible row and collapses to zero. */
+.brand-products-dialog:has(> .segment-group-chips) {
+  grid-template-rows: auto auto auto minmax(0, 1fr);
 }
 .brand-products-heading {
   flex-direction: row;
