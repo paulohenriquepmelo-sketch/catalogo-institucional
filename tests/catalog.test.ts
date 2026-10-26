@@ -46,7 +46,13 @@ import {
   readPublishedCatalogSnapshot,
   writePublishedCatalogSnapshot,
 } from '../lib/published-catalog';
-import { database, env as testEnv, headers, setIdentity } from './runtime';
+import {
+  database,
+  env as testEnv,
+  headers,
+  setCookie,
+  setIdentity,
+} from './runtime';
 import { webp } from './image-fixtures';
 
 import { catalogDateKey, expireProductOffer } from '../lib/catalog-data';
@@ -715,4 +721,89 @@ void test('publication history: each publish archives the previous version, keep
   setIdentity();
   assert.equal((await getHistory()).status, 403);
   setIdentity('admin@example.test');
+});
+
+void test('editor password change: hashed, old password and old sessions stop working, abuse is refused', async () => {
+  const { POST: login } = await import('../app/api/editor/login/route');
+  const { POST: changePassword } = await import(
+    '../app/api/editor/password/route'
+  );
+  const { createEditorSession } = await import('../app/chatgpt-auth');
+  const { getEditorUser } = await import('../lib/editor-access');
+  const env = testEnv as typeof testEnv & { EDITOR_PASSWORD?: string };
+  env.EDITOR_PASSWORD = 'senha-antiga-123';
+  const loginWith = async (password: string) => {
+    const body = new FormData();
+    body.set('password', password);
+    body.set('return_to', '/editor');
+    return (
+      await login(
+        new Request('https://catalog.test/api/editor/login', {
+          method: 'POST',
+          body,
+        }),
+      )
+    ).headers.get('location');
+  };
+  const change = (body: unknown, origin?: string) =>
+    changePassword(request('/api/editor/password', body, origin));
+  const cookieOf = (response: Response) =>
+    (response.headers.get('set-cookie') ?? '').split(';')[0];
+  try {
+    setIdentity();
+    assert.equal(
+      (await change({ current: 'senha-antiga-123', next: 'Nova senha forte 2026' }))
+        .status,
+      403,
+    );
+    setIdentity('admin@example.test');
+    const oldSession = `catalogo_editor_session=${await createEditorSession()}`;
+    assert.equal(
+      (await change({ current: 'senha-antiga-123', next: 'Nova senha forte 2026' }, 'https://attacker.test'))
+        .status,
+      403,
+    );
+    for (const [body, message] of [
+      [{ current: 'errada', next: 'Nova senha forte 2026' }, /atual incorreta/],
+      [{ current: 'senha-antiga-123', next: 'curta' }, /pelo menos 12/],
+      [{ current: 'senha-antiga-123', next: 'aaaaaaaaaaaaaa' }, /repete poucos/],
+      [{ current: 'senha-antiga-123', next: 'senha-antiga-123' }, /diferente da atual/],
+      [{ current: 'senha-antiga-123' }, /senha atual e a nova/],
+    ] as const) {
+      const refused = await change(body);
+      assert.equal(refused.status, 400);
+      assert.match(((await refused.json()) as { error: string }).error, message);
+    }
+    const ok = await change({
+      current: 'senha-antiga-123',
+      next: 'Nova senha forte 2026',
+    });
+    assert.equal(ok.status, 200);
+    const newSession = cookieOf(ok);
+    assert.match(newSession, /^catalogo_editor_session=\d+\./);
+
+    // Só o hash fica guardado.
+    const row = database
+      .prepare('SELECT * FROM editor_credentials WHERE id=1')
+      .get() as Record<string, unknown>;
+    assert.equal(row.algorithm, 'pbkdf2-sha256');
+    assert.equal(row.iterations, 100000);
+    assert.doesNotMatch(JSON.stringify(row), /Nova senha forte/);
+
+    // A senha antiga (segredo do Worker) deixa de valer; a nova entra.
+    assert.match((await loginWith('senha-antiga-123')) ?? '', /error=1/);
+    assert.equal(await loginWith('Nova senha forte 2026'), '/editor');
+
+    // Sessões abertas antes da troca são encerradas; a desta tela continua.
+    setIdentity();
+    setCookie(oldSession);
+    assert.equal(await getEditorUser(), null);
+    setCookie(newSession);
+    assert.notEqual(await getEditorUser(), null);
+  } finally {
+    setCookie();
+    setIdentity('admin@example.test');
+    database.exec('DELETE FROM editor_credentials');
+    delete env.EDITOR_PASSWORD;
+  }
 });

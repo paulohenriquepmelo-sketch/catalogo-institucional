@@ -1,6 +1,7 @@
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { env } from 'cloudflare:workers';
+import { editorSessionKey } from '@/lib/editor-credentials';
 
 export type ChatGPTUser = {
   userId: string;
@@ -67,9 +68,10 @@ export async function requireChatGPTUser(
 }
 
 export async function createEditorSession() {
-  if (!env.EDITOR_PASSWORD) throw new Error('EDITOR_PASSWORD não configurada.');
+  const key = await editorSessionKey();
+  if (!key) throw new Error('Senha do editor não configurada.');
   const timestamp = Math.floor(Date.now() / 1000).toString();
-  const signature = await signSessionValue(timestamp, env.EDITOR_PASSWORD);
+  const signature = await signSessionValue(timestamp, key);
   return `${timestamp}.${signature}`;
 }
 
@@ -84,7 +86,7 @@ export function clearEditorSessionCookie(requestUrl: string) {
 }
 
 async function hasValidEditorSession(cookieHeader: string | null) {
-  if (!env.EDITOR_PASSWORD || !cookieHeader) return false;
+  if (!cookieHeader) return false;
   const cookie = cookieHeader
     .split(';')
     .map((part) => part.trim())
@@ -96,8 +98,10 @@ async function hasValidEditorSession(cookieHeader: string | null) {
   const now = Math.floor(Date.now() / 1000);
   if (issuedAt > now + 60 || now - issuedAt > EDITOR_SESSION_TTL_SECONDS)
     return false;
+  const key = await editorSessionKey();
+  if (!key) return false;
   try {
-    return await verifySessionValue(timestamp, signature, env.EDITOR_PASSWORD);
+    return await verifySessionValue(timestamp, signature, key);
   } catch {
     return false;
   }

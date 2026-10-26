@@ -6493,3 +6493,16 @@ a:focus-visible {
   background: #fff4dc;
   font-weight: 600;
 }
+
+/* Aba Segurança: troca da senha do editor. */
+.security-form {
+  max-width: 420px;
+  display: grid;
+  gap: 14px;
+}
+.security-form button {
+  justify-self: start;
+}
+.security-status {
+  font-weight: 600;
+}

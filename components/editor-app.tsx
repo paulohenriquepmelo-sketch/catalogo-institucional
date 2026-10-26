@@ -5,6 +5,7 @@ import {
   Blocks,
   CircleUserRound,
   LogOut,
+  ShieldCheck,
   Eye,
   FileSpreadsheet,
   Image,
@@ -48,6 +49,7 @@ import { PhotoFraming } from './photo-framing';
 import { ErpFixesEditor } from './erp-fixes-editor';
 import { CatalogPdfPanel } from './catalog-pdf-panel';
 import { PublicationHistory } from './publication-history';
+import { SecuritySettings } from './security-settings';
 import { OutOfCatalogArea } from './out-of-catalog-area';
 import { CampaignEditor } from './campaign-editor';
 import { ProductImagePicker } from './product-image-picker';
@@ -65,6 +67,7 @@ const navigation: { key: EditorView; label: string; icon: typeof Package }[] = [
   { key: 'banners', label: 'Banners e carrossel', icon: Megaphone },
   { key: 'campaigns', label: 'Temas e fundo', icon: Image },
   { key: 'appearance', label: 'Aparência e página', icon: Palette },
+  { key: 'security', label: 'Segurança', icon: ShieldCheck },
 ];
 const blank: Product = {
   id: 0,
@@ -993,6 +996,8 @@ export function EditorApp({ userName }: { userName: string }) {
             onBusy={onBusy}
             onRefresh={refreshAfterImport}
           />
+        ) : view === 'security' ? (
+          <SecuritySettings onBusy={onBusy} />
         ) : view === 'overview' ? (
           <>
           <Panel
