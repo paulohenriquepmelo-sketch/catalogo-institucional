@@ -47,6 +47,7 @@ import { ImportEditor } from './import-editor';
 import { PhotoFraming } from './photo-framing';
 import { ErpFixesEditor } from './erp-fixes-editor';
 import { CatalogPdfPanel } from './catalog-pdf-panel';
+import { PublicationHistory } from './publication-history';
 import { OutOfCatalogArea } from './out-of-catalog-area';
 import { CampaignEditor } from './campaign-editor';
 import { ProductImagePicker } from './product-image-picker';
@@ -1041,6 +1042,16 @@ export function EditorApp({ userName }: { userName: string }) {
             </fieldset>
             {pageSaveBar}
           </Panel>
+          <PublicationHistory
+            refreshKey={publicationDirty}
+            disabled={busy || uploads > 0}
+            onBusy={onBusy}
+            onRestored={(text) => {
+              setError('');
+              setMessage(text);
+              setPublicationDirty(true);
+            }}
+          />
           <CatalogPdfPanel onBusy={onBusy} />
           </>
         ) : (

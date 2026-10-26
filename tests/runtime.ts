@@ -107,11 +107,27 @@ export const env = {
             async text() {
               return new TextDecoder().decode(file.data);
             },
+            async arrayBuffer() {
+              return file.data.slice(0);
+            },
             async json<T>() {
               return JSON.parse(new TextDecoder().decode(file.data)) as T;
             },
           }
         : null;
+    },
+    async list(options: { prefix?: string } = {}) {
+      const prefix = options.prefix ?? '';
+      return {
+        truncated: false,
+        objects: [...files.entries()]
+          .filter(([key]) => key.startsWith(prefix))
+          .map(([key, file]) => ({
+            key,
+            size: file.data.byteLength,
+            customMetadata: file.customMetadata,
+          })),
+      };
     },
     async head(key: string) {
       const file = files.get(key);
