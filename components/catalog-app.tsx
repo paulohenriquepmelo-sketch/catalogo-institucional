@@ -1,7 +1,15 @@
 'use client';
 import { useEffect, useMemo, useState } from 'react';
 import { catalogColorStyle } from '@/lib/catalog-colors';
-import { Download, Menu, Package, Search, Settings2, X } from 'lucide-react';
+import {
+  Download,
+  Menu,
+  MessageCircle,
+  Package,
+  Search,
+  Settings2,
+  X,
+} from 'lucide-react';
 import { CatalogPdfLink } from './catalog-pdf-download';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -512,6 +520,15 @@ export function CatalogApp({
       </section>
     );
   }
+  // Contato do topo para o cliente descobrir o RCA (representante) que
+  // atende a região dele: WhatsApp comercial, ou e-mail quando não houver.
+  const rcaMessage =
+    'Olá! Quero saber qual é o RCA (representante comercial) que atende a minha região. Minha cidade é: ';
+  const rcaHref = config.whatsapp
+    ? `https://wa.me/${whatsappNumber(config.whatsapp)}?text=${encodeURIComponent(rcaMessage)}`
+    : config.email
+      ? `mailto:${config.email}?subject=${encodeURIComponent('RCA da minha região')}&body=${encodeURIComponent(rcaMessage)}`
+      : '';
   return (
     <main
       id="inicio"
@@ -534,6 +551,17 @@ export function CatalogApp({
           </span>
         ) : (
           <span>{config.tagline}</span>
+        )}
+        {rcaHref && (
+          <a
+            className="announcement-rca"
+            href={rcaHref}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <MessageCircle className="size-3.5" aria-hidden="true" />
+            Qual é o RCA da sua região? Fale conosco
+          </a>
         )}
       </div>
       <header className="site-header">
