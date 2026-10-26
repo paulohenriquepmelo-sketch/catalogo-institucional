@@ -166,7 +166,7 @@ export function PurchaseReviewEditor({
     if (!result) return;
     setMessage(
       result.approved
-        ? `${result.approved} ${result.approved === 1 ? 'item saiu' : 'itens saíram'} do catálogo${result.rejected ? ` e ${result.rejected} ${result.rejected === 1 ? 'foi mantido' : 'foram mantidos'}` : ''}. Publique as alterações para tirar do site, do app e do PDF.`
+        ? `${result.approved} ${result.approved === 1 ? 'item saiu' : 'itens saíram'} do catálogo${result.rejected ? ` e ${result.rejected} ${result.rejected === 1 ? 'foi mantido' : 'foram mantidos'}` : ''}. Próximos passos: publique as alterações (sai do site e do app) e depois gere o PDF de novo, na Visão geral.`
         : 'Envio recusado: nenhum item saiu do catálogo.',
     );
     await Promise.all([load(), onRefresh()]);
