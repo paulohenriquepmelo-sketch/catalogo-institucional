@@ -7003,3 +7003,12 @@ a:focus-visible {
     grid-template-columns: 1fr;
   }
 }
+/* Campos do rodapé da revisão do compras: brancos sobre a faixa azul. */
+.compras-page .compras-send input {
+  border: 1px solid #fff;
+  color: #15213d;
+  background: #fff;
+}
+.compras-page .compras-send input::placeholder {
+  color: #65738e;
+}
