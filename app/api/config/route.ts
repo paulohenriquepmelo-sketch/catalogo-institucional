@@ -7,6 +7,7 @@ import {
   authorizeMutation,
   getEditorUser,
   readJson,
+  publicError,
 } from '@/lib/editor-access';
 export async function GET(request: Request) {
   const editor = new URL(request.url).searchParams.get('editor') === '1';
@@ -41,7 +42,7 @@ export async function POST(request: Request) {
     return Response.json(
       {
         error:
-          error instanceof Error ? error.message : 'Não foi possível salvar.',
+          publicError(error, 'Não foi possível salvar.'),
       },
       { status: 400 },
     );

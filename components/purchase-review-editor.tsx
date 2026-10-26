@@ -40,6 +40,12 @@ function filterSummary(filter: ReviewFilter) {
   return `${kind}: ${shown}${rest > 0 ? ` e mais ${rest}` : ''}`;
 }
 
+// Nome e observação vêm do comprador: célula que começa com = + - @ (ou
+// tabulação/retorno) viraria fórmula no Excel. O apóstrofo força texto.
+export function csvCell(value: string) {
+  return /^[=+\-@\t\r]/.test(value) ? `'${value}` : value;
+}
+
 async function copy(text: string) {
   try {
     await navigator.clipboard.writeText(text);
@@ -219,7 +225,7 @@ export function PurchaseReviewEditor({
     // Ponto e vírgula e BOM: o Excel em português abre direto com acentos.
     const csv = rows
       .map((row) =>
-        row.map((cell) => `"${cell.replace(/"/g, '""')}"`).join(';'),
+        row.map((cell) => `"${csvCell(cell).replace(/"/g, '""')}"`).join(';'),
       )
       .join('\r\n');
     const url = URL.createObjectURL(

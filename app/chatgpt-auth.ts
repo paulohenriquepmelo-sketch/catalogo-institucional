@@ -2,6 +2,7 @@ import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { env } from 'cloudflare:workers';
 import { editorSessionKey } from '@/lib/editor-credentials';
+import { activeTotpSecret } from '@/lib/editor-totp';
 
 export type ChatGPTUser = {
   userId: string;
@@ -19,8 +20,10 @@ const EDITOR_SESSION_TTL_SECONDS = 8 * 60 * 60;
 export async function getChatGPTUser(): Promise<ChatGPTUser | null> {
   const requestHeaders = await headers();
   // On Cloudflare any client can send oai-authenticated-* headers, so they are
-  // only trusted when a proxy that sets them is explicitly configured.
-  const trustHeaders = env.TRUST_IDENTITY_HEADERS === 'true';
+  // only trusted when a proxy that sets them is explicitly configured, and
+  // never while the authenticator is on: they would skip the code.
+  const trustHeaders =
+    env.TRUST_IDENTITY_HEADERS === 'true' && !(await activeTotpSecret());
   const userId = trustHeaders
     ? requestHeaders.get('oai-authenticated-user-id')
     : null;

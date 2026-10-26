@@ -132,3 +132,65 @@ export function SecuritySettings({
     </Panel>
   );
 }
+
+// Encerra as sessões abertas em outros computadores e celulares (por
+// exemplo, depois de usar o editor num computador emprestado).
+export function SessionSettings({
+  onBusy,
+}: {
+  onBusy: (busy: boolean) => void;
+}) {
+  const [confirming, setConfirming] = useState(false);
+  const [working, setWorking] = useState(false);
+  const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
+
+  async function endAll() {
+    setWorking(true);
+    onBusy(true);
+    setError('');
+    setMessage('');
+    try {
+      await api('/api/editor/sessions', { confirm: true });
+      setMessage(
+        'Pronto: as outras sessões foram encerradas. Esta continua aberta.',
+      );
+    } catch (e) {
+      setError(
+        e instanceof Error ? e.message : 'Não foi possível encerrar as sessões.',
+      );
+    } finally {
+      setConfirming(false);
+      setWorking(false);
+      onBusy(false);
+    }
+  }
+
+  return (
+    <Panel
+      title="Sessões abertas"
+      note="Cada login vale por até 8 horas. Se você entrou num computador que não é seu ou desconfia de algum acesso, encerre as outras sessões: todos os outros aparelhos precisarão entrar de novo."
+    >
+      {error && (
+        <p role="alert" className="error-message">
+          {error}
+        </p>
+      )}
+      {message && <p className="success-message">{message}</p>}
+      {confirming ? (
+        <div className="totp-actions">
+          <Button disabled={working} onClick={() => void endAll()}>
+            Confirmar: encerrar as outras sessões
+          </Button>
+          <Button variant="ghost" onClick={() => setConfirming(false)}>
+            Cancelar
+          </Button>
+        </div>
+      ) : (
+        <Button variant="outline" onClick={() => setConfirming(true)}>
+          Encerrar as outras sessões
+        </Button>
+      )}
+    </Panel>
+  );
+}

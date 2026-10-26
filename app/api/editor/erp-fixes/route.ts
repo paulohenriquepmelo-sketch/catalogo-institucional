@@ -1,5 +1,5 @@
 import { env } from 'cloudflare:workers';
-import { authorizeMutation, boundedBody, getEditorUser } from '@/lib/editor-access';
+import { authorizeMutation, boundedBody, getEditorUser, publicError } from '@/lib/editor-access';
 import { getErpFixes, saveErpFixes } from '@/lib/erp-fixes-repository';
 
 const NO_STORE = { 'Cache-Control': 'private, no-store' };
@@ -31,7 +31,7 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     return Response.json(
-      { error: error instanceof SyntaxError ? 'JSON inválido.' : error instanceof Error ? error.message : 'Falha ao salvar.' },
+      { error: error instanceof SyntaxError ? 'JSON inválido.' : publicError(error, 'Falha ao salvar.') },
       { status: 400 },
     );
   }

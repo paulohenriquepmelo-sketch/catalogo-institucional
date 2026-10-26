@@ -75,6 +75,12 @@ export default async function EditorLoginPage({
               Muitas tentativas seguidas. Aguarde um minuto e tente novamente.
             </p>
           )}
+          {error === 'bloqueado' && (
+            <p className="editor-login-error" role="alert">
+              Muitos códigos errados nos últimos minutos. Por segurança, as
+              tentativas estão pausadas por até 15 minutos.
+            </p>
+          )}
           <form action="/api/editor/login/codigo" method="post">
             <input type="hidden" name="return_to" value={safeReturnTo} />
             <label htmlFor="editor-codigo">Código</label>

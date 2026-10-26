@@ -6,6 +6,7 @@ import {
 import {
   authorizeMutation,
   getEditorUser,
+  publicError,
   readJson,
 } from '@/lib/editor-access';
 import { verifyEditorPassword } from '@/lib/editor-credentials';
@@ -38,7 +39,9 @@ export async function POST(request: Request) {
     !(await env.LOGIN_LIMITER.limit({ key: `totp-setup:${ip}` })).success
   )
     return Response.json(
-      { error: 'Muitas tentativas seguidas. Aguarde um minuto e tente de novo.' },
+      {
+        error: 'Muitas tentativas seguidas. Aguarde um minuto e tente de novo.',
+      },
       { status: 429 },
     );
   try {
@@ -73,8 +76,7 @@ export async function POST(request: Request) {
   } catch (error) {
     return Response.json(
       {
-        error:
-          error instanceof Error ? error.message : 'Não foi possível concluir.',
+        error: publicError(error, 'Não foi possível concluir.'),
       },
       { status: 400 },
     );

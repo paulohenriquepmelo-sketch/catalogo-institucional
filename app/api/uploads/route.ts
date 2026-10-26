@@ -1,5 +1,5 @@
 import { env } from 'cloudflare:workers';
-import { authorizeMutation, boundedBody } from '@/lib/editor-access';
+import { authorizeMutation, boundedBody, publicError } from '@/lib/editor-access';
 import { storeImage } from '@/lib/image-storage';
 export async function POST(request: Request) {
   const denied = await authorizeMutation(request);
@@ -20,9 +20,7 @@ export async function POST(request: Request) {
     return Response.json(
       {
         error:
-          error instanceof Error
-            ? error.message
-            : 'Falha no envio. Tente novamente.',
+          publicError(error, 'Falha no envio. Tente novamente.'),
       },
       { status: 400 },
     );

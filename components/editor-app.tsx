@@ -50,7 +50,7 @@ import { PhotoFraming } from './photo-framing';
 import { ErpFixesEditor } from './erp-fixes-editor';
 import { CatalogPdfPanel } from './catalog-pdf-panel';
 import { PublicationHistory } from './publication-history';
-import { SecuritySettings } from './security-settings';
+import { SecuritySettings, SessionSettings } from './security-settings';
 import { TotpSettings } from './totp-settings';
 import { PurchaseReviewEditor } from './purchase-review-editor';
 import { OutOfCatalogArea } from './out-of-catalog-area';
@@ -1011,6 +1011,7 @@ export function EditorApp({ userName }: { userName: string }) {
           <>
             <SecuritySettings onBusy={onBusy} />
             <TotpSettings onBusy={onBusy} />
+            <SessionSettings onBusy={onBusy} />
           </>
         ) : view === 'overview' ? (
           <>

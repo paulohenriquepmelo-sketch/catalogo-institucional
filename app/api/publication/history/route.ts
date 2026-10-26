@@ -3,6 +3,7 @@ import {
   authorizeMutation,
   getEditorUser,
   readJson,
+  publicError,
 } from '@/lib/editor-access';
 import {
   listPublicationHistory,
@@ -47,9 +48,7 @@ export async function POST(request: Request) {
     return Response.json(
       {
         error:
-          error instanceof Error
-            ? error.message
-            : 'Não foi possível voltar a publicação.',
+          publicError(error, 'Não foi possível voltar a publicação.'),
       },
       { status: 400 },
     );

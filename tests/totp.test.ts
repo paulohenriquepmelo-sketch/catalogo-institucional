@@ -3,7 +3,9 @@ import assert from 'node:assert/strict';
 import { totpCode } from '../lib/editor-totp';
 import { POST as login } from '../app/api/editor/login/route';
 import { POST as loginCode } from '../app/api/editor/login/codigo/route';
-import { POST as totpPost } from '../app/api/editor/totp/route';
+import { GET as totpGet, POST as totpPost } from '../app/api/editor/totp/route';
+import { POST as endSessions } from '../app/api/editor/sessions/route';
+import { csvCell } from '../components/purchase-review-editor';
 import { getEditorUser } from '../lib/editor-access';
 import { database, env as testEnv, setCookie, setIdentity } from './runtime';
 
@@ -124,8 +126,32 @@ void test('authenticator: enrollment, two-step login, no replay, single-use reco
       /error=codigo/,
     );
 
-    // Desativar exige senha e código.
+    // Com o autenticador ativo, cabeçalhos de identidade não valem nada.
     setIdentity('admin@example.test');
+    assert.equal(await getEditorUser(), null);
+    setIdentity();
+    setCookie(session);
+
+    // Muitos códigos errados (de qualquer IP) pausam as tentativas.
+    for (let i = 0; i < 10; i++)
+      await loginCode(form('/api/editor/login/codigo', { codigo: '000000', return_to: '/editor' }, challenge));
+    assert.match(
+      (await loginCode(form('/api/editor/login/codigo', { codigo: await currentCode(started.secret, 1), return_to: '/editor' }, challenge))).headers.get('location') ?? '',
+      /error=bloqueado/,
+    );
+    const status = (await (await totpGet()).json()) as { recentFailures: number; lockedUntil: string | null };
+    assert.ok(status.recentFailures >= 10 && status.lockedUntil);
+    database.exec('DELETE FROM auth_throttle');
+
+    // Encerrar as outras sessões: o cookie antigo cai, o novo vale.
+    const ended = await endSessions(json({ confirm: true }));
+    assert.equal(ended.status, 200);
+    const renewed = cookiesOf(ended)[0];
+    assert.equal(await getEditorUser(), null);
+    setCookie(renewed);
+    assert.notEqual(await getEditorUser(), null);
+
+    // Desativar exige senha e código.
     assert.equal(
       (await totpPost(json({ action: 'disable', password: 'senha-do-teste-123', code: '000000' }))).status,
       400,
@@ -134,6 +160,7 @@ void test('authenticator: enrollment, two-step login, no replay, single-use reco
       (await totpPost(json({ action: 'disable', password: 'senha-do-teste-123', code: recoveryCodes[1] }))).status,
       200,
     );
+    setCookie();
     setIdentity();
     assert.equal(
       (await login(form('/api/editor/login', { password: 'senha-do-teste-123', return_to: '/editor' }))).headers.get('location'),
@@ -143,6 +170,29 @@ void test('authenticator: enrollment, two-step login, no replay, single-use reco
     setCookie();
     setIdentity('admin@example.test');
     database.exec('DELETE FROM editor_totp');
+    database.exec('DELETE FROM auth_throttle');
+    database.exec('DELETE FROM editor_settings');
     delete env.EDITOR_PASSWORD;
+  }
+});
+
+void test('CSV report cells from buyers cannot become spreadsheet formulas', () => {
+  for (const evil of ['=HYPERLINK("http://x")', '+1', '-2+3', '@SUM(A1)', '\tx', '\rx'])
+    assert.equal(csvCell(evil), `'${evil}`);
+  assert.equal(csvCell('Ana Compras'), 'Ana Compras');
+  assert.equal(csvCell('10027'), '10027');
+});
+
+void test('technical errors never reach the screen; our own messages do', async () => {
+  const { publicError } = await import('../lib/editor-access');
+  const quiet = console.error;
+  console.error = () => {};
+  try {
+    assert.equal(publicError(new Error('Senha atual incorreta.'), 'x'), 'Senha atual incorreta.');
+    assert.equal(publicError(new Error('D1_ERROR: no such table: editor_totp'), 'Falhou.'), 'Falhou.');
+    assert.equal(publicError(new TypeError("Cannot read properties of undefined (reading 'x')"), 'Falhou.'), 'Falhou.');
+    assert.equal(publicError('texto solto', 'Falhou.'), 'Falhou.');
+  } finally {
+    console.error = quiet;
   }
 });

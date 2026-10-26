@@ -1,5 +1,5 @@
 import { env } from 'cloudflare:workers';
-import { authorizeMutation } from '@/lib/editor-access';
+import { authorizeMutation, publicError } from '@/lib/editor-access';
 
 // PDF do catálogo completo, gerado no editor e guardado no R2 (o site
 // público só entrega o arquivo pronto: gerar ~90 páginas leva minutos).
@@ -93,7 +93,7 @@ export async function POST(request: Request) {
     return Response.json(infoOf({ size: body.byteLength, customMetadata }));
   } catch (error) {
     return Response.json(
-      { error: error instanceof Error ? error.message : 'Falha ao salvar o PDF.' },
+      { error: publicError(error, 'Falha ao salvar o PDF.') },
       { status: 400 },
     );
   }

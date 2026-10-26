@@ -1,5 +1,5 @@
 import { env } from 'cloudflare:workers';
-import { authorizeMutation, readJson } from '@/lib/editor-access';
+import { authorizeMutation, readJson, publicError } from '@/lib/editor-access';
 
 const BATCH = 100;
 
@@ -33,7 +33,7 @@ export async function POST(request: Request) {
     return Response.json({ deleted: result.meta.changes, ignored: codes.length - result.meta.changes });
   } catch (error) {
     return Response.json(
-      { error: error instanceof Error ? error.message : 'Falha ao excluir.' },
+      { error: publicError(error, 'Falha ao excluir.') },
       { status: 400 },
     );
   }

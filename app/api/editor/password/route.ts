@@ -7,6 +7,7 @@ import {
   authorizeMutation,
   getEditorUser,
   readJson,
+  publicError,
 } from '@/lib/editor-access';
 import {
   changeEditorPassword,
@@ -56,9 +57,7 @@ export async function POST(request: Request) {
     return Response.json(
       {
         error:
-          error instanceof Error
-            ? error.message
-            : 'Não foi possível trocar a senha.',
+          publicError(error, 'Não foi possível trocar a senha.'),
       },
       { status: 400 },
     );

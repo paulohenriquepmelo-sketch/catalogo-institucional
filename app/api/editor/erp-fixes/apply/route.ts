@@ -1,4 +1,4 @@
-import { authorizeMutation } from '@/lib/editor-access';
+import { authorizeMutation, publicError } from '@/lib/editor-access';
 import {
   getConfig,
   listCatalogProducts,
@@ -53,7 +53,7 @@ export async function POST(request: Request) {
       } catch (error) {
         failed.push({
           code: fixed.code,
-          message: error instanceof Error ? error.message : 'Falha ao salvar.',
+          message: publicError(error, 'Falha ao salvar.'),
         });
       }
     }
@@ -64,7 +64,7 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     return Response.json(
-      { error: error instanceof Error ? error.message : 'Falha ao aplicar.' },
+      { error: publicError(error, 'Falha ao aplicar.') },
       { status: 400 },
     );
   }

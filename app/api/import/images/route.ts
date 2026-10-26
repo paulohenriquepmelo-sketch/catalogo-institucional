@@ -1,5 +1,5 @@
 import { env } from 'cloudflare:workers';
-import { authorizeMutation, boundedBody } from '@/lib/editor-access';
+import { authorizeMutation, boundedBody, publicError } from '@/lib/editor-access';
 import { matchImageFilename } from '@/lib/product-import';
 import { storeImage } from '@/lib/image-storage';
 import { ensurePublishedCatalog } from '@/lib/catalog-repository';
@@ -66,7 +66,7 @@ export async function POST(request: Request) {
     return Response.json(
       {
         error:
-          error instanceof Error ? error.message : 'Falha ao vincular imagem.',
+          publicError(error, 'Falha ao vincular imagem.'),
       },
       { status: 400 },
     );

@@ -2,6 +2,7 @@ import {
   authorizeMutation,
   getEditorUser,
   readJson,
+  publicError,
 } from '@/lib/editor-access';
 import {
   listCatalogProducts,
@@ -102,7 +103,7 @@ export async function POST(request: Request) {
     return Response.json(
       {
         error:
-          error instanceof Error ? error.message : 'Não foi possível salvar.',
+          publicError(error, 'Não foi possível salvar.'),
       },
       { status: 400 },
     );

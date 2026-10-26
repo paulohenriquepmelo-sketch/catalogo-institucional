@@ -90,14 +90,41 @@ export async function verifyEditorPassword(password: string) {
 
 // Chave que assina o cookie de sessão. Com senha trocada é o próprio hash
 // (nunca sai do servidor): trocar a senha invalida todas as sessões abertas.
-// Com o autenticador ativo, o segredo dele também entra na chave: saber a
-// senha não basta para forjar o cookie de sessão.
+// Chave que assina o cookie de sessão. Junta tudo que, ao mudar, deve
+// derrubar as sessões abertas: o hash da senha trocada (ou o segredo
+// EDITOR_PASSWORD), o segredo do autenticador ativo (saber a senha não basta
+// para forjar o cookie) e a geração das sessões ("Encerrar as outras sessões").
 export async function editorSessionKey() {
   const row = await readCredential();
   const base = row ? `credential:${row.hash}` : (env.EDITOR_PASSWORD ?? null);
   if (!base) return null;
-  const totp = await activeTotpSecret();
-  return totp ? `${base}:totp:${totp}` : base;
+  const [totp, epoch] = await Promise.all([
+    activeTotpSecret(),
+    sessionEpoch(),
+  ]);
+  return `${base}${totp ? `:totp:${totp}` : ''}${epoch ? `:epoch:${epoch}` : ''}`;
+}
+
+async function sessionEpoch() {
+  if (!env.DB) return 0;
+  const row = await env.DB.prepare(
+    "SELECT value FROM editor_settings WHERE key='session_epoch'",
+  )
+    .first<{ value: string }>()
+    .catch(() => null);
+  return Number(row?.value) || 0;
+}
+
+// Encerra todas as sessões abertas (quem pediu recebe um cookie novo).
+export async function endAllEditorSessions() {
+  await env.DB.batch([
+    env.DB.prepare(
+      'CREATE TABLE IF NOT EXISTS editor_settings (key text PRIMARY KEY NOT NULL, value text NOT NULL)',
+    ),
+    env.DB.prepare(
+      "INSERT INTO editor_settings (key,value) VALUES ('session_epoch','1') ON CONFLICT(key) DO UPDATE SET value=CAST(CAST(value AS integer)+1 AS text)",
+    ),
+  ]);
 }
 
 export function validateNewPassword(next: string, current: string) {

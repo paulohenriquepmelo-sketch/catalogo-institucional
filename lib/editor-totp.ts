@@ -124,6 +124,7 @@ export async function activeTotpSecret() {
 export async function totpStatus() {
   const row = await readRow();
   return {
+    ...(await totpAttempts()),
     enabled: Boolean(row?.secret && row.enabled_at),
     enabledAt: row?.enabled_at ?? null,
     recoveryLeft: row?.secret
@@ -203,4 +204,77 @@ export async function disableTotp(code: string) {
   if (!(await verifySecondFactor(code)))
     throw new Error('Código do autenticador ou de recuperação incorreto.');
   await env.DB.prepare('DELETE FROM editor_totp WHERE id=1').run();
+}
+
+// Limite geral de códigos errados, somando todos os IPs (o limitador da
+// Cloudflare conta por IP e por data center). Só chega aqui quem já passou
+// pela senha: 10 erros em 15 minutos pausam as tentativas por 15 minutos.
+const THROTTLE_KEY = 'totp';
+const THROTTLE_WINDOW_MS = 15 * 60_000;
+const THROTTLE_MAX_FAILURES = 10;
+
+type ThrottleRow = {
+  failures: number;
+  window_start: string;
+  locked_until: string | null;
+};
+
+async function ensureThrottleTable() {
+  await env.DB.prepare(
+    'CREATE TABLE IF NOT EXISTS auth_throttle (key text PRIMARY KEY NOT NULL, failures integer NOT NULL DEFAULT 0, window_start text NOT NULL, locked_until text)',
+  ).run();
+}
+
+async function readThrottle(): Promise<ThrottleRow | null> {
+  if (!env.DB) return null;
+  return env.DB.prepare(
+    'SELECT failures,window_start,locked_until FROM auth_throttle WHERE key=?',
+  )
+    .bind(THROTTLE_KEY)
+    .first<ThrottleRow>()
+    .catch(() => null);
+}
+
+export async function totpLockedUntil() {
+  const row = await readThrottle();
+  return row?.locked_until && Date.parse(row.locked_until) > Date.now()
+    ? row.locked_until
+    : null;
+}
+
+export async function recordTotpFailure() {
+  await ensureThrottleTable();
+  const now = Date.now();
+  const row = await readThrottle();
+  const fresh = !row || now - Date.parse(row.window_start) > THROTTLE_WINDOW_MS;
+  const failures = fresh ? 1 : row.failures + 1;
+  const windowStart = fresh ? new Date(now).toISOString() : row.window_start;
+  const lockedUntil =
+    failures >= THROTTLE_MAX_FAILURES
+      ? new Date(now + THROTTLE_WINDOW_MS).toISOString()
+      : (row?.locked_until ?? null);
+  await env.DB.prepare(
+    'INSERT INTO auth_throttle (key,failures,window_start,locked_until) VALUES (?,?,?,?) ON CONFLICT(key) DO UPDATE SET failures=excluded.failures,window_start=excluded.window_start,locked_until=excluded.locked_until',
+  )
+    .bind(THROTTLE_KEY, failures, windowStart, lockedUntil)
+    .run();
+}
+
+export async function resetTotpFailures() {
+  if (!(await readThrottle())) return;
+  await env.DB.prepare(
+    'UPDATE auth_throttle SET failures=0, locked_until=NULL WHERE key=?',
+  )
+    .bind(THROTTLE_KEY)
+    .run();
+}
+
+// Para a aba Segurança: códigos errados recentes e pausa em andamento.
+export async function totpAttempts() {
+  const row = await readThrottle();
+  const recent =
+    row && Date.now() - Date.parse(row.window_start) <= THROTTLE_WINDOW_MS
+      ? row.failures
+      : 0;
+  return { recentFailures: recent, lockedUntil: await totpLockedUntil() };
 }

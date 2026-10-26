@@ -1,4 +1,4 @@
-import { getEditorUser } from '@/lib/editor-access';
+import { getEditorUser, publicError } from '@/lib/editor-access';
 import { retrieveProductImage } from '@/lib/logo-search';
 
 export async function GET(request: Request) {
@@ -21,9 +21,7 @@ export async function GET(request: Request) {
     return Response.json(
       {
         error:
-          error instanceof Error
-            ? error.message
-            : 'Não foi possível obter essa foto.',
+          publicError(error, 'Não foi possível obter essa foto.'),
       },
       { status: 400 },
     );

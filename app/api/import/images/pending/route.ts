@@ -3,6 +3,7 @@ import {
   authorizeMutation,
   getEditorUser,
   readJson,
+  publicError,
 } from '@/lib/editor-access';
 
 const POINTER_KEY = 'pending/product-images/latest.json';
@@ -75,7 +76,7 @@ export async function GET() {
   } catch (error) {
     return Response.json(
       {
-        error: error instanceof Error ? error.message : 'Falha ao ler o lote.',
+        error: publicError(error, 'Falha ao ler o lote.'),
       },
       { status: 400 },
     );
@@ -152,7 +153,7 @@ export async function POST(request: Request) {
       done,
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : '';
+    const message = publicError(error, '');
     const quota = /exceeded D1|daily row|code:\s*7500/i.test(message);
     return Response.json(
       {

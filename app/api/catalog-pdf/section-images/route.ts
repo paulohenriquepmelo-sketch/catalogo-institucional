@@ -1,5 +1,5 @@
 import { env } from 'cloudflare:workers';
-import { authorizeMutation, getEditorUser, readJson } from '@/lib/editor-access';
+import { authorizeMutation, getEditorUser, readJson, publicError } from '@/lib/editor-access';
 
 // Imagem de cada marca (seção da Distribuição) que preenche a sobra da última
 // página da seção no catálogo em PDF. Fica no R2, fora da configuração do
@@ -51,7 +51,7 @@ export async function POST(request: Request) {
     return Response.json({ images });
   } catch (error) {
     return Response.json(
-      { error: error instanceof Error ? error.message : 'Não foi possível salvar.' },
+      { error: publicError(error, 'Não foi possível salvar.') },
       { status: 400 },
     );
   }
