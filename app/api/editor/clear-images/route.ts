@@ -1,5 +1,5 @@
 import { env } from 'cloudflare:workers';
-import { authorizeMutation } from '@/lib/editor-access';
+import { authorizeMutation, readJson } from '@/lib/editor-access';
 import { ensurePublishedCatalog } from '@/lib/catalog-repository';
 
 type StoredConfig = {
@@ -11,7 +11,7 @@ type StoredConfig = {
 export async function POST(request: Request) {
   const denied = await authorizeMutation(request);
   if (denied) return denied;
-  const input = (await request.json().catch(() => null)) as {
+  const input = (await readJson(request).catch(() => null)) as {
     confirm?: boolean;
   } | null;
   if (input?.confirm !== true)

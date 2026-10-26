@@ -13,9 +13,15 @@ export async function authorizeMutation(request: Request) {
   // The public Worker shares the R2 bucket but never accepts edits.
   if (env.WORKER_ROLE === 'public')
     return Response.json({ error: 'Página não encontrada.' }, { status: 404 });
+  // Sem sessão (expirou ou saiu): `code` deixa o editor oferecer entrar de
+  // novo sem perder o que está na tela.
   if (!(await getEditorUser()))
     return Response.json(
-      { error: 'Somente administradores autorizados podem editar.' },
+      {
+        error:
+          'Sua sessão expirou. Entre de novo para salvar; o que você alterou continua nesta tela.',
+        code: 'session',
+      },
       { status: 403 },
     );
   if (request.headers.get('origin') !== new URL(request.url).origin)

@@ -162,9 +162,11 @@ export function ProductImagePicker({
             </Button>
           </div>
           <p className="source-note">
-            Fonte: Wikimedia Commons. Somente imagens identificadas pela fonte
-            como domínio público ou CC0. Confira embalagem, variante e marca
-            antes de selecionar.
+            Fonte: Wikimedia Commons, só com imagens livres (domínio público ou
+            CC0). Costuma achar apenas marcas muito conhecidas; para os demais
+            produtos, copie a foto do fornecedor e cole com Ctrl+V ou envie o
+            arquivo abaixo. Confira embalagem, variante e marca antes de
+            selecionar.
           </p>
           {busy ? (
             <output className="logo-picker-status">

@@ -6,8 +6,16 @@ export const dynamic = 'force-dynamic';
 
 type LoginPageProps = {
   searchParams?:
-    | { error?: string | string[]; return_to?: string | string[] }
-    | Promise<{ error?: string | string[]; return_to?: string | string[] }>;
+    | {
+        error?: string | string[];
+        return_to?: string | string[];
+        saiu?: string | string[];
+      }
+    | Promise<{
+        error?: string | string[];
+        return_to?: string | string[];
+        saiu?: string | string[];
+      }>;
 };
 
 export default async function EditorLoginPage({
@@ -40,6 +48,9 @@ export default async function EditorLoginPage({
         <p className="editor-login-kicker">CENTRAL DO CATÁLOGO</p>
         <h1 id="editor-login-title">Acesso administrativo</h1>
         <p>Informe a senha configurada para administrar o catálogo.</p>
+        {params.saiu && !error && (
+          <output className="editor-login-notice">Você saiu do editor.</output>
+        )}
         {error === '1' && (
           <p className="editor-login-error" role="alert">
             Senha inválida ou acesso ainda não configurado.

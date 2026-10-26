@@ -4,6 +4,7 @@ import {
   ArrowLeft,
   Blocks,
   CircleUserRound,
+  LogOut,
   Eye,
   FileSpreadsheet,
   Image,
@@ -41,6 +42,7 @@ import {
   type EditorView,
 } from './config-editor';
 import { useCatalogTools } from '@/hooks/use-catalog-tools';
+import { useAutoLoad } from '@/hooks/use-auto-load';
 import { ImportEditor } from './import-editor';
 import { PhotoFraming } from './photo-framing';
 import { ErpFixesEditor } from './erp-fixes-editor';
@@ -85,6 +87,7 @@ export function EditorApp({ userName }: { userName: string }) {
   const [draft, setDraft] = useState<Product>(blank);
   const [baseline, setBaseline] = useState(blank);
   const [config, setConfig] = useState<CatalogConfig>(defaultConfig);
+  const [cleanupConfirm, setCleanupConfirm] = useState('');
   const [savedConfig, setSavedConfig] = useState(defaultConfig);
   const [revision, setRevision] = useState(0);
   const [view, setView] = useState<EditorView>('products');
@@ -217,6 +220,11 @@ export function EditorApp({ userName }: { userName: string }) {
       (!noPhotoOnly || (p.published && !p.image)),
   );
   const withoutPhoto = items.filter((p) => p.published && !p.image).length;
+  const moreProducts = useAutoLoad(
+    () => setProductLimit((n) => n + 40),
+    filtered.length > productLimit,
+    productLimit,
+  );
   const [listPdfBusy, setListPdfBusy] = useState(false);
   async function downloadNoPhotoList() {
     setListPdfBusy(true);
@@ -315,12 +323,8 @@ export function EditorApp({ userName }: { userName: string }) {
   }
   async function clearProductAndLogoImages() {
     if (busy || uploads > 0 || loading) return;
-    if (
-      !window.confirm(
-        'Remover todas as imagens da logo e dos produtos? Banners, textos, cadastros e demais informações serão preservados.',
-      )
-    )
-      return;
+    if (cleanupConfirm.trim() !== 'LIMPAR') return;
+    setCleanupConfirm('');
     setBusy(true);
     setError('');
     setMessage('');
@@ -514,6 +518,15 @@ export function EditorApp({ userName }: { userName: string }) {
             <a href="/?version=published" target="_blank" rel="noreferrer">
               <Eye /> Ver versão publicada
             </a>
+            <form
+              method="post"
+              action="/api/editor/logout"
+              className="editor-logout"
+            >
+              <button type="submit" title="Sair do editor">
+                <LogOut aria-hidden="true" /> Sair
+              </button>
+            </form>
             <Button
               disabled={busy || uploads > 0 || productDirty}
               onClick={() => void savePage()}
@@ -526,6 +539,19 @@ export function EditorApp({ userName }: { userName: string }) {
           {error && (
             <p role="alert" className="error-message">
               {error}
+              {error.startsWith('Sua sessão expirou') && (
+                <>
+                  {' '}
+                  <a
+                    href="/editor/login?return_to=%2Feditor"
+                    target="_blank"
+                    rel="noopener"
+                  >
+                    Entrar de novo em outra aba
+                  </a>
+                  , depois volte aqui e salve outra vez.
+                </>
+              )}
             </p>
           )}
           {message && <p className="success-message">{message}</p>}
@@ -606,7 +632,7 @@ export function EditorApp({ userName }: { userName: string }) {
                   Baixar lista sem foto (PDF)
                 </Button>
               )}
-              <div className="editor-product-list">
+              <div className="editor-product-list" data-autoload-root>
                 {filtered.slice(0, productLimit).map((p) => (
                   <button
                     key={p.id}
@@ -627,17 +653,13 @@ export function EditorApp({ userName }: { userName: string }) {
                   </button>
                 ))}
                 {!filtered.length && <p>Nenhum produto encontrado.</p>}
+                {filtered.length > productLimit && (
+                  <output ref={moreProducts} className="auto-load">
+                    Carregando mais produtos… {productLimit} de{' '}
+                    {filtered.length}
+                  </output>
+                )}
               </div>
-              {filtered.length > productLimit && (
-                <div className="product-list-actions">
-                  <Button
-                    variant="outline"
-                    onClick={() => setProductLimit((n) => n + 40)}
-                  >
-                    Carregar mais produtos
-                  </Button>
-                </div>
-              )}
             </section>
             <section className="product-form-panel">
               <div className="form-title">
@@ -917,6 +939,43 @@ export function EditorApp({ userName }: { userName: string }) {
               onBusy={onBusy}
               onRefresh={refreshAfterImport}
             />
+            {/* Ação que apaga em massa: fora da Visão geral e com confirmação
+                digitada, para não ser disparada por engano. */}
+            <Panel
+              title="Zona de risco"
+              note="Ações que afetam o catálogo inteiro. Nada muda no site público até você publicar."
+            >
+              <section
+                className="editor-maintenance"
+                aria-labelledby="image-cleanup-title"
+              >
+                <h2 id="image-cleanup-title">Limpeza de imagens</h2>
+                <p>
+                  Remove do rascunho a foto de todos os produtos, o logo
+                  institucional e o logo de todas as marcas. Banners, textos,
+                  categorias e demais cadastros permanecem intactos. Não há
+                  como desfazer pelo editor.
+                </p>
+                <label className="editor-field" htmlFor="image-cleanup-confirm">
+                  <span>Para confirmar, digite LIMPAR</span>
+                  <Input
+                    id="image-cleanup-confirm"
+                    value={cleanupConfirm}
+                    autoComplete="off"
+                    onChange={(e) => setCleanupConfirm(e.target.value)}
+                  />
+                </label>
+                <Button
+                  variant="outline"
+                  disabled={
+                    busy || uploads > 0 || cleanupConfirm.trim() !== 'LIMPAR'
+                  }
+                  onClick={() => void clearProductAndLogoImages()}
+                >
+                  Limpar imagens de logos e produtos
+                </Button>
+              </section>
+            </Panel>
           </>
         ) : view === 'outOfCatalog' ? (
           <OutOfCatalogArea
@@ -969,23 +1028,6 @@ export function EditorApp({ userName }: { userName: string }) {
             <Button onClick={() => setView('products')}>
               Gerenciar produtos
             </Button>
-            <section
-              className="editor-maintenance"
-              aria-labelledby="image-cleanup-title"
-            >
-              <h2 id="image-cleanup-title">Limpeza de imagens</h2>
-              <p>
-                Remove somente as imagens da logo e dos produtos. Banners,
-                textos, categorias e demais cadastros permanecem intactos.
-              </p>
-              <Button
-                variant="outline"
-                disabled={busy || uploads > 0}
-                onClick={() => void clearProductAndLogoImages()}
-              >
-                Limpar imagens de logos e produtos
-              </Button>
-            </section>
           </Panel>
           <Panel
             title="Contato comercial"
