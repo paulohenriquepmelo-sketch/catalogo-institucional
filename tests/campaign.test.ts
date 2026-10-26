@@ -282,9 +282,9 @@ void test('public catalog keeps one header search and only hierarchy filters in 
   );
 });
 
-void test('seven complete reusable themes have local artwork and preserve unrelated settings', () => {
-  assert.equal(campaignThemes.length, 7);
-  assert.equal(new Set(campaignThemes.map((t) => t.id)).size, 7);
+void test('eight complete reusable themes have local artwork and preserve unrelated settings', () => {
+  assert.equal(campaignThemes.length, 8);
+  assert.equal(new Set(campaignThemes.map((t) => t.id)).size, 8);
   for (const theme of campaignThemes) {
     assert.ok(existsSync(`public${theme.image}`));
     assert.equal(imageUrl(theme.image), theme.image);
@@ -388,7 +388,7 @@ void test('legacy settings receive campaign defaults without overwriting saved i
     )
     .run(JSON.stringify(stored));
   const current = await getConfig();
-  assert.equal(current.config.campaign.theme, 'natal');
+  assert.equal(current.config.campaign.theme, 'padrao');
   assert.equal(current.config.name, stored.name);
   assert.equal(current.config.primary, stored.primary);
   assert.equal(
@@ -433,5 +433,9 @@ void test('Black Friday theme changes the whole site only with the ready-made th
   assert.equal(campaignSkin({ enabled: true, mode: 'carousel', theme: 'black-friday' }), null);
   assert.equal(campaignSkin({ enabled: false, mode: 'theme', theme: 'black-friday' }), null);
   assert.equal(campaignSkin({ enabled: true, mode: 'theme', theme: 'natal' }), null);
+  assert.equal(
+    campaignSkin({ enabled: true, mode: 'theme', theme: 'padrao' }),
+    null,
+  );
   assert.equal(campaignSkin(undefined), null);
 });

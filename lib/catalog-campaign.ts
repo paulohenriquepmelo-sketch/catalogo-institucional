@@ -1,4 +1,18 @@
 export const campaignThemes = [
+  // Visual tradicional do site: o banner institucional, sem roupagem de
+  // campanha (não tem entrada em campaignSkins).
+  {
+    id: 'padrao',
+    name: 'Padrão',
+    image: '/themes/padrao.png',
+    color: '#1544b2',
+    ink: '#172b50',
+    background: '#f4f1eb',
+    eyebrow: 'Distribuidora Laurencini',
+    title: 'Há mais de 30 anos no mercado.',
+    description:
+      'Alimentos, bebidas, bombonieri, embalagens e utilidades para abastecer o seu negócio.',
+  },
   {
     id: 'natal',
     name: 'Natal',
@@ -157,7 +171,7 @@ export type CatalogCampaign = {
 };
 export const defaultCampaign: CatalogCampaign = {
   enabled: true,
-  theme: 'natal',
+  theme: 'padrao',
   mode: 'theme',
   scope: 'hero',
   image: '',
