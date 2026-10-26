@@ -55,6 +55,7 @@ export function PurchaseReviewApp({
   const [note, setNote] = useState('');
   const [query, setQuery] = useState('');
   const [onlyMarked, setOnlyMarked] = useState(false);
+  const [section, setSection] = useState('');
   const [category, setCategory] = useState('');
   const [supplier, setSupplier] = useState('');
   const [limit, setLimit] = useState(120);
@@ -87,38 +88,55 @@ export function PurchaseReviewApp({
     update(next);
   }
 
-  // Opções dos filtros: cada um mostra só o que combina com o outro.
-  // Categorias na ordem do catálogo, fornecedores por nome.
+  // Opções dos filtros: cada um mostra só o que combina com os outros.
+  // Seções e categorias na ordem do catálogo, fornecedores por nome.
   const filterOptions = useMemo(() => {
+    const sections = new Map<string, { label: string; count: number }>();
     const categories = new Map<string, { label: string; count: number }>();
     const suppliers = new Map<string, number>();
+    const add = (
+      map: Map<string, { label: string; count: number }>,
+      key: string,
+      label: string,
+    ) => {
+      const current = map.get(key);
+      if (current) current.count++;
+      else map.set(key, { label, count: 1 });
+    };
     for (const p of products ?? []) {
       const key = `${p.section}|${p.category}`;
-      if (!supplier || p.supplier === supplier) {
-        const current = categories.get(key);
-        if (current) current.count++;
-        else
-          categories.set(key, {
-            label: `${displayName(p.section)} · ${displayName(p.category)}`,
-            count: 1,
-          });
-      }
-      if (p.supplier && (!category || key === category))
+      const bySupplier = !supplier || p.supplier === supplier;
+      if (bySupplier) add(sections, p.section, displayName(p.section));
+      if (bySupplier && (!section || p.section === section))
+        add(
+          categories,
+          key,
+          section
+            ? displayName(p.category)
+            : `${displayName(p.section)} · ${displayName(p.category)}`,
+        );
+      if (
+        p.supplier &&
+        (!section || p.section === section) &&
+        (!category || key === category)
+      )
         suppliers.set(p.supplier, (suppliers.get(p.supplier) ?? 0) + 1);
     }
     return {
+      sections: [...sections],
       categories: [...categories],
       suppliers: [...suppliers].sort((a, b) =>
         a[0].localeCompare(b[0], 'pt-BR'),
       ),
     };
-  }, [products, category, supplier]);
+  }, [products, section, category, supplier]);
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
     return (products ?? []).filter(
       (p) =>
         (!onlyMarked || marked.has(p.code)) &&
+        (!section || p.section === section) &&
         (!category || `${p.section}|${p.category}` === category) &&
         (!supplier || p.supplier === supplier) &&
         (!q ||
@@ -126,7 +144,7 @@ export function PurchaseReviewApp({
             .toLowerCase()
             .includes(q)),
     );
-  }, [products, query, onlyMarked, marked, category, supplier]);
+  }, [products, query, onlyMarked, marked, section, category, supplier]);
 
   // Seção e categoria como as faixas do catálogo impresso.
   const groups = useMemo(() => {
@@ -226,6 +244,27 @@ export function PurchaseReviewApp({
               }}
             />
           </label>
+          <label className="compras-filter" htmlFor="compras-secao">
+            <span>Seção</span>
+            <select
+              id="compras-secao"
+              value={section}
+              onChange={(e) => {
+                const next = e.target.value;
+                setSection(next);
+                // A categoria escolhida pode não existir na seção nova.
+                if (next && !category.startsWith(`${next}|`)) setCategory('');
+                setLimit(120);
+              }}
+            >
+              <option value="">Todas as seções</option>
+              {filterOptions.sections.map(([key, option]) => (
+                <option key={key} value={key}>
+                  {option.label} ({option.count})
+                </option>
+              ))}
+            </select>
+          </label>
           <label className="compras-filter" htmlFor="compras-categoria">
             <span>Categoria</span>
             <select
@@ -277,7 +316,7 @@ export function PurchaseReviewApp({
               : `${visible.length} de ${total} produtos`}{' '}
             · {marked.size} marcados
           </span>
-          {(category || supplier || query) && (
+          {(section || category || supplier || query) && (
             <span className="compras-filter-actions">
               {visible.length > 0 && (
                 <button
@@ -301,6 +340,7 @@ export function PurchaseReviewApp({
                 type="button"
                 className="compras-link-button"
                 onClick={() => {
+                  setSection('');
                   setCategory('');
                   setSupplier('');
                   setQuery('');
