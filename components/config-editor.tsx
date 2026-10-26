@@ -696,41 +696,6 @@ export function ConfigEditor({
           onChange={(v) => change('font', v as 'sans' | 'serif')}
         />
       </div>
-      <section
-        className="contact-settings"
-        aria-labelledby="contact-settings-title"
-      >
-        <div>
-          <h2 id="contact-settings-title">Contato comercial</h2>
-          <p>
-            O WhatsApp e o e-mail viram botões no popup de cada produto. Os três
-            contatos aparecem no rodapé do site.
-          </p>
-        </div>
-        <Field
-          label="WhatsApp comercial (com DDD, ex.: (44) 99999-9999)"
-          value={config.whatsapp}
-          type="tel"
-          onChange={(v) => change('whatsapp', v)}
-        />
-        <Field
-          label="Telefone comercial"
-          value={config.phone}
-          type="tel"
-          onChange={(v) => change('phone', v)}
-        />
-        <Field
-          label="E-mail do contato comercial"
-          value={config.email}
-          type="email"
-          onChange={(v) => change('email', v)}
-        />
-        <output>
-          {config.whatsapp || config.email || config.phone
-            ? 'Os clientes poderão falar com o comercial pelo popup do produto e pelo rodapé.'
-            : 'Sem contatos, o catálogo informa que o contato comercial ainda não foi cadastrado.'}
-        </output>
-      </section>
       <UploadField
         label="Logo institucional"
         value={config.logo}
@@ -876,6 +841,55 @@ export function ConfigEditor({
 }
 
 // Resumo (só leitura) dos segmentos: regras compartilhadas com o app mobile.
+// Contato comercial: WhatsApp, telefone e e-mail usados no popup do produto,
+// no rodapé e no link do RCA da faixa do topo. Editado na Visão geral.
+export function CommercialContactSettings({
+  config,
+  onChange,
+}: {
+  config: CatalogConfig;
+  onChange: (config: CatalogConfig) => void;
+}) {
+  return (
+    <section
+      className="contact-settings"
+      aria-labelledby="contact-settings-title"
+    >
+      <div>
+        <h2 id="contact-settings-title">Contato comercial</h2>
+        <p>
+          O WhatsApp e o e-mail viram botões no popup de cada produto e no link
+          “Qual é o RCA da sua região?” do topo. Os três contatos aparecem no
+          rodapé do site.
+        </p>
+      </div>
+      <Field
+        label="WhatsApp comercial (com DDD, ex.: (44) 99999-9999)"
+        value={config.whatsapp}
+        type="tel"
+        onChange={(v) => onChange({ ...config, whatsapp: v })}
+      />
+      <Field
+        label="Telefone comercial"
+        value={config.phone}
+        type="tel"
+        onChange={(v) => onChange({ ...config, phone: v })}
+      />
+      <Field
+        label="E-mail do contato comercial"
+        value={config.email}
+        type="email"
+        onChange={(v) => onChange({ ...config, email: v })}
+      />
+      <output>
+        {config.whatsapp || config.email || config.phone
+          ? 'Os clientes poderão falar com o comercial pelo popup do produto e pelo rodapé.'
+          : 'Sem contatos, o catálogo informa que o contato comercial ainda não foi cadastrado.'}
+      </output>
+    </section>
+  );
+}
+
 function SegmentsOverview({ products }: { products: Product[] }) {
   const segments = useMemo(() => buildSegments(products), [products]);
   const unclassified = useMemo(() => {

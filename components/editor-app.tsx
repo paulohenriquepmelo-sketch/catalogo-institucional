@@ -35,7 +35,11 @@ import {
 } from '@/lib/catalog-data';
 import { api, loadProducts } from '@/lib/client-api';
 import { Field, Choice, Toggle, UploadField, Panel } from './editor-controls';
-import { ConfigEditor, type EditorView } from './config-editor';
+import {
+  CommercialContactSettings,
+  ConfigEditor,
+  type EditorView,
+} from './config-editor';
 import { useCatalogTools } from '@/hooks/use-catalog-tools';
 import { ImportEditor } from './import-editor';
 import { PhotoFraming } from './photo-framing';
@@ -421,6 +425,32 @@ export function EditorApp({ userName }: { userName: string }) {
       },
     },
   ]);
+  // Salvar/publicar as configurações da página; usado nas abas de configuração
+  // e no contato comercial da Visão geral.
+  const pageSaveBar = (
+    <div className="settings-save">
+      <span>
+        {configDirty
+          ? 'Alterações da página ainda não salvas.'
+          : publicationDirty
+            ? 'Alterações salvas e aguardando publicação.'
+            : 'Site público atualizado.'}
+      </span>
+      <Button
+        variant="outline"
+        disabled={busy || uploads > 0}
+        onClick={() => setConfig(savedConfig)}
+      >
+        Desfazer
+      </Button>
+      <Button
+        disabled={busy || uploads > 0 || productDirty}
+        onClick={() => void savePage()}
+      >
+        <Save /> Publicar alterações no site público
+      </Button>
+    </div>
+  );
   return (
     <main className="editor-shell">
       <aside className="editor-sidebar">
@@ -957,6 +987,18 @@ export function EditorApp({ userName }: { userName: string }) {
               </Button>
             </section>
           </Panel>
+          <Panel
+            title="Contato comercial"
+            note="Usado no popup dos produtos, no rodapé e no link do RCA da faixa do topo."
+          >
+            <fieldset
+              disabled={busy || uploads > 0}
+              className="config-container"
+            >
+              <CommercialContactSettings config={config} onChange={setConfig} />
+            </fieldset>
+            {pageSaveBar}
+          </Panel>
           <CatalogPdfPanel onBusy={onBusy} />
           </>
         ) : (
@@ -982,28 +1024,7 @@ export function EditorApp({ userName }: { userName: string }) {
                 />
               )}
             </fieldset>
-            <div className="settings-save">
-              <span>
-                {configDirty
-                  ? 'Alterações da página ainda não salvas.'
-                  : publicationDirty
-                    ? 'Alterações salvas e aguardando publicação.'
-                    : 'Site público atualizado.'}
-              </span>
-              <Button
-                variant="outline"
-                disabled={busy || uploads > 0}
-                onClick={() => setConfig(savedConfig)}
-              >
-                Desfazer
-              </Button>
-              <Button
-                disabled={busy || uploads > 0 || productDirty}
-                onClick={() => void savePage()}
-              >
-                <Save /> Publicar alterações no site público
-              </Button>
-            </div>
+            {pageSaveBar}
           </>
         )}
       </section>
