@@ -1,5 +1,5 @@
 import { env } from 'cloudflare:workers';
-import { authorizeMutation } from '@/lib/editor-access';
+import { authorizeMutation, readJson } from '@/lib/editor-access';
 
 const BATCH = 100;
 
@@ -12,7 +12,7 @@ export async function POST(request: Request) {
   const denied = await authorizeMutation(request);
   if (denied) return denied;
   try {
-    const input = (await request.json().catch(() => null)) as {
+    const input = (await readJson(request).catch(() => null)) as {
       codes?: unknown;
       confirm?: unknown;
     } | null;

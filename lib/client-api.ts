@@ -1,30 +1,47 @@
 import { catalogDateKey, expireProductOffer } from './catalog-data';
 
+// Sessão do editor vencida: a tela oferece entrar de novo em outra aba.
+export class SessionExpiredError extends Error {
+  name = 'SessionExpiredError';
+}
+
 export async function api<T>(
   url: string,
   body?: unknown,
   signal?: AbortSignal,
   cache: RequestCache = 'no-store',
 ): Promise<T> {
-  const response = await fetch(
-    url,
-    body === undefined
-      ? { cache, signal }
-      : {
-          method: 'POST',
-          signal,
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify(body),
-        },
-  );
-  const text = await response.text().catch(() => '');
-  let data: { error?: string } | null = null;
+  let response: Response;
   try {
-    data = JSON.parse(text) as { error?: string } | null;
+    response = await fetch(
+      url,
+      body === undefined
+        ? { cache, signal }
+        : {
+            method: 'POST',
+            signal,
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify(body),
+          },
+    );
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError')
+      throw error;
+    // O navegador só diz "Failed to fetch": sem internet ou servidor fora.
+    throw new Error(
+      'Sem conexão com o servidor. Verifique a internet e tente de novo.',
+    );
+  }
+  const text = await response.text().catch(() => '');
+  let data: { error?: string; code?: string } | null = null;
+  try {
+    data = JSON.parse(text) as { error?: string; code?: string } | null;
   } catch {
     data = null;
   }
   if (!response.ok || data === null) {
+    if (data?.code === 'session')
+      throw new SessionExpiredError(data.error ?? 'Sua sessão expirou.');
     if (data?.error) throw new Error(data.error);
     // Página de erro da Cloudflare ("error code: 1102"): guarda o código para
     // dar para saber o que houve (limite de processamento, de uso...).

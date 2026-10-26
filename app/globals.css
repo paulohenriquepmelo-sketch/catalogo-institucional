@@ -6361,3 +6361,62 @@ a:focus-visible {
     text-overflow: ellipsis;
   }
 }
+
+/* Quadros azuis do editor: rótulos, textos de ajuda e botão de envio claros.
+   Vence a regra que pinta de escuro os textos das superfícies brancas. */
+.editor-shell .settings-panel > :is(.settings-row, .upload-field, .toggle-row),
+.editor-shell
+  .settings-panel
+  > :is(.settings-row, .upload-field, .toggle-row)
+  :is(label, .editor-field, .editor-field > span, .toggle-row, .upload-button),
+.editor-shell .product-form-panel .upload-field,
+.editor-shell
+  .product-form-panel
+  .upload-field
+  :is(label, .editor-field, .editor-field > span, .upload-button) {
+  color: var(--editor-on-navy) !important;
+}
+.editor-shell
+  .settings-panel
+  > :is(.settings-row, .upload-field, .toggle-row)
+  :is(p, small, .source-note),
+.editor-shell .product-form-panel .upload-field :is(p, small, .source-note) {
+  color: var(--editor-on-navy-muted) !important;
+}
+
+/* Botão Sair no topo do editor, com a mesma aparência dos links ao lado. */
+.editor-logout {
+  display: contents;
+}
+.editor-logout button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #203976;
+  font: inherit;
+  cursor: pointer;
+}
+.editor-logout button:hover {
+  text-decoration: underline;
+}
+.editor-logout button:focus-visible {
+  outline: 2px solid #ed1c23;
+  outline-offset: 2px;
+}
+.editor-logout svg {
+  width: 15px;
+}
+.editor-login-notice {
+  display: block;
+  padding: 10px 12px;
+  border: 1px solid rgb(255 255 255 / 45%);
+  border-radius: 6px;
+  color: #fff !important;
+  background: rgb(255 255 255 / 12%);
+}
+.editor-maintenance .editor-field {
+  max-width: 320px;
+}

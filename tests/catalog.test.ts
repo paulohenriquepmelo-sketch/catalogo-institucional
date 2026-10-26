@@ -27,6 +27,7 @@ import {
   POST as postProduct,
 } from '../app/api/products/route';
 import { POST as postConfig } from '../app/api/config/route';
+import { POST as postLogout } from '../app/api/editor/logout/route';
 import {
   GET as getPublication,
   POST as postPublication,
@@ -614,4 +615,32 @@ void test('clearing images changes nothing when the configuration changed in ano
     testEnv.DB.batch = batch;
     setIdentity();
   }
+});
+
+void test('editor session: expired session is identifiable, logout clears the cookie and checks origin', async () => {
+  setIdentity();
+  const denied = await postConfig(
+    request('/api/config', { config: clone(), revision: 1 }),
+  );
+  assert.equal(denied.status, 403);
+  const body = (await denied.json()) as { error: string; code?: string };
+  assert.equal(body.code, 'session');
+  assert.match(body.error, /sessão expirou/);
+  const out = await postLogout(
+    new Request('https://catalog.test/api/editor/logout', {
+      method: 'POST',
+      headers: { origin: 'https://catalog.test' },
+    }),
+  );
+  assert.equal(out.status, 303);
+  assert.equal(out.headers.get('location'), '/editor/login?saiu=1');
+  assert.match(out.headers.get('set-cookie') ?? '', /Max-Age=0/);
+  const forged = await postLogout(
+    new Request('https://catalog.test/api/editor/logout', {
+      method: 'POST',
+      headers: { origin: 'https://attacker.test' },
+    }),
+  );
+  assert.equal(forged.status, 403);
+  setIdentity('admin@example.test');
 });

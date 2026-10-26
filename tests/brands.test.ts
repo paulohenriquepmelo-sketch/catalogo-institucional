@@ -459,3 +459,13 @@ void test('Acabaram de chegar follows the ERP code, not the import date', async 
   assert.deepEqual(selectNewProducts(items, { limit: 10, fromCode: 11710 }).map((p) => p.code), ['500', '11963', '11710']);
   assert.ok(!selectNewProducts(items, { limit: 10 }).some((p) => p.code === '11800'));
 });
+
+void test('image cleanup lives in a danger zone with typed confirmation, out of the overview', () => {
+  const app = readFileSync('components/editor-app.tsx', 'utf8');
+  const start = app.indexOf("view === 'overview'");
+  const overview = app.slice(start, app.indexOf('<CatalogPdfPanel', start));
+  assert.ok(overview.includes('Seu catálogo em um só lugar'));
+  assert.doesNotMatch(overview, /clearProductAndLogoImages/);
+  assert.match(app, /Zona de risco/);
+  assert.match(app, /cleanupConfirm\.trim\(\) !== 'LIMPAR'/);
+});

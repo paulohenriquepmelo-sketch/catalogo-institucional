@@ -151,9 +151,11 @@ export function BrandLogoPicker({
             </Button>
           </div>
           <p className="source-note">
-            Fonte: Wikimedia Commons. Apenas imagens identificadas pela fonte
-            como domínio público ou CC0. Confira se correspondem à marca; não
-            são automaticamente verificadas como oficiais.
+            Fonte: Wikimedia Commons, só com imagens livres (domínio público ou
+            CC0). Costuma achar apenas marcas muito conhecidas; para as demais,
+            copie o logo do site da marca e cole com Ctrl+V ou envie o arquivo
+            abaixo. Confira se corresponde à marca; não é verificado como
+            oficial.
           </p>
           {busy ? (
             <output className="logo-picker-status">
