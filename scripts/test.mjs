@@ -16,6 +16,7 @@ for (const name of [
   'erp-fixes',
   'catalog-pdf',
   'out-of-catalog',
+  'purchase-review',
 ])
   await build({
     entryPoints: [`tests/${name}.test.ts`],
@@ -49,6 +50,7 @@ const result = spawnSync(
     'work/erp-fixes-tests.mjs',
     'work/catalog-pdf-tests.mjs',
     'work/out-of-catalog-tests.mjs',
+    'work/purchase-review-tests.mjs',
   ],
   { stdio: 'inherit' },
 );
