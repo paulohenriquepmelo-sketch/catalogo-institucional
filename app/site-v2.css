@@ -1817,3 +1817,87 @@
   padding-top: 0;
   padding-bottom: 40px;
 }
+
+/* Botões do RCA (abrem a caixa que pergunta a cidade). */
+.site-v2 .v2-topbar .v2-topbar-rca {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.site-v2 .v2-topbar .v2-topbar-rca svg {
+  width: 15px;
+  height: 15px;
+}
+.site-v2 .v2-footer-link {
+  justify-self: start;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #dbe4ff;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.site-v2 .v2-footer-link:hover {
+  color: #fff;
+  text-decoration: underline;
+}
+/* A caixa abre fora de .site-v2 (portal), por isso tem cores próprias. */
+.v2-rca-dialog {
+  width: min(440px, calc(100vw - 32px));
+}
+.v2-rca-form {
+  display: grid;
+  gap: 10px;
+}
+.v2-rca-form label {
+  color: #1d3477;
+  font-size: 14px;
+  font-weight: 700;
+}
+.v2-rca-form input {
+  min-height: 46px;
+  padding: 0 14px;
+  border: 1.5px solid #c9d5ef;
+  border-radius: 10px;
+  color: #253250;
+  font: inherit;
+  font-size: 16px;
+}
+.v2-rca-form input:focus {
+  border-color: #1544b2;
+  outline: 3px solid rgba(21, 68, 178, 0.15);
+}
+.v2-rca-form button {
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 4px;
+  border: 0;
+  border-radius: 999px;
+  background: #1f9d55;
+  color: #fff;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.v2-rca-form button:hover:not(:disabled) {
+  background: #188046;
+}
+.v2-rca-form button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+.v2-rca-form button svg {
+  width: 18px;
+  height: 18px;
+}

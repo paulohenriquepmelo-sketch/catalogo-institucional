@@ -109,10 +109,14 @@ void test('segments use distinct activity icons and open the same collection pop
   const app = readFileSync('components/catalog-app.tsx', 'utf8');
   assert.equal((app.match(/scrollIntoView/g) ?? []).length, 1);
   assert.match(app, /function search\(query: string\)[\s\S]*?scrollIntoView/);
-  assert.doesNotMatch(
-    readFileSync('components/site-sections.tsx', 'utf8'),
-    /scrollIntoView|window\.location/,
+  // Cartões e lista de segmentos da página inicial também só abrem o popup.
+  const sections = readFileSync('components/site-sections.tsx', 'utf8');
+  const segmentCode = sections.slice(
+    sections.indexOf('function SegmentCard('),
+    sections.indexOf('// Carrossel dos painéis azuis'),
   );
+  assert.ok(segmentCode.includes('export function HomeSegments('));
+  assert.doesNotMatch(segmentCode, /scrollIntoView|window\.location/);
 });
 
 void test('unpublished brands never appear, even if featured; featured published brands precede the others', () => {

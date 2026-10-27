@@ -832,3 +832,14 @@ void test('fotos dos segmentos: aceita só segmentos conhecidos e imagens válid
     /imagem enviada ou um endereço HTTPS/,
   );
 });
+
+void test('RCA: a cidade informada vai na mensagem do WhatsApp ou do e-mail', async () => {
+  const { rcaLink } = await import('../components/site-sections');
+  const whats = rcaLink({ whatsapp: '(27) 99579-4976', email: 'x@y.com' }, '  Vitória ');
+  assert.ok(whats.startsWith('https://wa.me/5527995794976?text='));
+  assert.match(decodeURIComponent(whats), /Minha cidade é: Vitória$/);
+  const mail = rcaLink({ whatsapp: '', email: 'gerente@laurencini.com.br' }, 'Serra');
+  assert.match(mail, /^mailto:gerente@laurencini\.com\.br\?subject=/);
+  assert.match(decodeURIComponent(mail), /Minha cidade é: Serra$/);
+  assert.equal(rcaLink({ whatsapp: '', email: '' }, 'Serra'), '');
+});
