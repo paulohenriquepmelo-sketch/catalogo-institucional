@@ -31,7 +31,13 @@ export const megabytes = (bytes?: number) =>
   bytes ? `${(bytes / 1048576).toFixed(1).replace('.', ',')} MB` : '';
 
 /** Link do menu: só aparece depois que o editor gerou o PDF completo. */
-export function CatalogPdfLink({ className }: { className?: string }) {
+export function CatalogPdfLink({
+  className,
+  label = 'Baixar catálogo em PDF',
+}: {
+  className?: string;
+  label?: string;
+}) {
   const info = useCatalogPdfInfo();
   if (!info?.available) return null;
   return (
@@ -42,7 +48,7 @@ export function CatalogPdfLink({ className }: { className?: string }) {
       title={`Catálogo completo em PDF${info.size ? ` (${megabytes(info.size)})` : ''}`}
     >
       <FileDown className="size-4" aria-hidden="true" />
-      Baixar catálogo em PDF
+      <span className="download-label">{label}</span>
     </a>
   );
 }

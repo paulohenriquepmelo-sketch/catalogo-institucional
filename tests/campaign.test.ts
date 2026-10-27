@@ -30,13 +30,16 @@ import type { Product } from '../lib/catalog-data';
 void test('public navigation downloads the Android app stored in R2', async () => {
   const source = readFileSync('components/catalog-app.tsx', 'utf8');
   const routeSource = readFileSync('app/api/app-download/route.ts', 'utf8');
-  // Layout novo: o app fica no catálogo completo; o layout dos temas mantém
-  // o link no menu, depois de Marcas.
+  // Os dois layouts têm o link no menu do cabeçalho: o dos temas depois de
+  // Marcas; o novo (site-sections) depois de Contato, junto do PDF.
   const brands = source.indexOf('>Marcas</a>');
   const download = source.lastIndexOf('Baixe o app');
   assert.ok(brands >= 0 && download > brands);
-  assert.equal((source.match(/href="\/api\/app-download"/g) ?? []).length, 2);
   assert.match(source, /href="\/api\/app-download" download/);
+  const sections = readFileSync('components/site-sections.tsx', 'utf8');
+  const nav = sections.slice(sections.indexOf('aria-label="Principal"'));
+  assert.match(nav, /href="\/api\/app-download"\s+download/);
+  assert.match(nav, /<CatalogPdfLink className="v2-nav-download"/);
   assert.match(routeSource, /env\.FILES/);
   assert.doesNotMatch(routeSource, /env\.DB|\bD1\b/);
 
