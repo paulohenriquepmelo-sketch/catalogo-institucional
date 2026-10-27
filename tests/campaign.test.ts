@@ -30,9 +30,12 @@ import type { Product } from '../lib/catalog-data';
 void test('public navigation downloads the Android app stored in R2', async () => {
   const source = readFileSync('components/catalog-app.tsx', 'utf8');
   const routeSource = readFileSync('app/api/app-download/route.ts', 'utf8');
+  // Layout novo: o app fica no catálogo completo; o layout dos temas mantém
+  // o link no menu, depois de Marcas.
   const brands = source.indexOf('>Marcas</a>');
-  const download = source.indexOf('Baixe o app');
+  const download = source.lastIndexOf('Baixe o app');
   assert.ok(brands >= 0 && download > brands);
+  assert.equal((source.match(/href="\/api\/app-download"/g) ?? []).length, 2);
   assert.match(source, /href="\/api\/app-download" download/);
   assert.match(routeSource, /env\.FILES/);
   assert.doesNotMatch(routeSource, /env\.DB|\bD1\b/);
@@ -271,10 +274,9 @@ void test('public catalog keeps one header search and only hierarchy filters in 
   assert.match(taxonomy, /aria-label="Departamento"/);
   assert.match(taxonomy, /label="Seção"/);
   assert.match(taxonomy, /label="Categoria"/);
-  assert.doesNotMatch(
-    taxonomy,
-    /label="Marca"|label="Segmento"|Limpar filtros|search-field/,
-  );
+  // Marca entrou com o layout novo (pedido de 27/10/2026); segmento e
+  // "limpar filtros" continuam fora.
+  assert.doesNotMatch(taxonomy, /label="Segmento"|Limpar filtros|search-field/);
   const css = readFileSync('app/globals.css', 'utf8');
   assert.match(
     css,

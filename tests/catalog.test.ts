@@ -807,3 +807,28 @@ void test('editor password change: hashed, old password and old sessions stop wo
     delete env.EDITOR_PASSWORD;
   }
 });
+
+void test('fotos dos segmentos: aceita só segmentos conhecidos e imagens válidas', () => {
+  const image = '/api/uploads?key=images%2F27ba549c-a2fe-462b-a6ec-c0550a29e133.webp';
+  const saved = validateConfig({
+    ...defaultConfig,
+    segmentImages: { supermercados: image, limpeza: '' },
+  });
+  // Foto vazia sai da lista: o cartão volta a mostrar o ícone.
+  assert.deepEqual(saved.segmentImages, { supermercados: image });
+  // Configuração antiga, sem o campo, continua válida.
+  const { segmentImages: _omit, ...legacy } = defaultConfig;
+  assert.deepEqual(validateConfig(legacy).segmentImages, {});
+  assert.throws(
+    () => validateConfig({ ...defaultConfig, segmentImages: { inventado: image } }),
+    /Segmento inválido/,
+  );
+  assert.throws(
+    () =>
+      validateConfig({
+        ...defaultConfig,
+        segmentImages: { supermercados: 'javascript:alert(1)' },
+      }),
+    /imagem enviada ou um endereço HTTPS/,
+  );
+});

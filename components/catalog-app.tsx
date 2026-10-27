@@ -8,6 +8,7 @@ import {
   Package,
   Search,
   Settings2,
+  SlidersHorizontal,
   X,
 } from 'lucide-react';
 import { CatalogPdfLink } from './catalog-pdf-download';
@@ -45,6 +46,19 @@ import {
   selectNewProducts,
 } from './product-showcase-carousel';
 import {
+  ContactBand,
+  HomeBenefits,
+  HomeBrands,
+  HomeFeatured,
+  HomeHero,
+  HomeSegments,
+  NewProductsPanel,
+  OffersPanel,
+  SiteFooter,
+  SiteHeader,
+  SiteTopbar,
+} from './site-sections';
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -77,6 +91,9 @@ function Filter({
     </label>
   );
 }
+// Catálogo completo: os produtos entram na grade em lotes, sozinhos, conforme
+// a pessoa rola a página (sem números de página nem botão).
+const PAGE_SIZE = 24;
 const unique = (values: string[]) =>
   [...new Set(values)].sort((a, b) => a.localeCompare(b, 'pt-BR'));
 export function CatalogApp({
@@ -97,7 +114,9 @@ export function CatalogApp({
   const [searchQuery, setSearchQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [limit, setLimit] = useState(fullCatalogPage ? 48 : 12);
+  // Celular: a coluna de filtros do catálogo completo abre num botão.
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [limit, setLimit] = useState(fullCatalogPage ? PAGE_SIZE : 12);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   async function load() {
@@ -115,6 +134,12 @@ export function CatalogApp({
       ]);
       setItems(data);
       setConfig(settings.config);
+      // Busca vinda do topo de outra página: /produtos?busca=termo.
+      const query = fullCatalogPage
+        ? new URLSearchParams(window.location.search).get('busca')
+        : null;
+      if (query)
+        setFilters((current) => ({ ...current, query: query.slice(0, 200) }));
     } catch (e) {
       setError(
         e instanceof Error
@@ -142,7 +167,7 @@ export function CatalogApp({
   }, [items, filters, quick, config.newProducts]);
   // Página de produtos: o próximo lote entra sozinho ao chegar perto do fim.
   const moreProducts = useAutoLoad(
-    () => setLimit((current) => current + 48),
+    () => setLimit((current) => current + PAGE_SIZE),
     fullCatalogPage && filtered.length > limit,
     limit,
   );
@@ -154,14 +179,22 @@ export function CatalogApp({
     [items, searchQuery],
   );
   const allVisibleBlocks = config.blocks.filter((b) => b.visible);
+  // Layout novo (sem tema especial): o catálogo completo mostra ofertas e
+  // novidades antes da grade; a página inicial tem seções próprias.
+  const v2 = !campaignSkin(config.campaign);
+  const fullPageTypes: Block['type'][] = v2
+    ? ['new-products', 'catalog']
+    : ['catalog'];
   const visibleBlocks = fullCatalogPage
-    ? allVisibleBlocks.filter((b) => b.type === 'catalog')
+    ? fullPageTypes.flatMap((type) =>
+        allVisibleBlocks.filter((b) => b.type === type),
+      )
     : allVisibleBlocks;
   const has = (type: Block['type']) =>
     allVisibleBlocks.some((b) => b.type === type);
   function update(patch: Partial<Filters>) {
     setFilters((current) => ({ ...current, ...patch }));
-    setLimit(fullCatalogPage ? 48 : 12);
+    setLimit(fullCatalogPage ? PAGE_SIZE : 12);
   }
   useCatalogTools([
     {
@@ -280,12 +313,244 @@ export function CatalogApp({
   ) : (
     <span className="brand-mark">{config.name.charAt(0)}</span>
   );
+  // Catálogo completo no layout novo: filtros numa coluna à esquerda
+  // (esboço de 27/10/2026), com departamento, seção, categoria, marca,
+  // ordenação, promoção (só com oferta ativa) e "Limpar filtros".
+  const sidebar = v2 && fullCatalogPage;
+  const inDepartment = (p: Product) =>
+    !filters.department || p.department === filters.department;
+  const inSection = (p: Product) =>
+    !filters.section || p.section === filters.section;
+  const inCategory = (p: Product) =>
+    !filters.category || p.category === filters.category;
+  const hasActiveOffers =
+    sidebar && selectActiveOffers(items, catalogDateKey(), 1).length > 0;
+  const activeFilters = [
+    filters.department,
+    filters.section,
+    filters.category,
+    filters.brand,
+    filters.query,
+    quick,
+  ].filter(Boolean).length;
+  function clearFilters() {
+    setFilters(emptyFilters);
+    setQuick('');
+    setLimit(PAGE_SIZE);
+    window.history.replaceState(null, '', window.location.pathname);
+  }
+  const sideSelect = (
+    id: string,
+    label: string,
+    all: string,
+    value: string,
+    options: string[],
+    onChange: (value: string) => void,
+  ) => (
+    <div className="v2-filter-field">
+      <label htmlFor={id}>{label}</label>
+      <NativeSelect
+        id={id}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      >
+        <option value="">{all}</option>
+        {options.map((o) => (
+          <option key={o} value={o}>
+            {o}
+          </option>
+        ))}
+      </NativeSelect>
+    </div>
+  );
+  const catalogSidebar = sidebar ? (
+    <aside className="v2-filters" aria-label="Filtros do catálogo">
+      <nav className="v2-breadcrumb" aria-label="Você está em">
+        {/* oxlint-disable-next-line next/no-html-link-for-pages -- o site navega com links comuns. */}
+        <a href="/">Início</a>
+        <span aria-hidden="true">›</span>
+        <span aria-current="page">Catálogo</span>
+      </nav>
+      <button
+        type="button"
+        className="v2-filters-toggle"
+        aria-expanded={filtersOpen}
+        aria-controls="v2-filters-body"
+        onClick={() => setFiltersOpen(!filtersOpen)}
+      >
+        <SlidersHorizontal aria-hidden="true" />
+        Filtros{activeFilters ? ` (${activeFilters})` : ''}
+      </button>
+      <div
+        id="v2-filters-body"
+        className={filtersOpen ? 'v2-filters-body is-open' : 'v2-filters-body'}
+      >
+        <h2>Filtros</h2>
+        {sideSelect(
+          'filtro-departamento',
+          'Departamento',
+          'Todos os departamentos',
+          filters.department,
+          unique(items.map((p) => p.department).filter(Boolean)),
+          (department) => update({ department, section: '', category: '' }),
+        )}
+        {sideSelect(
+          'filtro-secao',
+          'Seção',
+          'Todas as seções',
+          filters.section,
+          unique(items.filter(inDepartment).map((p) => p.section).filter(Boolean)),
+          (section) => update({ section, category: '' }),
+        )}
+        {sideSelect(
+          'filtro-categoria',
+          'Categoria',
+          'Todas as categorias',
+          filters.category,
+          unique(
+            items
+              .filter((p) => inDepartment(p) && inSection(p))
+              .map((p) => p.category)
+              .filter(Boolean),
+          ),
+          (category) => update({ category }),
+        )}
+        {sideSelect(
+          'filtro-marca',
+          'Marca',
+          'Todas as marcas',
+          filters.brand,
+          unique(
+            items
+              .filter((p) => inDepartment(p) && inSection(p) && inCategory(p))
+              .map((p) => p.brand)
+              .filter(Boolean),
+          ),
+          (brand) => update({ brand }),
+        )}
+        <div className="v2-filter-field">
+          <label htmlFor="filtro-ordem">Ordenar por</label>
+          <NativeSelect
+            id="filtro-ordem"
+            value={filters.sort}
+            onChange={(e) => update({ sort: e.target.value as Filters['sort'] })}
+          >
+            <option value="featured">Mais relevantes</option>
+            <option value="name">Nome: A–Z</option>
+          </NativeSelect>
+        </div>
+        {hasActiveOffers && (
+          <label className="v2-filter-check" htmlFor="filtro-promocao">
+            <input
+              id="filtro-promocao"
+              type="checkbox"
+              checked={quick === 'offers'}
+              onChange={(e) => {
+                setQuick(e.target.checked ? 'offers' : '');
+                setLimit(PAGE_SIZE);
+              }}
+            />
+            Somente em promoção
+          </label>
+        )}
+        <button
+          type="button"
+          className="v2-filters-clear"
+          onClick={clearFilters}
+          disabled={!activeFilters && filters.sort === 'featured'}
+        >
+          Limpar filtros
+        </button>
+      </div>
+    </aside>
+  ) : null;
   function renderBlock(block: Block) {
     if (block.type === 'banners')
       return (
         <CatalogBanners key={block.id} config={config} title={block.title} />
       );
-    if (block.type === 'catalog')
+    if (block.type === 'catalog') {
+      const results = (
+          <section
+            className="catalog-section catalog-results"
+            aria-label="Produtos do catálogo"
+          >
+            <div className="result-line">
+              <span role="status">
+                {filtered.length}{' '}
+                {filtered.length === 1
+                  ? 'produto encontrado'
+                  : 'produtos encontrados'}
+                {filters.query && (
+                  <>
+                    {' '}para “{filters.query}”{' '}
+                    <button
+                      type="button"
+                      className="clear-query"
+                      onClick={() => {
+                        update({ query: '' });
+                        window.history.replaceState(null, '', window.location.pathname);
+                      }}
+                    >
+                      Limpar busca
+                    </button>
+                  </>
+                )}
+              </span>
+              {!sidebar && (
+              <label>
+                Ordenar{' '}
+                <NativeSelect
+                  aria-label="Ordenar produtos"
+                  value={filters.sort}
+                  onChange={(e) =>
+                    update({ sort: e.target.value as Filters['sort'] })
+                  }
+                >
+                  <option value="featured">Destaques</option>
+                  <option value="name">Nome: A–Z</option>
+                </NativeSelect>
+              </label>
+              )}
+            </div>
+            <div className="product-grid">
+              {filtered.slice(0, limit).map((p) => (
+                <ProductCard key={p.id} product={p} onOpen={setSelected} />
+              ))}
+            </div>
+            {!filtered.length && (
+              <div className="empty-state">
+                <Package />
+                <h2>
+                  {items.length
+                    ? 'Nenhum produto com esses filtros.'
+                    : 'O catálogo ainda está sendo preparado.'}
+                </h2>
+                <p>
+                  {items.length
+                    ? 'Experimente outra busca ou limpe os filtros.'
+                    : 'Em breve, os produtos publicados aparecerão aqui.'}
+                </p>
+              </div>
+            )}
+            {fullCatalogPage && !!filtered.length && filtered.length <= limit && (
+              <p className="catalog-end">Você chegou ao final do catálogo.</p>
+            )}
+            {filtered.length > limit && (
+              <div className="load-more">
+                {fullCatalogPage ? (
+                  <output ref={moreProducts} className="auto-load">
+                    Carregando mais produtos… {limit} de {filtered.length}
+                  </output>
+                ) : (
+                  <a className="catalog-page-link" href="/produtos">
+                    Ver todos os produtos ({filtered.length})
+                  </a>
+                )}
+              </div>
+            )}
+          </section>
+      );
       return (
         <CatalogCampaign
           key={block.id}
@@ -296,6 +561,13 @@ export function CatalogApp({
           }
           intro={<div className="campaign-visual-spacer" aria-hidden="true" />}
         >
+          {sidebar ? (
+            <div className="v2-container v2-catalog-layout">
+              {catalogSidebar}
+              {results}
+            </div>
+          ) : (
+            <>
           <div className="catalog-filter-band">
             <div className="catalog-toolbar catalog-taxonomy-toolbar">
               {skin && !fullCatalogPage ? (
@@ -373,73 +645,35 @@ export function CatalogApp({
                 )}
                 onChange={(category) => update({ category })}
               />
+              {!skin && (
+                <Filter
+                  label="Marca"
+                  value={filters.brand}
+                  options={unique(
+                    items
+                      .filter(
+                        (p) =>
+                          p.brand &&
+                          (!filters.department ||
+                            p.department === filters.department) &&
+                          (!filters.section || p.section === filters.section) &&
+                          (!filters.category || p.category === filters.category),
+                      )
+                      .map((p) => p.brand),
+                  )}
+                  onChange={(brand) => update({ brand })}
+                />
+              )}
             </div>
           </div>
           {/* No tema que muda o site, a grade só aparece ao filtrar: a
               página começa pelas ofertas, como no esboço. */}
-          {(!skin || fullCatalogPage || quick || filters.department || filters.section || filters.category) && (
-          <section
-            className="catalog-section catalog-results"
-            aria-label="Produtos do catálogo"
-          >
-            <div className="result-line">
-              <span role="status">
-                {filtered.length}{' '}
-                {filtered.length === 1
-                  ? 'produto encontrado'
-                  : 'produtos encontrados'}
-              </span>
-              <label>
-                Ordenar{' '}
-                <NativeSelect
-                  aria-label="Ordenar produtos"
-                  value={filters.sort}
-                  onChange={(e) =>
-                    update({ sort: e.target.value as Filters['sort'] })
-                  }
-                >
-                  <option value="featured">Destaques</option>
-                  <option value="name">Nome: A–Z</option>
-                </NativeSelect>
-              </label>
-            </div>
-            <div className="product-grid">
-              {filtered.slice(0, limit).map((p) => (
-                <ProductCard key={p.id} product={p} onOpen={setSelected} />
-              ))}
-            </div>
-            {!filtered.length && (
-              <div className="empty-state">
-                <Package />
-                <h2>
-                  {items.length
-                    ? 'Nenhum produto com esses filtros.'
-                    : 'O catálogo ainda está sendo preparado.'}
-                </h2>
-                <p>
-                  {items.length
-                    ? 'Experimente outra busca ou limpe os filtros.'
-                    : 'Em breve, os produtos publicados aparecerão aqui.'}
-                </p>
-              </div>
-            )}
-            {filtered.length > limit && (
-              <div className="load-more">
-                {fullCatalogPage ? (
-                  <output ref={moreProducts} className="auto-load">
-                    Carregando mais produtos… {limit} de {filtered.length}
-                  </output>
-                ) : (
-                  <a className="catalog-page-link" href="/produtos">
-                    Ver todos os produtos ({filtered.length})
-                  </a>
-                )}
-              </div>
-            )}
-          </section>
+          {(!skin || fullCatalogPage || quick || filters.department || filters.section || filters.category) && results}
+            </>
           )}
         </CatalogCampaign>
       );
+    }
     if (block.type === 'offers')
       return (
         <ProductShowcaseCarousel
@@ -522,6 +756,149 @@ export function CatalogApp({
   }
   // Contato do topo para o cliente descobrir o RCA (representante) que
   // atende a região dele: WhatsApp comercial, ou e-mail quando não houver.
+  const hasOffers =
+    has('offers') &&
+    config.offers.published &&
+    selectActiveOffers(items, catalogDateKey(), 1).length > 0;
+  function search(query: string) {
+    if (!fullCatalogPage) {
+      window.location.href = query
+        ? `/produtos?busca=${encodeURIComponent(query)}`
+        : '/produtos';
+      return;
+    }
+    update({ query });
+    window.history.replaceState(
+      null,
+      '',
+      query ? `?busca=${encodeURIComponent(query)}` : window.location.pathname,
+    );
+    document.getElementById('catalogo')?.scrollIntoView({ block: 'start' });
+  }
+  if (v2)
+    return (
+      <main
+        id="inicio"
+        className={`public-catalog site-v2 ${fullCatalogPage ? 'full-catalog-page' : ''}`}
+        style={style}
+      >
+        <a className="skip-link" href="#catalogo">
+          Pular para o catálogo
+        </a>
+        {!fullCatalogPage && (
+          <h1 className="sr-only">{`${config.name} — catálogo de produtos`}</h1>
+        )}
+        <SiteTopbar config={config} />
+        <SiteHeader
+          key={filters.query}
+          config={config}
+          current={fullCatalogPage ? 'catalogo' : 'inicio'}
+          hasSegments={has('segments')}
+          hasBrands={has('brands')}
+          hasOffers={hasOffers}
+          showEditorLink={showEditorLink}
+          onSearch={search}
+          initialQuery={filters.query}
+        />
+        {config.demo && (
+          <div className="demo-notice">
+            Catálogo demonstrativo — produtos, marcas, fotos e especificações
+            ilustrativos. Substitua pelo seu cadastro real no editor.
+          </div>
+        )}
+        {loading ? (
+          <output className="v2-container v2-loading" aria-live="polite">
+            <span className="sr-only">Carregando catálogo…</span>
+            <div className="v2-product-grid" aria-hidden="true">
+              {Array.from({ length: 12 }, (_, i) => (
+                <span key={i} className="v2-skeleton" />
+              ))}
+            </div>
+          </output>
+        ) : error ? (
+          <div className="access-message">
+            <p role="alert">{error}</p>
+            <Button onClick={() => void load()}>Tentar novamente</Button>
+          </div>
+        ) : fullCatalogPage ? (
+          <>
+            <section
+              className="v2-catalog-intro"
+              aria-labelledby="catalog-page-title"
+            >
+              <div className="v2-container v2-catalog-intro-inner">
+                <div>
+                  <span className="v2-eyebrow">Catálogo completo</span>
+                  <h1 id="catalog-page-title">Todos os produtos</h1>
+                  <p>
+                    Encontre rapidamente o item ideal usando a busca e os
+                    filtros por departamento, seção, categoria e marca.
+                  </p>
+                </div>
+                <div className="v2-catalog-actions">
+                  <a href="/api/app-download" download className="app-download-link">
+                    <Download className="size-4" aria-hidden="true" />
+                    Baixe o app
+                  </a>
+                  <CatalogPdfLink className="app-download-link" />
+                </div>
+              </div>
+            </section>
+            {visibleBlocks.map((block) =>
+              block.type === 'new-products' ? (
+                <NewProductsPanel
+                  key={block.id}
+                  settings={{ ...config.newProducts, title: block.title }}
+                  items={items}
+                  onOpen={setSelected}
+                />
+              ) : (
+                renderBlock(block)
+              ),
+            )}
+          </>
+        ) : (
+          <>
+            <HomeHero config={config} />
+            <HomeBenefits />
+            {has('segments') && (
+              <HomeSegments items={items} config={config} style={style} />
+            )}
+            {has('brands') && (
+              <HomeBrands items={items} config={config} style={style} />
+            )}
+            <HomeFeatured items={items} onOpen={setSelected} />
+            {has('offers') && (
+              <OffersPanel
+                settings={{
+                  ...config.offers,
+                  title:
+                    allVisibleBlocks.find((b) => b.type === 'offers')?.title ??
+                    config.offers.title,
+                }}
+                items={items}
+                onOpen={setSelected}
+              />
+            )}
+          </>
+        )}
+        <ContactBand config={config} />
+        <SiteFooter
+          config={config}
+          current={fullCatalogPage ? 'catalogo' : 'inicio'}
+          hasSegments={has('segments')}
+          hasBrands={has('brands')}
+          hasOffers={hasOffers}
+        />
+        <ProductDetailsDialog
+          selected={selected}
+          onSelect={setSelected}
+          items={items}
+          contact={config}
+          style={style}
+        />
+      </main>
+    );
   const rcaMessage =
     'Olá! Quero saber qual é o RCA (representante comercial) que atende a minha região. Minha cidade é: ';
   const rcaHref = config.whatsapp
