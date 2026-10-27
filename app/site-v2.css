@@ -1,6 +1,7 @@
 /* Layout institucional (esboço aprovado em 27/10/2026). Tudo fica sob
    .site-v2, para não mexer no editor, nos temas especiais nem nos diálogos. */
-.site-v2 {
+.site-v2,
+.v2-dialog-products {
   /* Cores da marca: azul do site, azul-marinho e vermelho da logo. */
   --v2-blue: var(--primary, #1544b2);
   --v2-blue-dark: #0e2f86;
@@ -66,7 +67,8 @@
   border-top: 0;
 }
 .public-catalog.site-v2 .v2-footer::before,
-.public-catalog.site-v2 .product-card::before {
+.public-catalog.site-v2 .product-card::before,
+.brand-products-dialog.v2-dialog-products .product-card::before {
   display: none;
 }
 .public-catalog.site-v2 :is(.v2-hero, .v2-brands, .v2-contact) h2 {
@@ -810,7 +812,8 @@
   grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 16px;
 }
-.public-catalog.site-v2 .product-card {
+.public-catalog.site-v2 .product-card,
+.brand-products-dialog.v2-dialog-products .product-card {
   min-width: 0;
   display: flex;
   flex-direction: column;
@@ -826,13 +829,16 @@
     box-shadow 0.18s,
     border-color 0.18s;
 }
-.public-catalog.site-v2 .product-card:hover {
+.public-catalog.site-v2 .product-card:hover,
+.brand-products-dialog.v2-dialog-products .product-card:hover {
   transform: translateY(-3px);
   border-color: #c9d5ef;
   box-shadow: 0 12px 26px rgba(16, 42, 110, 0.12);
 }
 .public-catalog.site-v2 .product-card .product-image-wrap,
-.public-catalog.site-v2 .product-card:not(.without-photo) .product-image-wrap {
+.public-catalog.site-v2 .product-card:not(.without-photo) .product-image-wrap,
+.brand-products-dialog.v2-dialog-products .product-card .product-image-wrap,
+.brand-products-dialog.v2-dialog-products .product-card:not(.without-photo) .product-image-wrap {
   height: auto;
   aspect-ratio: 1 / 0.82;
   padding: 14px;
@@ -840,12 +846,14 @@
   border-radius: 0;
   background: #fff;
 }
-.public-catalog.site-v2 .product-card .product-image {
+.public-catalog.site-v2 .product-card .product-image,
+.brand-products-dialog.v2-dialog-products .product-card .product-image {
   width: 100%;
   height: 100%;
   object-fit: contain;
 }
-.public-catalog.site-v2 .product-card .missing-image {
+.public-catalog.site-v2 .product-card .missing-image,
+.brand-products-dialog.v2-dialog-products .product-card .missing-image {
   height: 100%;
   display: grid;
   place-items: center;
@@ -854,10 +862,12 @@
   color: #8a93ab;
   font-size: 12px;
 }
-.public-catalog.site-v2 .product-card .featured-badge {
+.public-catalog.site-v2 .product-card .featured-badge,
+.brand-products-dialog.v2-dialog-products .product-card .featured-badge {
   display: none;
 }
-.public-catalog.site-v2 .product-card-body {
+.public-catalog.site-v2 .product-card-body,
+.brand-products-dialog.v2-dialog-products .product-card-body {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -865,7 +875,8 @@
   padding: 10px 14px 14px;
   border: 0;
 }
-.public-catalog.site-v2 .product-card .product-brand {
+.public-catalog.site-v2 .product-card .product-brand,
+.brand-products-dialog.v2-dialog-products .product-card .product-brand {
   margin: 0;
   color: var(--v2-red);
   font-size: 11.5px;
@@ -873,15 +884,18 @@
   letter-spacing: 0;
   text-transform: uppercase;
 }
-.public-catalog.site-v2 .product-card .product-brand::before {
+.public-catalog.site-v2 .product-card .product-brand::before,
+.brand-products-dialog.v2-dialog-products .product-card .product-brand::before {
   content: 'Marca: ';
   text-transform: none;
   font-weight: 600;
 }
-.public-catalog.site-v2 .product-card .product-brand:empty {
+.public-catalog.site-v2 .product-card .product-brand:empty,
+.brand-products-dialog.v2-dialog-products .product-card .product-brand:empty {
   display: none;
 }
-.public-catalog.site-v2 .product-card .product-name {
+.public-catalog.site-v2 .product-card .product-name,
+.brand-products-dialog.v2-dialog-products .product-card .product-name {
   display: -webkit-box;
   min-height: calc(1.3em * 2);
   overflow: hidden;
@@ -894,7 +908,8 @@
   line-height: 1.3;
   text-transform: uppercase;
 }
-.public-catalog.site-v2 .product-card-meta {
+.public-catalog.site-v2 .product-card-meta,
+.brand-products-dialog.v2-dialog-products .product-card-meta {
   display: grid;
   gap: 1px;
   margin-top: 4px;
@@ -902,7 +917,8 @@
   font-size: 12px;
   line-height: 1.4;
 }
-.public-catalog.site-v2 .product-card-meta span {
+.public-catalog.site-v2 .product-card-meta span,
+.brand-products-dialog.v2-dialog-products .product-card-meta span {
   overflow-wrap: anywhere;
 }
 
@@ -2026,4 +2042,49 @@
   .site-v2 .v2-suggest {
     width: 100%;
   }
+}
+
+/* Janelas de segmento e de marca abertas pelo layout novo: busca igual à do
+   topo e cartões no mesmo visual (a janela fica fora de .site-v2). */
+.brand-products-dialog.v2-dialog-products .brand-products-toolbar {
+  position: relative;
+}
+.v2-dialog-products .v2-dialog-search-icon {
+  position: absolute;
+  /* Meio do campo (46 px), não do bloco com a contagem embaixo. */
+  top: 23px;
+  left: 16px;
+  z-index: 1;
+  width: 18px;
+  height: 18px;
+  color: #1544b2;
+  translate: 0 -50%;
+  pointer-events: none;
+}
+.v2-dialog-products .brand-products-toolbar input,
+.v2-dialog-products .all-brands-search input {
+  height: 46px;
+  padding: 0 18px 0 44px;
+  border: 1.5px solid #c9d5ef;
+  border-radius: 999px;
+  background: #fff;
+  color: #253250;
+  font-size: 14px;
+  box-shadow: none;
+}
+.v2-dialog-products .all-brands-search input {
+  padding-left: 18px;
+}
+.v2-dialog-products .brand-products-toolbar input::placeholder,
+.v2-dialog-products .all-brands-search input::placeholder {
+  color: #7f89a3;
+}
+.v2-dialog-products .brand-products-toolbar input:focus-visible,
+.v2-dialog-products .all-brands-search input:focus-visible {
+  border-color: #1544b2;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(21, 68, 178, 0.12);
+}
+.brand-products-dialog.v2-dialog-products .product-grid {
+  gap: 14px;
 }

@@ -612,6 +612,7 @@ export function HomeSegments({
             groups={selected.groups}
             contact={config}
             style={style}
+            modern
           />
         )}
       </Dialog>
@@ -897,11 +898,15 @@ export function HomeBrands({
             items={items}
             contact={config}
             style={style}
+            modern
           />
         )}
       </Dialog>
       <Dialog open={showAll} onOpenChange={setShowAll}>
-        <DialogContent className="all-brands-dialog" style={style}>
+        <DialogContent
+          className="all-brands-dialog v2-dialog-products"
+          style={style}
+        >
           <DialogHeader>
             <DialogTitle>Todas as marcas</DialogTitle>
             <DialogDescription>
@@ -914,6 +919,7 @@ export function HomeBrands({
             counts={counts}
             contact={config}
             style={style}
+            modern
           />
         </DialogContent>
       </Dialog>

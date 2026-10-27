@@ -7,6 +7,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
+import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { discover, emptyFilters } from '@/lib/catalog-discovery';
@@ -23,6 +24,7 @@ export function CollectionProducts({
   groups,
   contact,
   style,
+  modern = false,
 }: {
   kind: 'brand' | 'segment';
   name: string;
@@ -35,6 +37,8 @@ export function CollectionProducts({
   groups?: { name: string; products: Product[] }[];
   contact: CommercialContact;
   style?: CSSProperties;
+  /** Aberto pelo layout novo do site: busca e cartões no visual dele. */
+  modern?: boolean;
 }) {
   const [productQuery, setProductQuery] = useState('');
   const [productLimit, setProductLimit] = useState(12);
@@ -64,7 +68,12 @@ export function CollectionProducts({
     productLimit,
   );
   return (
-    <DialogContent className="brand-products-dialog" style={style}>
+    <DialogContent
+      className={
+        modern ? 'brand-products-dialog v2-dialog-products' : 'brand-products-dialog'
+      }
+      style={style}
+    >
       <DialogHeader className="brand-products-heading">
         {logo && <img src={logo} alt="" />}
         <div>
@@ -106,6 +115,7 @@ export function CollectionProducts({
         </div>
       )}
       <div className="brand-products-toolbar">
+        {modern && <Search className="v2-dialog-search-icon" aria-hidden="true" />}
         <Input
           aria-label={
             kind === 'brand'
