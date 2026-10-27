@@ -837,13 +837,6 @@ export function CatalogApp({
                     filtros por departamento, seção, categoria e marca.
                   </p>
                 </div>
-                <div className="v2-catalog-actions">
-                  <a href="/api/app-download" download className="app-download-link">
-                    <Download className="size-4" aria-hidden="true" />
-                    Baixe o app
-                  </a>
-                  <CatalogPdfLink className="app-download-link" />
-                </div>
               </div>
             </section>
             {visibleBlocks.map((block) =>

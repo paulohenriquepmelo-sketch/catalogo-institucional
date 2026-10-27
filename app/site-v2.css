@@ -2088,3 +2088,60 @@
 .brand-products-dialog.v2-dialog-products .product-grid {
   gap: 14px;
 }
+
+/* "Baixe o app" e "Baixar catálogo" no menu, depois de Contato. */
+.site-v2 .v2-nav .v2-nav-download {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 14px;
+  border: 1.5px solid #c9d5ef;
+  border-radius: 999px;
+  color: var(--v2-blue);
+  font-size: 13.5px;
+}
+.site-v2 .v2-nav .v2-nav-download::after {
+  display: none;
+}
+.site-v2 .v2-nav .v2-nav-download:hover {
+  border-color: var(--v2-blue);
+  background: var(--v2-soft);
+}
+.site-v2 .v2-nav .v2-nav-download svg {
+  width: 16px;
+  height: 16px;
+}
+@media (max-width: 1024px) {
+  .site-v2 .v2-nav .v2-nav-download {
+    justify-content: flex-start;
+    margin-top: 10px;
+    padding: 12px 16px;
+    border-bottom: 1.5px solid #c9d5ef;
+  }
+}
+/* Entre 1025 e 1699 px os dois botões mostram só o ícone (o nome fica no
+   título e para leitores de tela), para o menu e a busca caberem. */
+@media (min-width: 1025px) and (max-width: 1699px) {
+  .site-v2 .v2-nav .v2-nav-download {
+    width: 38px;
+    height: 38px;
+    justify-content: center;
+    padding: 0;
+  }
+  .site-v2 .v2-nav .v2-nav-download .download-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+}
+@media (min-width: 1025px) and (max-width: 1300px) {
+  .site-v2 .v2-header-inner {
+    gap: 20px;
+  }
+  .site-v2 .v2-nav {
+    gap: 16px;
+  }
+}

@@ -14,6 +14,7 @@ import {
   BadgeCheck,
   ChevronLeft,
   ChevronRight,
+  Download,
   Headset,
   Mail,
   Menu,
@@ -50,6 +51,7 @@ import { buildSegments, type Segment } from '@/lib/segments';
 import { segmentIconById } from '@/lib/segment-icons';
 import { campaignSlides } from '@/lib/catalog-campaign';
 import { CollectionProducts } from './collection-products';
+import { CatalogPdfLink } from './catalog-pdf-download';
 import { AllBrandsList } from './all-brands-dialog';
 import { ProductCard } from './product-card';
 import {
@@ -403,6 +405,17 @@ export function SiteHeader({
               {label}
             </a>
           ))}
+          <a
+            href="/api/app-download"
+            download
+            className="v2-nav-download"
+            title="Baixe o app do catálogo (Android)"
+            onClick={() => setMenuOpen(false)}
+          >
+            <Download aria-hidden="true" />
+            <span className="download-label">Baixe o app</span>
+          </a>
+          <CatalogPdfLink className="v2-nav-download" label="Baixar catálogo" />
           {showEditorLink && (
             <a href="/editor" className="v2-editor-link">
               <Settings2 aria-hidden="true" /> Editor
