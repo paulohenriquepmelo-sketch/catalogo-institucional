@@ -8,6 +8,7 @@ import {
   Package,
   Search,
   Settings2,
+  SlidersHorizontal,
   X,
 } from 'lucide-react';
 import { CatalogPdfLink } from './catalog-pdf-download';
@@ -112,6 +113,8 @@ export function CatalogApp({
   const [searchQuery, setSearchQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  // Celular: a coluna de filtros do catálogo completo abre num botão.
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [limit, setLimit] = useState(fullCatalogPage ? PAGE_SIZE : 12);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -309,12 +312,244 @@ export function CatalogApp({
   ) : (
     <span className="brand-mark">{config.name.charAt(0)}</span>
   );
+  // Catálogo completo no layout novo: filtros numa coluna à esquerda
+  // (esboço de 27/10/2026), com departamento, seção, categoria, marca,
+  // ordenação, promoção (só com oferta ativa) e "Limpar filtros".
+  const sidebar = v2 && fullCatalogPage;
+  const inDepartment = (p: Product) =>
+    !filters.department || p.department === filters.department;
+  const inSection = (p: Product) =>
+    !filters.section || p.section === filters.section;
+  const inCategory = (p: Product) =>
+    !filters.category || p.category === filters.category;
+  const hasActiveOffers =
+    sidebar && selectActiveOffers(items, catalogDateKey(), 1).length > 0;
+  const activeFilters = [
+    filters.department,
+    filters.section,
+    filters.category,
+    filters.brand,
+    filters.query,
+    quick,
+  ].filter(Boolean).length;
+  function clearFilters() {
+    setFilters(emptyFilters);
+    setQuick('');
+    setLimit(PAGE_SIZE);
+    window.history.replaceState(null, '', window.location.pathname);
+  }
+  const sideSelect = (
+    id: string,
+    label: string,
+    all: string,
+    value: string,
+    options: string[],
+    onChange: (value: string) => void,
+  ) => (
+    <div className="v2-filter-field">
+      <label htmlFor={id}>{label}</label>
+      <NativeSelect
+        id={id}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      >
+        <option value="">{all}</option>
+        {options.map((o) => (
+          <option key={o} value={o}>
+            {o}
+          </option>
+        ))}
+      </NativeSelect>
+    </div>
+  );
+  const catalogSidebar = sidebar ? (
+    <aside className="v2-filters" aria-label="Filtros do catálogo">
+      <nav className="v2-breadcrumb" aria-label="Você está em">
+        {/* oxlint-disable-next-line next/no-html-link-for-pages -- o site navega com links comuns. */}
+        <a href="/">Início</a>
+        <span aria-hidden="true">›</span>
+        <span aria-current="page">Catálogo</span>
+      </nav>
+      <button
+        type="button"
+        className="v2-filters-toggle"
+        aria-expanded={filtersOpen}
+        aria-controls="v2-filters-body"
+        onClick={() => setFiltersOpen(!filtersOpen)}
+      >
+        <SlidersHorizontal aria-hidden="true" />
+        Filtros{activeFilters ? ` (${activeFilters})` : ''}
+      </button>
+      <div
+        id="v2-filters-body"
+        className={filtersOpen ? 'v2-filters-body is-open' : 'v2-filters-body'}
+      >
+        <h2>Filtros</h2>
+        {sideSelect(
+          'filtro-departamento',
+          'Departamento',
+          'Todos os departamentos',
+          filters.department,
+          unique(items.map((p) => p.department).filter(Boolean)),
+          (department) => update({ department, section: '', category: '' }),
+        )}
+        {sideSelect(
+          'filtro-secao',
+          'Seção',
+          'Todas as seções',
+          filters.section,
+          unique(items.filter(inDepartment).map((p) => p.section).filter(Boolean)),
+          (section) => update({ section, category: '' }),
+        )}
+        {sideSelect(
+          'filtro-categoria',
+          'Categoria',
+          'Todas as categorias',
+          filters.category,
+          unique(
+            items
+              .filter((p) => inDepartment(p) && inSection(p))
+              .map((p) => p.category)
+              .filter(Boolean),
+          ),
+          (category) => update({ category }),
+        )}
+        {sideSelect(
+          'filtro-marca',
+          'Marca',
+          'Todas as marcas',
+          filters.brand,
+          unique(
+            items
+              .filter((p) => inDepartment(p) && inSection(p) && inCategory(p))
+              .map((p) => p.brand)
+              .filter(Boolean),
+          ),
+          (brand) => update({ brand }),
+        )}
+        <div className="v2-filter-field">
+          <label htmlFor="filtro-ordem">Ordenar por</label>
+          <NativeSelect
+            id="filtro-ordem"
+            value={filters.sort}
+            onChange={(e) => update({ sort: e.target.value as Filters['sort'] })}
+          >
+            <option value="featured">Mais relevantes</option>
+            <option value="name">Nome: A–Z</option>
+          </NativeSelect>
+        </div>
+        {hasActiveOffers && (
+          <label className="v2-filter-check" htmlFor="filtro-promocao">
+            <input
+              id="filtro-promocao"
+              type="checkbox"
+              checked={quick === 'offers'}
+              onChange={(e) => {
+                setQuick(e.target.checked ? 'offers' : '');
+                setLimit(PAGE_SIZE);
+              }}
+            />
+            Somente em promoção
+          </label>
+        )}
+        <button
+          type="button"
+          className="v2-filters-clear"
+          onClick={clearFilters}
+          disabled={!activeFilters && filters.sort === 'featured'}
+        >
+          Limpar filtros
+        </button>
+      </div>
+    </aside>
+  ) : null;
   function renderBlock(block: Block) {
     if (block.type === 'banners')
       return (
         <CatalogBanners key={block.id} config={config} title={block.title} />
       );
-    if (block.type === 'catalog')
+    if (block.type === 'catalog') {
+      const results = (
+          <section
+            className="catalog-section catalog-results"
+            aria-label="Produtos do catálogo"
+          >
+            <div className="result-line">
+              <span role="status">
+                {filtered.length}{' '}
+                {filtered.length === 1
+                  ? 'produto encontrado'
+                  : 'produtos encontrados'}
+                {filters.query && (
+                  <>
+                    {' '}para “{filters.query}”{' '}
+                    <button
+                      type="button"
+                      className="clear-query"
+                      onClick={() => {
+                        update({ query: '' });
+                        window.history.replaceState(null, '', window.location.pathname);
+                      }}
+                    >
+                      Limpar busca
+                    </button>
+                  </>
+                )}
+              </span>
+              {!sidebar && (
+              <label>
+                Ordenar{' '}
+                <NativeSelect
+                  aria-label="Ordenar produtos"
+                  value={filters.sort}
+                  onChange={(e) =>
+                    update({ sort: e.target.value as Filters['sort'] })
+                  }
+                >
+                  <option value="featured">Destaques</option>
+                  <option value="name">Nome: A–Z</option>
+                </NativeSelect>
+              </label>
+              )}
+            </div>
+            <div className="product-grid">
+              {filtered.slice(0, limit).map((p) => (
+                <ProductCard key={p.id} product={p} onOpen={setSelected} />
+              ))}
+            </div>
+            {!filtered.length && (
+              <div className="empty-state">
+                <Package />
+                <h2>
+                  {items.length
+                    ? 'Nenhum produto com esses filtros.'
+                    : 'O catálogo ainda está sendo preparado.'}
+                </h2>
+                <p>
+                  {items.length
+                    ? 'Experimente outra busca ou limpe os filtros.'
+                    : 'Em breve, os produtos publicados aparecerão aqui.'}
+                </p>
+              </div>
+            )}
+            {fullCatalogPage && !!filtered.length && filtered.length <= limit && (
+              <p className="catalog-end">Você chegou ao final do catálogo.</p>
+            )}
+            {filtered.length > limit && (
+              <div className="load-more">
+                {fullCatalogPage ? (
+                  <output ref={moreProducts} className="auto-load">
+                    Carregando mais produtos… {limit} de {filtered.length}
+                  </output>
+                ) : (
+                  <a className="catalog-page-link" href="/produtos">
+                    Ver todos os produtos ({filtered.length})
+                  </a>
+                )}
+              </div>
+            )}
+          </section>
+      );
       return (
         <CatalogCampaign
           key={block.id}
@@ -325,6 +560,13 @@ export function CatalogApp({
           }
           intro={<div className="campaign-visual-spacer" aria-hidden="true" />}
         >
+          {sidebar ? (
+            <div className="v2-container v2-catalog-layout">
+              {catalogSidebar}
+              {results}
+            </div>
+          ) : (
+            <>
           <div className="catalog-filter-band">
             <div className="catalog-toolbar catalog-taxonomy-toolbar">
               {skin && !fullCatalogPage ? (
@@ -425,87 +667,12 @@ export function CatalogApp({
           </div>
           {/* No tema que muda o site, a grade só aparece ao filtrar: a
               página começa pelas ofertas, como no esboço. */}
-          {(!skin || fullCatalogPage || quick || filters.department || filters.section || filters.category) && (
-          <section
-            className="catalog-section catalog-results"
-            aria-label="Produtos do catálogo"
-          >
-            <div className="result-line">
-              <span role="status">
-                {filtered.length}{' '}
-                {filtered.length === 1
-                  ? 'produto encontrado'
-                  : 'produtos encontrados'}
-                {filters.query && (
-                  <>
-                    {' '}para “{filters.query}”{' '}
-                    <button
-                      type="button"
-                      className="clear-query"
-                      onClick={() => {
-                        update({ query: '' });
-                        window.history.replaceState(null, '', window.location.pathname);
-                      }}
-                    >
-                      Limpar busca
-                    </button>
-                  </>
-                )}
-              </span>
-              <label>
-                Ordenar{' '}
-                <NativeSelect
-                  aria-label="Ordenar produtos"
-                  value={filters.sort}
-                  onChange={(e) =>
-                    update({ sort: e.target.value as Filters['sort'] })
-                  }
-                >
-                  <option value="featured">Destaques</option>
-                  <option value="name">Nome: A–Z</option>
-                </NativeSelect>
-              </label>
-            </div>
-            <div className="product-grid">
-              {filtered.slice(0, limit).map((p) => (
-                <ProductCard key={p.id} product={p} onOpen={setSelected} />
-              ))}
-            </div>
-            {!filtered.length && (
-              <div className="empty-state">
-                <Package />
-                <h2>
-                  {items.length
-                    ? 'Nenhum produto com esses filtros.'
-                    : 'O catálogo ainda está sendo preparado.'}
-                </h2>
-                <p>
-                  {items.length
-                    ? 'Experimente outra busca ou limpe os filtros.'
-                    : 'Em breve, os produtos publicados aparecerão aqui.'}
-                </p>
-              </div>
-            )}
-            {fullCatalogPage && !!filtered.length && filtered.length <= limit && (
-              <p className="catalog-end">Você chegou ao final do catálogo.</p>
-            )}
-            {filtered.length > limit && (
-              <div className="load-more">
-                {fullCatalogPage ? (
-                  <output ref={moreProducts} className="auto-load">
-                    Carregando mais produtos… {limit} de {filtered.length}
-                  </output>
-                ) : (
-                  <a className="catalog-page-link" href="/produtos">
-                    Ver todos os produtos ({filtered.length})
-                  </a>
-                )}
-              </div>
-            )}
-          </section>
+          {(!skin || fullCatalogPage || quick || filters.department || filters.section || filters.category) && results}
+            </>
           )}
         </CatalogCampaign>
       );
+    }
     if (block.type === 'offers')
       return (
         <ProductShowcaseCarousel
