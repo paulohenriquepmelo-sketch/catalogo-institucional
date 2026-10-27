@@ -6,6 +6,7 @@ import {
   useMemo,
   useState,
   type CSSProperties,
+  type ReactNode,
 } from 'react';
 import {
   ArrowRight,
@@ -36,7 +37,12 @@ import {
   CarouselItem,
   type CarouselApi,
 } from '@/components/ui/carousel';
-import { whatsappNumber, type Brand, type CatalogConfig } from '@/lib/catalog-config';
+import {
+  whatsappNumber,
+  type Brand,
+  type CatalogConfig,
+  type ProductShowcase,
+} from '@/lib/catalog-config';
 import { publishedBrands } from '@/lib/catalog-brands';
 import type { Product } from '@/lib/catalog-data';
 import { buildSegments, type Segment } from '@/lib/segments';
@@ -45,6 +51,7 @@ import { campaignSlides } from '@/lib/catalog-campaign';
 import { CollectionProducts } from './collection-products';
 import { AllBrandsList } from './all-brands-dialog';
 import { ProductCard } from './product-card';
+import { selectNewProducts } from './product-showcase-carousel';
 
 // Layout institucional da página inicial e do catálogo completo, conforme o
 // esboço aprovado em 27/10/2026. Os temas especiais (ex.: Black Friday)
@@ -407,6 +414,130 @@ export function HomeSegments({
   );
 }
 
+// Carrossel dos painéis azuis (marcas e novidades): setas nas laterais e
+// bolinhas embaixo, um grupo de cartões por vez.
+function PanelCarousel({
+  label,
+  itemClass,
+  loop,
+  children,
+}: {
+  label: string;
+  itemClass: string;
+  loop: boolean;
+  children: ReactNode[];
+}) {
+  const [api, setApi] = useState<CarouselApi>();
+  const [snap, setSnap] = useState(0);
+  const [snaps, setSnaps] = useState(0);
+  useEffect(() => {
+    if (!api) return;
+    const update = () => {
+      setSnap(api.selectedScrollSnap());
+      setSnaps(api.scrollSnapList().length);
+    };
+    update();
+    api.on('select', update);
+    api.on('reInit', update);
+    return () => {
+      api.off('select', update);
+      api.off('reInit', update);
+    };
+  }, [api]);
+  return (
+    <>
+      <Carousel
+        className="v2-panel-carousel"
+        setApi={setApi}
+        opts={{ align: 'start', slidesToScroll: 'auto', loop }}
+        aria-label={`Carrossel de ${label}`}
+      >
+        <button
+          type="button"
+          className="v2-carousel-arrow is-prev"
+          onClick={() => api?.scrollPrev()}
+          aria-label={`Voltar ${label}`}
+        >
+          <ChevronLeft aria-hidden="true" />
+        </button>
+        <CarouselContent className="v2-panel-track">
+          {children.map((child, i) => (
+            <CarouselItem key={i} className={itemClass}>
+              {child}
+            </CarouselItem>
+          ))}
+        </CarouselContent>
+        <button
+          type="button"
+          className="v2-carousel-arrow is-next"
+          onClick={() => api?.scrollNext()}
+          aria-label={`Avançar ${label}`}
+        >
+          <ChevronRight aria-hidden="true" />
+        </button>
+      </Carousel>
+      {snaps > 1 && (
+        <div className="v2-dots">
+          {Array.from({ length: snaps }, (_, i) => (
+            <button
+              key={i}
+              type="button"
+              className={i === snap ? 'is-active' : undefined}
+              aria-label={`Ir para o grupo ${i + 1} de ${snaps}`}
+              aria-current={i === snap ? 'true' : undefined}
+              onClick={() => api?.scrollTo(i)}
+            />
+          ))}
+        </div>
+      )}
+    </>
+  );
+}
+
+export function NewProductsPanel({
+  settings,
+  items,
+  onOpen,
+}: {
+  settings: ProductShowcase;
+  items: Product[];
+  onOpen: (product: Product) => void;
+}) {
+  const shown = useMemo(
+    () => (settings.published ? selectNewProducts(items, settings) : []),
+    [items, settings],
+  );
+  if (!shown.length) return null;
+  return (
+    <section className="v2-brands-wrap v2-new-wrap" aria-labelledby="v2-new-title">
+      <div className="v2-container">
+        <div className="v2-brands v2-new">
+          <div className="v2-brands-head">
+            <div>
+              <span className="v2-eyebrow v2-eyebrow-light">
+                {settings.eyebrow || 'Novidades no catálogo'}
+              </span>
+              <h2 id="v2-new-title">{settings.title}</h2>
+            </div>
+          </div>
+          <PanelCarousel
+            label="novidades"
+            itemClass="v2-new-item"
+            loop={shown.length > 6}
+          >
+            {shown.map((product) => (
+              <div className="v2-new-card" key={product.id}>
+                <span className="v2-new-badge">Novo</span>
+                <ProductCard product={product} onOpen={onOpen} />
+              </div>
+            ))}
+          </PanelCarousel>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export function HomeBrands({
   items,
   config,
@@ -429,25 +560,8 @@ export function HomeBrands({
       }, {}),
     [items],
   );
-  const [api, setApi] = useState<CarouselApi>();
-  const [snap, setSnap] = useState(0);
-  const [snaps, setSnaps] = useState(0);
   const [selected, setSelected] = useState<Brand | null>(null);
   const [showAll, setShowAll] = useState(false);
-  useEffect(() => {
-    if (!api) return;
-    const update = () => {
-      setSnap(api.selectedScrollSnap());
-      setSnaps(api.scrollSnapList().length);
-    };
-    update();
-    api.on('select', update);
-    api.on('reInit', update);
-    return () => {
-      api.off('select', update);
-      api.off('reInit', update);
-    };
-  }, [api]);
   if (!visible.length) return null;
   return (
     <section id="marcas" className="v2-brands-wrap" aria-labelledby="v2-brands-title">
@@ -470,57 +584,23 @@ export function HomeBrands({
               Ver todas as marcas <ArrowRight aria-hidden="true" />
             </button>
           </div>
-          <Carousel
-            className="v2-brands-carousel"
-            setApi={setApi}
-            opts={{ align: 'start', slidesToScroll: 'auto', loop: shown.length > 6 }}
-            aria-label="Carrossel de marcas"
+          <PanelCarousel
+            label="marcas"
+            itemClass="v2-brand-item"
+            loop={shown.length > 6}
           >
-            <button
-              type="button"
-              className="v2-carousel-arrow is-prev"
-              onClick={() => api?.scrollPrev()}
-              aria-label="Marcas anteriores"
-            >
-              <ChevronLeft aria-hidden="true" />
-            </button>
-            <CarouselContent className="v2-brands-track">
-              {shown.map((b) => (
-                <CarouselItem key={b.name} className="v2-brand-item">
-                  <button
-                    type="button"
-                    className="v2-brand-card"
-                    onClick={() => setSelected(b)}
-                    aria-label={`Ver produtos da marca ${b.name}`}
-                  >
-                    <img src={b.logo} alt={b.name} loading="lazy" />
-                  </button>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            <button
-              type="button"
-              className="v2-carousel-arrow is-next"
-              onClick={() => api?.scrollNext()}
-              aria-label="Próximas marcas"
-            >
-              <ChevronRight aria-hidden="true" />
-            </button>
-          </Carousel>
-          {snaps > 1 && (
-            <div className="v2-dots">
-              {Array.from({ length: snaps }, (_, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  className={i === snap ? 'is-active' : undefined}
-                  aria-label={`Ir para o grupo ${i + 1} de ${snaps}`}
-                  aria-current={i === snap ? 'true' : undefined}
-                  onClick={() => api?.scrollTo(i)}
-                />
-              ))}
-            </div>
-          )}
+            {shown.map((b) => (
+              <button
+                key={b.name}
+                type="button"
+                className="v2-brand-card"
+                onClick={() => setSelected(b)}
+                aria-label={`Ver produtos da marca ${b.name}`}
+              >
+                <img src={b.logo} alt={b.name} loading="lazy" />
+              </button>
+            ))}
+          </PanelCarousel>
         </div>
       </div>
       <Dialog

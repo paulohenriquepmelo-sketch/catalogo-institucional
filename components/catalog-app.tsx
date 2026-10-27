@@ -51,6 +51,7 @@ import {
   HomeFeatured,
   HomeHero,
   HomeSegments,
+  NewProductsPanel,
   SiteFooter,
   SiteHeader,
   SiteTopbar,
@@ -676,7 +677,14 @@ export function CatalogApp({
               </div>
             </section>
             {visibleBlocks.map((block) =>
-              block.type === 'offers' ? (
+              block.type === 'new-products' ? (
+                <NewProductsPanel
+                  key={block.id}
+                  settings={{ ...config.newProducts, title: block.title }}
+                  items={items}
+                  onOpen={setSelected}
+                />
+              ) : block.type === 'offers' ? (
                 <div id="ofertas" key={block.id}>
                   {renderBlock(block)}
                 </div>
