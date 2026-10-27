@@ -799,6 +799,8 @@ export function CatalogApp({
           showEditorLink={showEditorLink}
           onSearch={search}
           initialQuery={filters.query}
+          products={items}
+          onOpenProduct={setSelected}
         />
         {config.demo && (
           <div className="demo-notice">

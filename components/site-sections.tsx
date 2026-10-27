@@ -3,6 +3,7 @@
 import {
   createElement,
   useEffect,
+  useDeferredValue,
   useMemo,
   useState,
   type CSSProperties,
@@ -17,6 +18,7 @@ import {
   Mail,
   Menu,
   MessageCircle,
+  Package,
   Phone,
   Search,
   Settings2,
@@ -55,6 +57,7 @@ import {
   selectNewProducts,
 } from './product-showcase-carousel';
 import { catalogDateKey, type Product } from '@/lib/catalog-data';
+import { discover, emptyFilters } from '@/lib/catalog-discovery';
 
 // Layout institucional da página inicial e do catálogo completo, conforme o
 // esboço aprovado em 27/10/2026. Os temas especiais (ex.: Black Friday)
@@ -186,6 +189,152 @@ export function SiteTopbar({ config }: { config: CatalogConfig }) {
 
 export type NavKey = 'inicio' | 'catalogo';
 
+const SUGGESTIONS = 8;
+
+/** Busca do topo: mostra os produtos enquanto a pessoa digita (a partir de
+ * 2 letras). Clique ou Enter num item abre a ficha; Enter sem item
+ * escolhido leva ao catálogo filtrado. */
+function HeaderSearch({
+  initialQuery,
+  products,
+  onSearch,
+  onOpenProduct,
+}: {
+  initialQuery: string;
+  products: Product[];
+  onSearch: (query: string) => void;
+  onOpenProduct: (product: Product) => void;
+}) {
+  // A busca ativa chega como valor inicial (o pai troca a key ao mudar).
+  const [query, setQuery] = useState(initialQuery);
+  const [open, setOpen] = useState(false);
+  const [active, setActive] = useState(-1);
+  // Digitar fica fluido: a lista acompanha o texto logo em seguida.
+  const deferred = useDeferredValue(query.trim());
+  const found = useMemo(
+    () =>
+      deferred.length >= 2
+        ? discover(products, { ...emptyFilters, query: deferred })
+        : [],
+    [products, deferred],
+  );
+  const shown = found.slice(0, SUGGESTIONS);
+  const visible = open && deferred.length >= 2;
+  function choose(product: Product) {
+    setOpen(false);
+    setActive(-1);
+    onOpenProduct(product);
+  }
+  return (
+    <form
+      aria-label="Buscar no catálogo"
+      className="v2-search"
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (visible && active >= 0 && shown[active]) {
+          choose(shown[active]);
+          return;
+        }
+        setOpen(false);
+        onSearch(query.trim());
+      }}
+    >
+      <Search className="v2-search-icon" aria-hidden="true" />
+      <label htmlFor="v2-search-input" className="sr-only">
+        Buscar produtos
+      </label>
+      <input
+        id="v2-search-input"
+        type="search"
+        aria-controls="v2-search-list"
+        aria-describedby={visible ? 'v2-search-count' : undefined}
+        value={query}
+        onChange={(e) => {
+          setQuery(e.target.value);
+          setOpen(true);
+          setActive(-1);
+        }}
+        onFocus={() => setOpen(true)}
+        onBlur={(e) => {
+          // Fecha só quando o foco sai da busca (não ao clicar na lista).
+          if (!e.currentTarget.form?.contains(e.relatedTarget)) setOpen(false);
+        }}
+        onKeyDown={(e) => {
+          if (e.key === 'Escape') {
+            setOpen(false);
+            setActive(-1);
+          } else if (e.key === 'ArrowDown' && shown.length) {
+            e.preventDefault();
+            setOpen(true);
+            setActive((i) => (i + 1) % shown.length);
+          } else if (e.key === 'ArrowUp' && shown.length) {
+            e.preventDefault();
+            setActive((i) => (i <= 0 ? shown.length - 1 : i - 1));
+          }
+        }}
+        placeholder="Buscar por produto, marca ou código…"
+        autoComplete="off"
+        enterKeyHint="search"
+      />
+      <button type="submit" aria-label="Buscar">
+        <ArrowRight aria-hidden="true" />
+      </button>
+      {visible && (
+        <div className="v2-suggest">
+          <output id="v2-search-count" className="sr-only">
+            {found.length}{' '}
+            {found.length === 1 ? 'produto encontrado' : 'produtos encontrados'}
+          </output>
+          <ul id="v2-search-list" aria-label="Produtos encontrados">
+            {shown.map((p, i) => (
+              <li key={p.id}>
+                <button
+                  type="button"
+                  className={i === active ? 'is-active' : undefined}
+                  aria-current={i === active ? 'true' : undefined}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => choose(p)}
+                  onMouseEnter={() => setActive(i)}
+                >
+                <span className="v2-suggest-thumb">
+                  {p.image ? (
+                    <img src={p.image} alt="" loading="lazy" />
+                  ) : (
+                    <Package aria-hidden="true" />
+                  )}
+                </span>
+                <span className="v2-suggest-text">
+                  <strong>{p.name}</strong>
+                  <small>
+                    Código {p.code}
+                    {p.brand ? ` · ${p.brand}` : ''}
+                  </small>
+                </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+          {shown.length ? (
+            <button
+              type="submit"
+              className="v2-suggest-all"
+              onMouseDown={(e) => e.preventDefault()}
+            >
+              Ver todos os {found.length}{' '}
+              {found.length === 1 ? 'resultado' : 'resultados'} no catálogo
+              <ArrowRight aria-hidden="true" />
+            </button>
+          ) : (
+            <p className="v2-suggest-empty">
+              Nenhum produto encontrado para “{deferred}”.
+            </p>
+          )}
+        </div>
+      )}
+    </form>
+  );
+}
+
 export function SiteHeader({
   config,
   current,
@@ -195,6 +344,8 @@ export function SiteHeader({
   showEditorLink,
   onSearch,
   initialQuery = '',
+  products,
+  onOpenProduct,
 }: {
   config: CatalogConfig;
   current: NavKey;
@@ -204,10 +355,10 @@ export function SiteHeader({
   showEditorLink: boolean;
   onSearch: (query: string) => void;
   initialQuery?: string;
+  products: Product[];
+  onOpenProduct: (product: Product) => void;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
-  // A busca ativa chega como valor inicial (o pai troca a key ao mudar).
-  const [query, setQuery] = useState(initialQuery);
   const home = current === 'inicio' ? '' : '/';
   const items: [string, string, boolean][] = [
     ['Início', current === 'inicio' ? '#inicio' : '/', current === 'inicio'],
@@ -258,31 +409,12 @@ export function SiteHeader({
             </a>
           )}
         </nav>
-        <form
-          aria-label="Buscar no catálogo"
-          className="v2-search"
-          onSubmit={(e) => {
-            e.preventDefault();
-            onSearch(query.trim());
-          }}
-        >
-          <Search className="v2-search-icon" aria-hidden="true" />
-          <label htmlFor="v2-search-input" className="sr-only">
-            Buscar produtos
-          </label>
-          <input
-            id="v2-search-input"
-            type="search"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Buscar por produto, marca ou código…"
-            autoComplete="off"
-            enterKeyHint="search"
-          />
-          <button type="submit" aria-label="Buscar">
-            <ArrowRight aria-hidden="true" />
-          </button>
-        </form>
+        <HeaderSearch
+          initialQuery={initialQuery}
+          products={products}
+          onSearch={onSearch}
+          onOpenProduct={onOpenProduct}
+        />
         <button
           type="button"
           className="v2-menu-button"
