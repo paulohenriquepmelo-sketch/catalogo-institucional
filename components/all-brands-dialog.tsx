@@ -22,9 +22,18 @@ type Props = {
   counts: Record<string, number>;
   contact: CommercialContact;
   style?: CSSProperties;
+  /** Aberto pelo layout novo do site (repassado à janela de produtos). */
+  modern?: boolean;
 };
 
-export function AllBrandsList({ brands, items, counts, contact, style }: Props) {
+export function AllBrandsList({
+  brands,
+  items,
+  counts,
+  contact,
+  style,
+  modern = false,
+}: Props) {
   const searchId = useId();
   const [query, setQuery] = useState('');
   const [selected, setSelected] = useState<Brand | null>(null);
@@ -68,6 +77,7 @@ export function AllBrandsList({ brands, items, counts, contact, style }: Props) 
               items={items}
               contact={contact}
               style={style}
+              modern={modern}
             />
           )}
         </Dialog>
