@@ -1794,3 +1794,26 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* Ofertas: o mesmo painel das marcas, em vermelho. */
+.site-v2 .v2-brands.v2-offers {
+  background:
+    radial-gradient(120% 140% at 100% 0%, rgba(255, 255, 255, 0.12), transparent 55%),
+    linear-gradient(120deg, #8f0b12, #b5121b 45%, #d81f26);
+}
+.site-v2 .v2-offers .v2-new-badge {
+  background: var(--v2-navy);
+}
+.site-v2 .v2-offers .v2-dots button::before {
+  background: rgba(255, 255, 255, 0.45);
+}
+.site-v2 .v2-offers .v2-dots button.is-active::before {
+  background: #fff;
+}
+.site-v2 .v2-offers .v2-carousel-arrow {
+  color: #8f0b12;
+}
+.site-v2 #ofertas.v2-new-wrap {
+  padding-top: 0;
+  padding-bottom: 40px;
+}

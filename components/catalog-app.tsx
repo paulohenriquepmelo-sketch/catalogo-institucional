@@ -53,6 +53,7 @@ import {
   HomeHero,
   HomeSegments,
   NewProductsPanel,
+  OffersPanel,
   SiteFooter,
   SiteHeader,
   SiteTopbar,
@@ -182,7 +183,7 @@ export function CatalogApp({
   // novidades antes da grade; a página inicial tem seções próprias.
   const v2 = !campaignSkin(config.campaign);
   const fullPageTypes: Block['type'][] = v2
-    ? ['offers', 'new-products', 'catalog']
+    ? ['new-products', 'catalog']
     : ['catalog'];
   const visibleBlocks = fullCatalogPage
     ? fullPageTypes.flatMap((type) =>
@@ -851,10 +852,6 @@ export function CatalogApp({
                   items={items}
                   onOpen={setSelected}
                 />
-              ) : block.type === 'offers' ? (
-                <div id="ofertas" key={block.id}>
-                  {renderBlock(block)}
-                </div>
               ) : (
                 renderBlock(block)
               ),
@@ -871,6 +868,18 @@ export function CatalogApp({
               <HomeBrands items={items} config={config} style={style} />
             )}
             <HomeFeatured items={items} onOpen={setSelected} />
+            {has('offers') && (
+              <OffersPanel
+                settings={{
+                  ...config.offers,
+                  title:
+                    allVisibleBlocks.find((b) => b.type === 'offers')?.title ??
+                    config.offers.title,
+                }}
+                items={items}
+                onOpen={setSelected}
+              />
+            )}
           </>
         )}
         <ContactBand config={config} />

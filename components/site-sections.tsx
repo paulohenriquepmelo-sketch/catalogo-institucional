@@ -44,14 +44,17 @@ import {
   type ProductShowcase,
 } from '@/lib/catalog-config';
 import { publishedBrands } from '@/lib/catalog-brands';
-import type { Product } from '@/lib/catalog-data';
 import { buildSegments, type Segment } from '@/lib/segments';
 import { segmentIconById } from '@/lib/segment-icons';
 import { campaignSlides } from '@/lib/catalog-campaign';
 import { CollectionProducts } from './collection-products';
 import { AllBrandsList } from './all-brands-dialog';
 import { ProductCard } from './product-card';
-import { selectNewProducts } from './product-showcase-carousel';
+import {
+  selectActiveOffers,
+  selectNewProducts,
+} from './product-showcase-carousel';
+import { catalogDateKey, type Product } from '@/lib/catalog-data';
 
 // Layout institucional da página inicial e do catálogo completo, conforme o
 // esboço aprovado em 27/10/2026. Os temas especiais (ex.: Black Friday)
@@ -146,7 +149,7 @@ export function SiteHeader({
       ? [['Marcas', `${home}#marcas`, false] as [string, string, boolean]]
       : []),
     ...(hasOffers
-      ? [['Ofertas', '/produtos#ofertas', false] as [string, string, boolean]]
+      ? [['Ofertas', `${home}#ofertas`, false] as [string, string, boolean]]
       : []),
     ['Contato', '#contato', false],
   ];
@@ -494,6 +497,59 @@ function PanelCarousel({
   );
 }
 
+// Painel de vitrine (novidades e ofertas): mesmo formato do painel das
+// marcas, com cartões de produto do tamanho da grade.
+function ShowcasePanel({
+  id,
+  tone,
+  eyebrow,
+  title,
+  label,
+  products,
+  badge,
+  onOpen,
+}: {
+  id: string;
+  tone: 'blue' | 'red';
+  eyebrow: string;
+  title: string;
+  label: string;
+  products: Product[];
+  badge: (product: Product) => string;
+  onOpen: (product: Product) => void;
+}) {
+  return (
+    <section
+      id={id}
+      className="v2-brands-wrap v2-new-wrap"
+      aria-labelledby={`${id}-title`}
+    >
+      <div className="v2-container">
+        <div className={`v2-brands v2-new${tone === 'red' ? ' v2-offers' : ''}`}>
+          <div className="v2-brands-head">
+            <div>
+              <span className="v2-eyebrow v2-eyebrow-light">{eyebrow}</span>
+              <h2 id={`${id}-title`}>{title}</h2>
+            </div>
+          </div>
+          <PanelCarousel
+            label={label}
+            itemClass="v2-new-item"
+            loop={products.length > 6}
+          >
+            {products.map((product) => (
+              <div className="v2-new-card" key={product.id}>
+                <span className="v2-new-badge">{badge(product)}</span>
+                <ProductCard product={product} onOpen={onOpen} />
+              </div>
+            ))}
+          </PanelCarousel>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export function NewProductsPanel({
   settings,
   items,
@@ -509,32 +565,55 @@ export function NewProductsPanel({
   );
   if (!shown.length) return null;
   return (
-    <section className="v2-brands-wrap v2-new-wrap" aria-labelledby="v2-new-title">
-      <div className="v2-container">
-        <div className="v2-brands v2-new">
-          <div className="v2-brands-head">
-            <div>
-              <span className="v2-eyebrow v2-eyebrow-light">
-                {settings.eyebrow || 'Novidades no catálogo'}
-              </span>
-              <h2 id="v2-new-title">{settings.title}</h2>
-            </div>
-          </div>
-          <PanelCarousel
-            label="novidades"
-            itemClass="v2-new-item"
-            loop={shown.length > 6}
-          >
-            {shown.map((product) => (
-              <div className="v2-new-card" key={product.id}>
-                <span className="v2-new-badge">Novo</span>
-                <ProductCard product={product} onOpen={onOpen} />
-              </div>
-            ))}
-          </PanelCarousel>
-        </div>
-      </div>
-    </section>
+    <ShowcasePanel
+      id="novidades"
+      tone="blue"
+      eyebrow={settings.eyebrow || 'Novidades no catálogo'}
+      title={settings.title}
+      label="novidades"
+      products={shown}
+      badge={() => 'Novo'}
+      onOpen={onOpen}
+    />
+  );
+}
+
+const shortDate = (date: string) => date.split('-').reverse().slice(0, 2).join('/');
+
+// Ofertas: só aparece com oferta ativa (cadastrada no editor, dentro do
+// período). O selo mostra o desconto e o último dia da oferta.
+export function OffersPanel({
+  settings,
+  items,
+  onOpen,
+}: {
+  settings: ProductShowcase;
+  items: Product[];
+  onOpen: (product: Product) => void;
+}) {
+  const shown = useMemo(
+    () =>
+      settings.published
+        ? selectActiveOffers(items, catalogDateKey(), settings.limit)
+        : [],
+    [items, settings],
+  );
+  if (!shown.length) return null;
+  return (
+    <ShowcasePanel
+      id="ofertas"
+      tone="red"
+      eyebrow={settings.eyebrow || 'Economize agora'}
+      title={settings.title}
+      label="ofertas"
+      products={shown}
+      badge={(product) => {
+        const offer = product.details?.offer;
+        if (!offer) return 'Oferta';
+        return `${offer.discount}% OFF · até ${shortDate(offer.endsAt)}`;
+      }}
+      onOpen={onOpen}
+    />
   );
 }
 
@@ -811,7 +890,7 @@ export function SiteFooter({
           <a href="/produtos">Catálogo completo</a>
           {hasBrands && <a href={`${home}#marcas`}>Marcas</a>}
           {hasSegments && <a href={`${home}#segmentos`}>Segmentos</a>}
-          {hasOffers && <a href="/produtos#ofertas">Ofertas</a>}
+          {hasOffers && <a href={`${home}#ofertas`}>Ofertas</a>}
         </nav>
         {links.rca && (
           <div className="v2-footer-cta">
