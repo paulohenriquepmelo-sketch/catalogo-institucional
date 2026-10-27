@@ -14,6 +14,7 @@ import {
   defaultCampaign,
   type CatalogCampaign,
 } from './catalog-campaign';
+import { SEGMENT_RULES } from './segment-rules';
 
 export type TaxonomyPath = {
   department: string;
@@ -98,6 +99,9 @@ export type CatalogConfig = {
   campaign: CatalogCampaign;
   offers: ProductShowcase;
   newProducts: ProductShowcase;
+  /** Foto de capa de cada segmento na página inicial, pelo id da regra
+   * (lib/segment-rules.ts). Sem foto, o cartão mostra o ícone. */
+  segmentImages?: Record<string, string>;
 };
 
 export const defaultOffers: ProductShowcase = {
@@ -123,6 +127,7 @@ export const defaultNewProducts: ProductShowcase = {
 export const defaultConfig: CatalogConfig = {
   layout: { ...defaultLayout },
   colors: { ...laurenciniColors },
+  segmentImages: {},
   campaign: defaultCampaign,
   offers: defaultOffers,
   newProducts: defaultNewProducts,
@@ -434,6 +439,19 @@ function validateShowcase(
     ...(withDays && Number.isInteger(v.fromCode) ? { fromCode: v.fromCode } : {}),
   };
 }
+function validateSegmentImages(value: unknown): Record<string, string> {
+  if (value === undefined || value === null) return {};
+  if (typeof value !== 'object' || Array.isArray(value))
+    throw new Error('Revise as fotos dos segmentos.');
+  const ids = new Set(SEGMENT_RULES.map((rule) => rule.id));
+  const images: Record<string, string> = {};
+  for (const [id, image] of Object.entries(value)) {
+    if (!ids.has(id)) throw new Error('Segmento inválido nas fotos.');
+    const url = imageUrl(image);
+    if (url) images[id] = url;
+  }
+  return images;
+}
 export function validateConfig(value: unknown): CatalogConfig {
   if (!value || typeof value !== 'object')
     throw new Error('Configuração inválida.');
@@ -494,6 +512,7 @@ export function validateConfig(value: unknown): CatalogConfig {
       link: safeLink(b.link),
       visible: b.visible === true,
     })),
+    segmentImages: validateSegmentImages(v.segmentImages),
     blocks: list(v.blocks, 30).map((b) => {
       if (
         ![

@@ -104,9 +104,14 @@ void test('segments use distinct activity icons and open the same collection pop
   assert.match(source, /kind="segment"/);
   assert.match(source, /groups=\{segment\.groups\}/);
   assert.doesNotMatch(source, /scrollIntoView|window\.location/);
+  // Abrir um segmento nunca rola a página; a única rolagem do catálogo é a
+  // da busca do topo, que leva aos resultados.
+  const app = readFileSync('components/catalog-app.tsx', 'utf8');
+  assert.equal((app.match(/scrollIntoView/g) ?? []).length, 1);
+  assert.match(app, /function search\(query: string\)[\s\S]*?scrollIntoView/);
   assert.doesNotMatch(
-    readFileSync('components/catalog-app.tsx', 'utf8'),
-    /scrollIntoView/,
+    readFileSync('components/site-sections.tsx', 'utf8'),
+    /scrollIntoView|window\.location/,
   );
 });
 

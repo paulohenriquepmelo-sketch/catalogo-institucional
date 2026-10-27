@@ -12,6 +12,7 @@ import { ColorEditor } from './color-editor';
 import { resolveColors } from '@/lib/catalog-colors';
 import type { Product } from '@/lib/catalog-data';
 import { buildSegments } from '@/lib/segments';
+import { SEGMENT_RULES } from '@/lib/segment-rules';
 
 export type EditorView =
   | 'overview'
@@ -562,6 +563,46 @@ export function ConfigEditor({
               })
             }
           />
+        </div>
+        <h4 className="segment-photos-title">Fotos dos segmentos</h4>
+        <p className="source-note">
+          A página inicial mostra os 4 primeiros segmentos com foto de capa
+          (proporção 2:1, por exemplo 800 × 400 px). Sem foto, o cartão mostra
+          o ícone do segmento.
+        </p>
+        <div className="settings-grid segment-photos">
+          {SEGMENT_RULES.filter((rule) => !rule.hidden).map((rule) => {
+            const image = config.segmentImages?.[rule.id] ?? '';
+            return (
+              <article className="settings-card" key={rule.id}>
+                <h4>{rule.name}</h4>
+                <UploadField
+                  label={`Foto de ${rule.name}`}
+                  value={image}
+                  onBusy={onBusy}
+                  onChange={(url) => {
+                    const next = { ...config.segmentImages };
+                    if (url) next[rule.id] = url;
+                    else delete next[rule.id];
+                    change('segmentImages', next);
+                  }}
+                />
+                {image && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const next = { ...config.segmentImages };
+                      delete next[rule.id];
+                      change('segmentImages', next);
+                    }}
+                  >
+                    <Trash2 /> Remover foto (volta o ícone)
+                  </Button>
+                )}
+              </article>
+            );
+          })}
         </div>
         <SegmentsOverview products={products} />
       </Panel>
