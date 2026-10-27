@@ -63,17 +63,94 @@ import { catalogDateKey, type Product } from '@/lib/catalog-data';
 const rcaMessage =
   'Olá! Quero saber qual é o RCA (representante comercial) que atende a minha região. Minha cidade é: ';
 
+/** Link do RCA com a cidade já na mensagem: WhatsApp comercial ou, sem ele,
+ * e-mail. Vazio quando não há nenhum dos dois cadastrado. */
+export function rcaLink(
+  config: Pick<CatalogConfig, 'whatsapp' | 'email'>,
+  city = '',
+) {
+  const text = rcaMessage + city.trim().slice(0, 80);
+  if (config.whatsapp)
+    return `https://wa.me/${whatsappNumber(config.whatsapp)}?text=${encodeURIComponent(text)}`;
+  if (config.email)
+    return `mailto:${config.email}?subject=${encodeURIComponent('RCA da minha região')}&body=${encodeURIComponent(text)}`;
+  return '';
+}
+
+/** Botão do RCA: pergunta a cidade numa caixa e então abre o WhatsApp (ou o
+ * e-mail) com a mensagem pronta. */
+export function RcaButton({
+  config,
+  className,
+  children,
+}: {
+  config: CatalogConfig;
+  className?: string;
+  children: ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+  const [city, setCity] = useState('');
+  if (!rcaLink(config)) return null;
+  const viaWhatsapp = Boolean(config.whatsapp);
+  return (
+    <>
+      <button type="button" className={className} onClick={() => setOpen(true)}>
+        {children}
+      </button>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="v2-rca-dialog">
+          <DialogHeader>
+            <DialogTitle>Qual é a sua cidade?</DialogTitle>
+            <DialogDescription>
+              Informe a cidade para indicarmos o representante comercial (RCA)
+              que atende a sua região.
+            </DialogDescription>
+          </DialogHeader>
+          <form
+            className="v2-rca-form"
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (!city.trim()) return;
+              const href = rcaLink(config, city);
+              if (viaWhatsapp) {
+                // Sem "noopener" nas opções: com ele o navegador devolve null
+                // mesmo abrindo a aba. O vínculo é cortado logo em seguida.
+                const tab = window.open(href, '_blank');
+                if (tab) tab.opener = null;
+                else window.location.href = href;
+              } else window.location.href = href;
+              setOpen(false);
+              setCity('');
+            }}
+          >
+            <label htmlFor="v2-rca-city">Cidade</label>
+            <input
+              id="v2-rca-city"
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
+              placeholder="Ex.: Vitória"
+              autoComplete="address-level2"
+              maxLength={80}
+              required
+            />
+            <button type="submit" disabled={!city.trim()}>
+              <MessageCircle aria-hidden="true" />
+              {viaWhatsapp ? 'Enviar no WhatsApp' : 'Enviar por e-mail'}
+            </button>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
+
 export function contactLinks(config: CatalogConfig) {
   const whatsapp = config.whatsapp
     ? `https://wa.me/${whatsappNumber(config.whatsapp)}`
     : '';
   return {
     whatsapp,
-    rca: whatsapp
-      ? `${whatsapp}?text=${encodeURIComponent(rcaMessage)}`
-      : config.email
-        ? `mailto:${config.email}?subject=${encodeURIComponent('RCA da minha região')}&body=${encodeURIComponent(rcaMessage)}`
-        : '',
+    rca: rcaLink(config),
     phone: config.phone ? `tel:+${whatsappNumber(config.phone)}` : '',
     email: config.email ? `mailto:${config.email}` : '',
   };
@@ -98,16 +175,9 @@ export function SiteTopbar({ config }: { config: CatalogConfig }) {
               <Mail aria-hidden="true" /> {config.email}
             </a>
           )}
-          {links.rca && (
-            <a
-              className="v2-topbar-rca"
-              href={links.rca}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <MessageCircle aria-hidden="true" /> Fale com o RCA da sua região
-            </a>
-          )}
+          <RcaButton config={config} className="v2-topbar-rca">
+            <MessageCircle aria-hidden="true" /> Fale com o RCA da sua região
+          </RcaButton>
         </div>
       </div>
     </div>
@@ -859,11 +929,9 @@ export function SiteFooter({
         <nav className="v2-footer-col" aria-label="Institucional">
           <strong>Institucional</strong>
           <a href="#contato">Fale conosco</a>
-          {links.rca && (
-            <a href={links.rca} target="_blank" rel="noopener noreferrer">
-              Qual é o RCA da minha região?
-            </a>
-          )}
+          <RcaButton config={config} className="v2-footer-link">
+            Qual é o RCA da minha região?
+          </RcaButton>
         </nav>
         {(config.whatsapp || config.phone || config.email) && (
           <div className="v2-footer-col v2-footer-contact">
@@ -901,14 +969,12 @@ export function SiteFooter({
                 <small>Descubra quem atende a sua cidade</small>
               </span>
             </span>
-            <a
+            <RcaButton
+              config={config}
               className="v2-button v2-button-red v2-button-small"
-              href={links.rca}
-              target="_blank"
-              rel="noopener noreferrer"
             >
               {config.whatsapp ? 'Falar no WhatsApp' : 'Enviar e-mail'}
-            </a>
+            </RcaButton>
           </div>
         )}
       </div>
