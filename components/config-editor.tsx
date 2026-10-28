@@ -1046,6 +1046,40 @@ export function ConfigEditor({
 // Resumo (só leitura) dos segmentos: regras compartilhadas com o app mobile.
 // Contato comercial: WhatsApp, telefone e e-mail usados no popup do produto,
 // no rodapé e no link do RCA da faixa do topo. Editado na Visão geral.
+export function CompanySettings({
+  config,
+  onChange,
+}: {
+  config: CatalogConfig;
+  onChange: (config: CatalogConfig) => void;
+}) {
+  const filled = [config.legalName, config.cnpj, config.address].some(Boolean);
+  return (
+    <section className="contact-settings" aria-label="Dados da empresa">
+      <Field
+        label="Razão social"
+        value={config.legalName ?? ''}
+        onChange={(v) => onChange({ ...config, legalName: v })}
+      />
+      <Field
+        label="CNPJ (ex.: 00.000.000/0000-00)"
+        value={config.cnpj ?? ''}
+        onChange={(v) => onChange({ ...config, cnpj: v })}
+      />
+      <Field
+        label="Endereço comercial"
+        value={config.address ?? ''}
+        onChange={(v) => onChange({ ...config, address: v })}
+      />
+      <output>
+        {filled
+          ? 'Aparecem no rodapé do site depois de publicar.'
+          : 'Em branco, o rodapé mostra só o nome da empresa.'}
+      </output>
+    </section>
+  );
+}
+
 export function CommercialContactSettings({
   config,
   onChange,
@@ -1072,21 +1106,6 @@ export function CommercialContactSettings({
         value={config.email}
         type="email"
         onChange={(v) => onChange({ ...config, email: v })}
-      />
-      <Field
-        label="Razão social (aparece no rodapé)"
-        value={config.legalName ?? ''}
-        onChange={(v) => onChange({ ...config, legalName: v })}
-      />
-      <Field
-        label="CNPJ (aparece no rodapé)"
-        value={config.cnpj ?? ''}
-        onChange={(v) => onChange({ ...config, cnpj: v })}
-      />
-      <Field
-        label="Endereço comercial (aparece no rodapé)"
-        value={config.address ?? ''}
-        onChange={(v) => onChange({ ...config, address: v })}
       />
       <output>
         {config.whatsapp || config.email || config.phone
