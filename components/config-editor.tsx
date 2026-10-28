@@ -1073,6 +1073,21 @@ export function CommercialContactSettings({
         type="email"
         onChange={(v) => onChange({ ...config, email: v })}
       />
+      <Field
+        label="Razão social (aparece no rodapé)"
+        value={config.legalName ?? ''}
+        onChange={(v) => onChange({ ...config, legalName: v })}
+      />
+      <Field
+        label="CNPJ (aparece no rodapé)"
+        value={config.cnpj ?? ''}
+        onChange={(v) => onChange({ ...config, cnpj: v })}
+      />
+      <Field
+        label="Endereço comercial (aparece no rodapé)"
+        value={config.address ?? ''}
+        onChange={(v) => onChange({ ...config, address: v })}
+      />
       <output>
         {config.whatsapp || config.email || config.phone
           ? 'Os clientes poderão falar com o comercial pelo popup do produto, pelo rodapé e pelo link do RCA no topo.'

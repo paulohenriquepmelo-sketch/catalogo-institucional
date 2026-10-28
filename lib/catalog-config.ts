@@ -67,6 +67,18 @@ export type ProductShowcase = {
 export type CommercialContact = Pick<CatalogConfig, 'email' | 'phone' | 'whatsapp'>;
 
 // Número no formato do wa.me: só dígitos, com o 55 do Brasil quando faltar.
+/** CNPJ com os 14 números e os dois dígitos verificadores corretos. */
+export function validCnpj(value: string) {
+  const d = value.replace(/\D/g, '');
+  if (d.length !== 14 || /^(\d)\1+$/.test(d)) return false;
+  const digit = (len: number) => {
+    let sum = 0;
+    for (let i = 0; i < len; i++) sum += Number(d[i]) * ((len - i - 1) % 8 + 2);
+    const r = sum % 11;
+    return r < 2 ? 0 : 11 - r;
+  };
+  return digit(12) === Number(d[12]) && digit(13) === Number(d[13]);
+}
 export function whatsappNumber(value: string) {
   const digits = value.replace(/\D/g, '');
   return digits.length <= 11 ? `55${digits}` : digits;
@@ -83,6 +95,10 @@ export type CatalogConfig = {
   phone: string;
   /** WhatsApp comercial: botão no popup do produto e link no rodapé. */
   whatsapp: string;
+  /** Identificação da empresa no rodapé; aparece só quando preenchida. */
+  legalName?: string;
+  cnpj?: string;
+  address?: string;
   footer: string;
   primary: string;
   accent: string;
@@ -149,6 +165,9 @@ export const defaultConfig: CatalogConfig = {
   colors: { ...laurenciniColors },
   segmentImages: {},
   popup: defaultPopup,
+  legalName: '',
+  cnpj: '',
+  address: '',
   campaign: defaultCampaign,
   offers: defaultOffers,
   newProducts: defaultNewProducts,
@@ -536,6 +555,9 @@ export function validateConfig(value: unknown): CatalogConfig {
     email: field(v.email, 'e-mail', 254, true),
     phone: field(v.phone ?? '', 'telefone', 40, true),
     whatsapp: field(v.whatsapp ?? '', 'WhatsApp', 40, true),
+    legalName: field(v.legalName ?? '', 'razão social', 160, true),
+    cnpj: field(v.cnpj ?? '', 'CNPJ', 20, true),
+    address: field(v.address ?? '', 'endereço', 240, true),
     footer: field(v.footer, 'rodapé', 1000, true),
     primary: v.primary,
     accent: v.accent,
@@ -606,6 +628,8 @@ export function validateConfig(value: unknown): CatalogConfig {
   ] as const)
     if (value && !/^\+?[\d\s().-]{8,}$/.test(value))
       throw new Error(`${label} inválido. Use só números, espaços, parênteses e traço.`);
+  if (config.cnpj && !validCnpj(config.cnpj))
+    throw new Error('CNPJ inválido. Confira os 14 números.');
   if (config.whatsapp && whatsappNumber(config.whatsapp).length < 12)
     throw new Error('WhatsApp inválido. Informe o DDD, por exemplo (44) 99999-9999.');
   const unique = (keys: string[]) => new Set(keys).size === keys.length;

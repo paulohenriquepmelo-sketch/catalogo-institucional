@@ -7123,3 +7123,20 @@ a:focus-visible {
     grid-template-columns: 1fr;
   }
 }
+
+/* Avisos de catálogo informativo e das ofertas (layout dos temas). */
+.site-footer .footer-notice {
+  padding: 14px clamp(16px, 4vw, 48px) 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  opacity: 0.85;
+}
+.site-footer .footer-notice p {
+  max-width: 900px;
+  margin: 2px 0 0;
+}
+.product-showcase .showcase-note {
+  margin: 10px 0 0;
+  font-size: 12.5px;
+  opacity: 0.8;
+}

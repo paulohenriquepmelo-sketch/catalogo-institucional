@@ -48,6 +48,7 @@ import {
 } from '@/lib/catalog-config';
 import { publishedBrands } from '@/lib/catalog-brands';
 import { buildSegments, segmentPhoto, type Segment } from '@/lib/segments';
+import { CATALOG_NOTICE, OFFERS_NOTICE } from '@/lib/catalog-notices';
 import { segmentIconById } from '@/lib/segment-icons';
 import { campaignSlides } from '@/lib/catalog-campaign';
 import { CollectionProducts } from './collection-products';
@@ -108,7 +109,10 @@ export function RcaButton({
             <DialogTitle>Qual é a sua cidade?</DialogTitle>
             <DialogDescription>
               Informe a cidade para indicarmos o representante comercial (RCA)
-              que atende a sua região.
+              que atende a sua região.{' '}
+              {viaWhatsapp
+                ? 'Ao enviar, abrimos o WhatsApp (serviço externo) com a mensagem pronta; a cidade não fica guardada no site.'
+                : 'Ao enviar, abrimos o seu e-mail com a mensagem pronta; a cidade não fica guardada no site.'}
             </DialogDescription>
           </DialogHeader>
           <form
@@ -723,6 +727,7 @@ function ShowcasePanel({
   products,
   badge,
   onOpen,
+  note,
 }: {
   id: string;
   tone: 'blue' | 'red';
@@ -732,6 +737,7 @@ function ShowcasePanel({
   products: Product[];
   badge: (product: Product) => string;
   onOpen: (product: Product) => void;
+  note?: string;
 }) {
   return (
     <section
@@ -759,6 +765,7 @@ function ShowcasePanel({
               </div>
             ))}
           </PanelCarousel>
+          {note && <p className="v2-panel-note">{note}</p>}
         </div>
       </div>
     </section>
@@ -827,6 +834,7 @@ export function OffersPanel({
         if (!offer) return 'Oferta';
         return `${offer.discount}% OFF · até ${shortDate(offer.endsAt)}`;
       }}
+      note={OFFERS_NOTICE}
       onOpen={onOpen}
     />
   );
@@ -1046,6 +1054,25 @@ export function ContactBand({ config }: { config: CatalogConfig }) {
   );
 }
 
+/** Aviso do rodapé: o site é catálogo informativo, não loja. */
+export function CatalogNotice({ className }: { className?: string }) {
+  return (
+    <div className={className}>
+      <strong>Catálogo digital informativo</strong>
+      <p>{CATALOG_NOTICE}</p>
+    </div>
+  );
+}
+
+/** Razão social, CNPJ e endereço, quando cadastrados no editor. */
+export function companyIdentity(config: CatalogConfig) {
+  return [
+    config.legalName,
+    config.cnpj && `CNPJ ${config.cnpj}`,
+    config.address,
+  ].filter(Boolean).join(' · ');
+}
+
 export function SiteFooter({
   config,
   current,
@@ -1129,10 +1156,14 @@ export function SiteFooter({
           </div>
         )}
       </div>
+      <CatalogNotice className="v2-container v2-footer-notice" />
       <div className="v2-container v2-footer-bottom">
         <span>
-          © {new Date().getFullYear()} {config.name}. Todos os direitos
-          reservados.
+          © {new Date().getFullYear()} {config.legalName || config.name}. Todos
+          os direitos reservados.
+          {companyIdentity(config) && (
+            <span className="v2-footer-identity">{companyIdentity(config)}</span>
+          )}
         </span>
         <span>Distribuição • Variedade • Relacionamento</span>
       </div>

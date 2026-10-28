@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/carousel';
 import { catalogDateKey, type Product } from '@/lib/catalog-data';
 import type { ProductShowcase } from '@/lib/catalog-config';
+import { OFFERS_NOTICE } from '@/lib/catalog-notices';
 import { ProductCard } from './product-card';
 
 const localDateKey = catalogDateKey;
@@ -240,6 +241,7 @@ export function ProductShowcaseCarousel({
           <CarouselNext aria-label={`Avançar ${label}`} />
         </div>
       </Carousel>
+      {isOffer && <p className="showcase-note">{OFFERS_NOTICE}</p>}
     </section>
   );
 }

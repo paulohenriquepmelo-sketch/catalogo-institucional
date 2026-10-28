@@ -1244,6 +1244,33 @@
   font-size: 13px;
 }
 
+/* Aviso de catálogo informativo e identificação da empresa: discretos. */
+.site-v2 .v2-footer-notice {
+  padding-top: 16px;
+  border-top: 1px solid rgb(255 255 255 / 0.12);
+  color: #b8c6f0;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+.site-v2 .v2-footer-notice strong {
+  color: #dfe7ff;
+  font-size: 12.5px;
+}
+.site-v2 .v2-footer-notice p {
+  max-width: 900px;
+  margin: 2px 0 0;
+}
+.site-v2 .v2-footer-identity {
+  display: block;
+  margin-top: 4px;
+}
+/* Observação das ofertas, embaixo do carrossel. */
+.site-v2 .v2-panel-note {
+  margin: 14px 0 0;
+  color: rgb(255 255 255 / 0.85);
+  font-size: 12.5px;
+}
+
 /* Âncoras não ficam escondidas atrás do cabeçalho fixo. */
 .site-v2 section[id],
 .site-v2 #ofertas {

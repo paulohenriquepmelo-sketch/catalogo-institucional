@@ -46,6 +46,8 @@ import {
   selectNewProducts,
 } from './product-showcase-carousel';
 import {
+  CatalogNotice,
+  companyIdentity,
   ContactBand,
   HomeBenefits,
   HomeBrands,
@@ -1064,7 +1066,7 @@ export function CatalogApp({
             )}
             {has('brands') && (
               <a href={fullCatalogPage ? '/#marcas' : '#marcas'}>
-                Marcas parceiras
+                Marcas que comercializamos
               </a>
             )}
             {(config.whatsapp || config.phone || config.email) && (
@@ -1100,9 +1102,11 @@ export function CatalogApp({
             <a href="#catalogo">Explorar catálogo</a>
           </div>
         </div>
+        <CatalogNotice className="footer-notice" />
         <div className="footer-bottom">
           <span>
-            © {new Date().getFullYear()} {config.name}
+            © {new Date().getFullYear()} {config.legalName || config.name}
+            {companyIdentity(config) && ` · ${companyIdentity(config)}`}
           </span>
           <span>Distribuição • Variedade • Relacionamento</span>
         </div>

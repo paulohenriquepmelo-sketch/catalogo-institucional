@@ -6,6 +6,7 @@ import {
   imageUrl,
   safeLink,
   activePopupSlides,
+  validCnpj,
 } from '../lib/catalog-config';
 import { classifySegment } from '../lib/segment-classifier';
 import {
@@ -870,4 +871,20 @@ void test('popup de encartes: valida vigência, imagens e só aparece dentro das
   bad({ slides: [{ ...slide, image: '' }] }, /imagem de cada encarte/);
   bad({ slides: [{ ...slide, image: 'javascript:alert(1)' }] }, /imagem/);
   bad({ slides: Array.from({ length: 11 }, (_, i) => ({ ...slide, id: `e${i}` })) }, /Quantidade/);
+});
+
+void test('identificação da empresa: campos opcionais e CNPJ com dígitos verificadores', () => {
+  // Configuração antiga, sem os campos, continua válida e não mostra nada inventado.
+  const legacy = validateConfig(defaultConfig);
+  assert.equal(legacy.legalName, '');
+  assert.equal(legacy.cnpj, '');
+  assert.equal(legacy.address, '');
+  assert.equal(validCnpj('11.222.333/0001-81'), true);
+  assert.equal(validCnpj('11222333000181'), true);
+  assert.equal(validCnpj('11.222.333/0001-82'), false);
+  assert.equal(validCnpj('00.000.000/0000-00'), false);
+  assert.equal(validCnpj('123'), false);
+  const saved = validateConfig({ ...defaultConfig, legalName: ' Empresa Teste Ltda ', cnpj: '11.222.333/0001-81', address: 'Rua A, 1' });
+  assert.equal(saved.legalName, 'Empresa Teste Ltda');
+  assert.throws(() => validateConfig({ ...defaultConfig, cnpj: '11.222.333/0001-82' }), /CNPJ inválido/);
 });
