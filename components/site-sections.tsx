@@ -47,7 +47,7 @@ import {
   type ProductShowcase,
 } from '@/lib/catalog-config';
 import { publishedBrands } from '@/lib/catalog-brands';
-import { buildSegments, type Segment } from '@/lib/segments';
+import { buildSegments, segmentPhoto, type Segment } from '@/lib/segments';
 import { segmentIconById } from '@/lib/segment-icons';
 import { campaignSlides } from '@/lib/catalog-campaign';
 import { CollectionProducts } from './collection-products';
@@ -558,7 +558,6 @@ export function HomeSegments({
   );
   const [selected, setSelected] = useState<Segment | null>(null);
   const [showAll, setShowAll] = useState(false);
-  const images = config.segmentImages ?? {};
   if (!segments.length) return null;
   return (
     <section id="segmentos" className="v2-segments" aria-labelledby="v2-segments-title">
@@ -582,7 +581,7 @@ export function HomeSegments({
             <SegmentCard
               key={s.rule.id}
               segment={s}
-              image={images[s.rule.id]}
+              image={segmentPhoto(s.rule.id, config.segmentImages)}
               onOpen={setSelected}
             />
           ))}
@@ -602,7 +601,7 @@ export function HomeSegments({
               <SegmentCard
                 key={s.rule.id}
                 segment={s}
-                image={images[s.rule.id]}
+                image={segmentPhoto(s.rule.id, config.segmentImages)}
                 onOpen={(next) => {
                   setShowAll(false);
                   setSelected(next);

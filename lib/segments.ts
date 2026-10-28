@@ -98,6 +98,21 @@ const compiled = SEGMENT_RULES.map((rule) => ({
   })),
 }));
 
+// Fotos padrão em `public/segmentos/<id>.webp`. A foto enviada pelo editor
+// tem prioridade; segmento sem nenhuma das duas mostra o ícone.
+const DEFAULT_SEGMENT_PHOTOS = new Set([
+  'supermercados', 'restaurantes', 'padarias', 'docerias', 'bares',
+  'delivery', 'higiene', 'limpeza', 'utilidades', 'pizzarias',
+  'hamburguerias', 'sorveterias', 'marmitarias',
+]);
+
+export function segmentPhoto(id: string, uploaded?: Record<string, string>) {
+  return (
+    uploaded?.[id] ||
+    (DEFAULT_SEGMENT_PHOTOS.has(id) ? `/segmentos/${id}.webp` : undefined)
+  );
+}
+
 // Calculado uma vez por catálogo (a lista de produtos só muda quando algo é
 // publicado): trocar de segmento ou de grupo não refaz nada.
 const cache = new WeakMap<Product[], Segment[]>();
