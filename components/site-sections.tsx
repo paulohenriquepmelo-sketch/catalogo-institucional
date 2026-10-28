@@ -49,6 +49,7 @@ import {
 import { publishedBrands } from '@/lib/catalog-brands';
 import { buildSegments, segmentPhoto, type Segment } from '@/lib/segments';
 import { CATALOG_NOTICE, OFFERS_NOTICE } from '@/lib/catalog-notices';
+import { PRIVACY_PATH, privacyPolicyReady } from '@/lib/privacy-policy';
 import { segmentIconById } from '@/lib/segment-icons';
 import { campaignSlides } from '@/lib/catalog-campaign';
 import { CollectionProducts } from './collection-products';
@@ -1165,7 +1166,14 @@ export function SiteFooter({
             <span className="v2-footer-identity">{companyIdentity(config)}</span>
           )}
         </span>
-        <span>Distribuição • Variedade • Relacionamento</span>
+        <span>
+          {privacyPolicyReady(config) && (
+            <a className="v2-footer-privacy" href={PRIVACY_PATH}>
+              Política de Privacidade
+            </a>
+          )}
+          Distribuição • Variedade • Relacionamento
+        </span>
       </div>
     </footer>
   );

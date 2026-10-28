@@ -888,3 +888,46 @@ void test('identificação da empresa: campos opcionais e CNPJ com dígitos veri
   assert.equal(saved.legalName, 'Empresa Teste Ltda');
   assert.throws(() => validateConfig({ ...defaultConfig, cnpj: '11.222.333/0001-82' }), /CNPJ inválido/);
 });
+
+void test('política de privacidade só vai ao ar com os dados da empresa completos', async () => {
+  const { privacyPolicyMissing, privacyPolicyReady } = await import('../lib/privacy-policy');
+  assert.equal(privacyPolicyReady(defaultConfig), false);
+  assert.deepEqual(privacyPolicyMissing(defaultConfig), ['razão social', 'CNPJ', 'endereço comercial', 'e-mail para assuntos de privacidade']);
+  const full = validateConfig({
+    ...defaultConfig,
+    legalName: 'Empresa Teste Ltda',
+    cnpj: '11.222.333/0001-81',
+    address: 'Rua A, 1',
+    privacyEmail: 'privacidade@example.test',
+  });
+  assert.equal(privacyPolicyReady(full), true);
+  assert.equal(privacyPolicyReady({ ...full, privacyEmail: '' }), false);
+  assert.throws(() => validateConfig({ ...defaultConfig, privacyEmail: 'sem-arroba' }), /privacidade inválido/);
+});
+
+void test('página da política de privacidade: fora do ar sem dados, completa com eles', async () => {
+  const { default: PrivacyPolicyPage } = await import('../app/politica-de-privacidade/page');
+  const { renderToStaticMarkup } = await import('react-dom/server');
+  const { writeFileSync } = await import('node:fs');
+  const before = await getConfig();
+  // Sem os dados da empresa a página não existe (404).
+  if (!before.config.legalName) await assert.rejects(() => PrivacyPolicyPage(), /NEXT_NOT_FOUND|NEXT_HTTP_ERROR|not.?found/i);
+  setIdentity('admin@example.test');
+  const filled = {
+    ...before.config,
+    legalName: 'Empresa Teste Ltda',
+    cnpj: '11.222.333/0001-81',
+    address: 'Rua A, 1 — Serra/ES',
+    privacyEmail: 'privacidade@example.test',
+  };
+  const saved = await saveConfig(filled, before.revision);
+  await publishCatalog();
+  const html = renderToStaticMarkup(await PrivacyPolicyPage());
+  if (process.env.PRIVACY_HTML) writeFileSync(process.env.PRIVACY_HTML, html);
+  for (const text of ['Política de Privacidade', 'Empresa Teste Ltda', '11.222.333/0001-81', 'privacidade@example.test', 'até 7 dias', 'Cloudflare', 'art. 18'])
+    assert.ok(html.includes(text), `faltou: ${text}`);
+  // Volta ao estado anterior para os outros testes.
+  await saveConfig(before.config, saved.revision);
+  await publishCatalog();
+  setIdentity();
+});

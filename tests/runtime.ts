@@ -27,6 +27,9 @@ export async function headers() {
 export function redirect(path: string): never {
   throw new Error(`Redirect: ${path}`);
 }
+export function notFound(): never {
+  throw new Error('NEXT_NOT_FOUND');
+}
 function prepare(sql: string) {
   let args: unknown[] = [];
   return {

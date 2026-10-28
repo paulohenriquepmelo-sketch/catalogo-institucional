@@ -99,6 +99,8 @@ export type CatalogConfig = {
   legalName?: string;
   cnpj?: string;
   address?: string;
+  /** Canal para pedidos sobre dados pessoais (LGPD), na política de privacidade. */
+  privacyEmail?: string;
   footer: string;
   primary: string;
   accent: string;
@@ -168,6 +170,7 @@ export const defaultConfig: CatalogConfig = {
   legalName: '',
   cnpj: '',
   address: '',
+  privacyEmail: '',
   campaign: defaultCampaign,
   offers: defaultOffers,
   newProducts: defaultNewProducts,
@@ -558,6 +561,7 @@ export function validateConfig(value: unknown): CatalogConfig {
     legalName: field(v.legalName ?? '', 'razão social', 160, true),
     cnpj: field(v.cnpj ?? '', 'CNPJ', 20, true),
     address: field(v.address ?? '', 'endereço', 240, true),
+    privacyEmail: field(v.privacyEmail ?? '', 'e-mail de privacidade', 254, true),
     footer: field(v.footer, 'rodapé', 1000, true),
     primary: v.primary,
     accent: v.accent,
@@ -628,6 +632,8 @@ export function validateConfig(value: unknown): CatalogConfig {
   ] as const)
     if (value && !/^\+?[\d\s().-]{8,}$/.test(value))
       throw new Error(`${label} inválido. Use só números, espaços, parênteses e traço.`);
+  if (config.privacyEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(config.privacyEmail))
+    throw new Error('E-mail de privacidade inválido.');
   if (config.cnpj && !validCnpj(config.cnpj))
     throw new Error('CNPJ inválido. Confira os 14 números.');
   if (config.whatsapp && whatsappNumber(config.whatsapp).length < 12)

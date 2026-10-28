@@ -7,6 +7,7 @@ import { ArrowDown, ArrowUp, Plus, Trash2 } from 'lucide-react';
 import { BrandLogoPicker } from './brand-logo-picker';
 import { trimBrandLogos } from '@/lib/import-brand-logo';
 import { MIN_BRAND_PRODUCTS, MULTIBRAND } from '@/lib/catalog-brands';
+import { privacyPolicyMissing } from '@/lib/privacy-policy';
 import { LayoutEditor } from './layout-editor';
 import {
   activePopupSlides,
@@ -1062,6 +1063,7 @@ export function CompanySettings({
   onChange: (config: CatalogConfig) => void;
 }) {
   const filled = [config.legalName, config.cnpj, config.address].some(Boolean);
+  const missing = privacyPolicyMissing(config);
   return (
     <section className="contact-settings" aria-label="Dados da empresa">
       <Field
@@ -1079,10 +1081,19 @@ export function CompanySettings({
         value={config.address ?? ''}
         onChange={(v) => onChange({ ...config, address: v })}
       />
+      <Field
+        label="E-mail para assuntos de privacidade (LGPD)"
+        type="email"
+        value={config.privacyEmail ?? ''}
+        onChange={(v) => onChange({ ...config, privacyEmail: v })}
+      />
       <output>
         {filled
           ? 'Aparecem no rodapé do site depois de publicar.'
-          : 'Em branco, o rodapé mostra só o nome da empresa.'}
+          : 'Em branco, o rodapé mostra só o nome da empresa.'}{' '}
+        {missing.length
+          ? `A Política de Privacidade fica fora do ar até preencher: ${missing.join(', ')}.`
+          : 'A Política de Privacidade entra no ar ao publicar, com link no rodapé.'}
       </output>
     </section>
   );
