@@ -1,0 +1,174 @@
+/* Popup de encartes (components/promo-popup.tsx). Fica fora de .site-v2
+   porque abre num portal e vale para todos os temas do site. */
+.promo-popup-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgb(8 20 60 / 0.45);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: opacity 0.25s ease;
+}
+.promo-popup-backdrop[data-starting-style],
+.promo-popup-backdrop[data-ending-style] {
+  opacity: 0;
+}
+.promo-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 61;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: min(92vw, 980px);
+  max-height: 94vh;
+  padding: 14px;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 30px 80px rgb(0 0 0 / 0.35);
+  transform: translate(-50%, -50%);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  outline: none;
+}
+.promo-popup[data-starting-style],
+.promo-popup[data-ending-style] {
+  opacity: 0;
+  transform: translate(-50%, -48%) scale(0.97);
+}
+.promo-popup-stage {
+  position: relative;
+  height: clamp(300px, 78vh, 900px);
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+}
+.promo-popup-stage img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+.promo-popup-stage img.is-active {
+  opacity: 1;
+}
+.promo-popup-close,
+.promo-popup-arrow {
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 999px;
+  background: #fff;
+  color: #0b2266;
+  box-shadow: 0 4px 14px rgb(0 0 0 / 0.2);
+  cursor: pointer;
+}
+.promo-popup-close {
+  position: absolute;
+  top: -14px;
+  right: -14px;
+  z-index: 2;
+  width: 42px;
+  height: 42px;
+}
+.promo-popup-arrow {
+  position: absolute;
+  top: 50%;
+  width: 46px;
+  height: 46px;
+  transform: translateY(-50%);
+}
+.promo-popup-arrow.is-prev {
+  left: 12px;
+}
+.promo-popup-arrow.is-next {
+  right: 12px;
+}
+.promo-popup-close svg,
+.promo-popup-arrow svg {
+  width: 22px;
+  height: 22px;
+}
+.promo-popup-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.promo-popup-dots {
+  display: flex;
+  gap: 8px;
+}
+.promo-popup-dots button {
+  width: 10px;
+  height: 10px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: #c7cfdd;
+  cursor: pointer;
+  transition: width 0.25s ease, background 0.25s ease;
+}
+.promo-popup-dots button[aria-current='true'] {
+  width: 26px;
+  background: #d81f26;
+}
+.promo-popup-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  padding: 12px 22px;
+  border: 0;
+  border-radius: 999px;
+  background: #d81f26;
+  color: #fff;
+  font: 700 0.95rem/1 var(--font-bf-display, system-ui), system-ui, sans-serif;
+  cursor: pointer;
+}
+.promo-popup-cta svg {
+  width: 18px;
+  height: 18px;
+}
+.promo-popup-cta:hover {
+  background: #b9161c;
+}
+.promo-popup :is(button):focus-visible {
+  outline: 3px solid #1544b2;
+  outline-offset: 2px;
+}
+@media (max-width: 640px) {
+  .promo-popup {
+    width: 94vw;
+    padding: 10px;
+  }
+  .promo-popup-stage {
+    height: 70vh;
+  }
+  .promo-popup-close {
+    top: -10px;
+    right: -6px;
+    width: 38px;
+    height: 38px;
+  }
+  .promo-popup-arrow {
+    width: 38px;
+    height: 38px;
+  }
+  .promo-popup-cta {
+    width: 100%;
+    justify-content: center;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .promo-popup,
+  .promo-popup-backdrop,
+  .promo-popup-stage img,
+  .promo-popup-dots button {
+    transition: none;
+  }
+}

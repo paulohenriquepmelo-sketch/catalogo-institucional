@@ -102,6 +102,26 @@ export type CatalogConfig = {
   /** Foto de capa de cada segmento na página inicial, pelo id da regra
    * (lib/segment-rules.ts). Sem foto, o cartão mostra o ícone. */
   segmentImages?: Record<string, string>;
+  /** Popup de encartes que abre ao entrar no site, dentro da vigência. */
+  popup?: PromoPopup;
+};
+
+export type PromoPopupSlide = { id: string; image: string; alt: string };
+export type PromoPopup = {
+  enabled: boolean;
+  /** Vigência em AAAA-MM-DD no fuso do catálogo; vazio = sem limite. */
+  startsAt: string;
+  endsAt: string;
+  /** Segundos entre um encarte e outro. */
+  interval: number;
+  slides: PromoPopupSlide[];
+};
+export const defaultPopup: PromoPopup = {
+  enabled: false,
+  startsAt: '',
+  endsAt: '',
+  interval: 4,
+  slides: [],
 };
 
 export const defaultOffers: ProductShowcase = {
@@ -128,6 +148,7 @@ export const defaultConfig: CatalogConfig = {
   layout: { ...defaultLayout },
   colors: { ...laurenciniColors },
   segmentImages: {},
+  popup: defaultPopup,
   campaign: defaultCampaign,
   offers: defaultOffers,
   newProducts: defaultNewProducts,
@@ -399,6 +420,47 @@ function field(
     throw new Error(`Revise ${label}.`);
   return value.trim();
 }
+const DATE_KEY = /^\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\d|3[01])$/;
+export function validatePopup(value: unknown): PromoPopup {
+  if (!value || typeof value !== 'object' || Array.isArray(value))
+    throw new Error('Configuração do popup inválida.');
+  const v = value as PromoPopup;
+  for (const date of [v.startsAt, v.endsAt])
+    if (date !== '' && !(typeof date === 'string' && DATE_KEY.test(date)))
+      throw new Error('Revise as datas de vigência do popup.');
+  if (v.startsAt && v.endsAt && v.startsAt > v.endsAt)
+    throw new Error('A data de início do popup é depois da data de fim.');
+  if (!Number.isInteger(v.interval) || v.interval < 3 || v.interval > 30)
+    throw new Error('O popup deve trocar de encarte a cada 3 a 30 segundos.');
+  const slides = list(v.slides, 10).map((s) => {
+    const image = imageUrl(s?.image);
+    if (!image) throw new Error('Envie a imagem de cada encarte do popup.');
+    return {
+      id: field(s.id, 'identificador do encarte', 80),
+      image,
+      alt: field(s.alt ?? '', 'descrição do encarte', 160, true),
+    };
+  });
+  if (v.enabled === true && !slides.length)
+    throw new Error('Envie ao menos um encarte para ativar o popup.');
+  return {
+    enabled: v.enabled === true,
+    startsAt: v.startsAt,
+    endsAt: v.endsAt,
+    interval: v.interval,
+    slides,
+  };
+}
+/** Encartes que o site deve mostrar hoje; vazio quando o popup está fora do ar. */
+export function activePopupSlides(
+  popup: PromoPopup | undefined,
+  today: string,
+): PromoPopupSlide[] {
+  if (!popup?.enabled || !popup.slides.length) return [];
+  if (popup.startsAt && today < popup.startsAt) return [];
+  if (popup.endsAt && today > popup.endsAt) return [];
+  return popup.slides;
+}
 function list(value: unknown, max: number): any[] {
   if (!Array.isArray(value) || value.length > max)
     throw new Error('Quantidade de registros inválida.');
@@ -513,6 +575,7 @@ export function validateConfig(value: unknown): CatalogConfig {
       visible: b.visible === true,
     })),
     segmentImages: validateSegmentImages(v.segmentImages),
+    popup: validatePopup(v.popup ?? defaultPopup),
     blocks: list(v.blocks, 30).map((b) => {
       if (
         ![
