@@ -864,11 +864,12 @@ export function HomeBrands({
           <div className="v2-brands-head">
             <div>
               <span className="v2-eyebrow v2-eyebrow-light">Marcas</span>
-              <h2 id="v2-brands-title">
-                As melhores marcas
-                <br /> do nosso catálogo
-              </h2>
-              <p>Qualidade e confiança que você já conhece.</p>
+              <h2 id="v2-brands-title">Marcas que comercializamos</h2>
+              <p>
+                Trabalhamos com uma ampla variedade de produtos de marcas
+                reconhecidas no mercado, oferecendo qualidade e opções para
+                abastecer o seu negócio.
+              </p>
             </div>
             <button
               type="button"
