@@ -7140,3 +7140,9 @@ a:focus-visible {
   font-size: 12.5px;
   opacity: 0.8;
 }
+
+.site-footer .footer-privacy {
+  margin-right: 14px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}

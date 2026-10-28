@@ -61,6 +61,7 @@ import {
   SiteTopbar,
 } from './site-sections';
 import { PromoPopupDialog } from './promo-popup';
+import { PRIVACY_PATH, privacyPolicyReady } from '@/lib/privacy-policy';
 import {
   Dialog,
   DialogContent,
@@ -1108,7 +1109,14 @@ export function CatalogApp({
             © {new Date().getFullYear()} {config.legalName || config.name}
             {companyIdentity(config) && ` · ${companyIdentity(config)}`}
           </span>
-          <span>Distribuição • Variedade • Relacionamento</span>
+          <span>
+            {privacyPolicyReady(config) && (
+              <a className="footer-privacy" href={PRIVACY_PATH}>
+                Política de Privacidade
+              </a>
+            )}
+            Distribuição • Variedade • Relacionamento
+          </span>
         </div>
       </footer>
       <Dialog open={searchOpen} onOpenChange={setSearchOpen}>
