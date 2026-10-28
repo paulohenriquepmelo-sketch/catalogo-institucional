@@ -41,6 +41,7 @@ import { api, loadProducts } from '@/lib/client-api';
 import { Field, Choice, Toggle, UploadField, Panel } from './editor-controls';
 import {
   CommercialContactSettings,
+  CompanySettings,
   ConfigEditor,
   type EditorView,
 } from './config-editor';
@@ -1051,6 +1052,18 @@ export function EditorApp({ userName }: { userName: string }) {
             <Button onClick={() => setView('products')}>
               Gerenciar produtos
             </Button>
+          </Panel>
+          <Panel
+            title="Dados da empresa"
+            note="Razão social, CNPJ e endereço identificam a empresa no rodapé do site. Deixe em branco o que ainda não tiver confirmado."
+          >
+            <fieldset
+              disabled={busy || uploads > 0}
+              className="config-container"
+            >
+              <CompanySettings config={config} onChange={setConfig} />
+            </fieldset>
+            {pageSaveBar}
           </Panel>
           <Panel
             title="Contato comercial"
