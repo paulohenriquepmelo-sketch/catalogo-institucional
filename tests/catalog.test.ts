@@ -5,6 +5,7 @@ import {
   validateConfig,
   imageUrl,
   safeLink,
+  activePopupSlides,
 } from '../lib/catalog-config';
 import { classifySegment } from '../lib/segment-classifier';
 import {
@@ -842,4 +843,31 @@ void test('RCA: a cidade informada vai na mensagem do WhatsApp ou do e-mail', as
   assert.match(mail, /^mailto:gerente@laurencini\.com\.br\?subject=/);
   assert.match(decodeURIComponent(mail), /Minha cidade é: Serra$/);
   assert.equal(rcaLink({ whatsapp: '', email: '' }, 'Serra'), '');
+});
+
+void test('popup de encartes: valida vigência, imagens e só aparece dentro das datas', () => {
+  const image = '/api/uploads?key=images%2F27ba549c-a2fe-462b-a6ec-c0550a29e133.webp';
+  const slide = { id: 'encarte-1', image, alt: 'Encarte da semana' };
+  const popup = { enabled: true, startsAt: '2026-11-01', endsAt: '2026-11-07', interval: 4, slides: [slide] };
+  const saved = validateConfig({ ...defaultConfig, popup });
+  assert.deepEqual(saved.popup, popup);
+  // Configuração antiga, sem o campo, continua válida e com o popup desligado.
+  const { popup: _omit, ...legacy } = defaultConfig;
+  assert.equal(validateConfig(legacy).popup?.enabled, false);
+  // Vigência inclusiva nos dois extremos; fora dela e desligado, nada aparece.
+  assert.equal(activePopupSlides(saved.popup, '2026-10-31').length, 0);
+  assert.equal(activePopupSlides(saved.popup, '2026-11-01').length, 1);
+  assert.equal(activePopupSlides(saved.popup, '2026-11-07').length, 1);
+  assert.equal(activePopupSlides(saved.popup, '2026-11-08').length, 0);
+  assert.equal(activePopupSlides({ ...popup, enabled: false }, '2026-11-03').length, 0);
+  assert.equal(activePopupSlides({ ...popup, startsAt: '', endsAt: '' }, '2030-01-01').length, 1);
+  const bad = (next: object, message: RegExp) =>
+    assert.throws(() => validateConfig({ ...defaultConfig, popup: { ...popup, ...next } }), message);
+  bad({ startsAt: '2026-11-08' }, /início do popup é depois/);
+  bad({ endsAt: '07/11/2026' }, /datas de vigência/);
+  bad({ interval: 1 }, /3 a 30 segundos/);
+  bad({ slides: [] }, /ao menos um encarte/);
+  bad({ slides: [{ ...slide, image: '' }] }, /imagem de cada encarte/);
+  bad({ slides: [{ ...slide, image: 'javascript:alert(1)' }] }, /imagem/);
+  bad({ slides: Array.from({ length: 11 }, (_, i) => ({ ...slide, id: `e${i}` })) }, /Quantidade/);
 });

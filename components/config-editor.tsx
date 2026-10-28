@@ -7,10 +7,16 @@ import { ArrowDown, ArrowUp, Plus, Trash2 } from 'lucide-react';
 import { BrandLogoPicker } from './brand-logo-picker';
 import { trimBrandLogos } from '@/lib/import-brand-logo';
 import { LayoutEditor } from './layout-editor';
-import type { Block, CatalogConfig } from '@/lib/catalog-config';
+import {
+  activePopupSlides,
+  defaultPopup,
+  type Block,
+  type CatalogConfig,
+  type PromoPopup,
+} from '@/lib/catalog-config';
+import { catalogDateKey, type Product } from '@/lib/catalog-data';
 import { ColorEditor } from './color-editor';
 import { resolveColors } from '@/lib/catalog-colors';
-import type { Product } from '@/lib/catalog-data';
 import { buildSegments } from '@/lib/segments';
 import { SEGMENT_RULES } from '@/lib/segment-rules';
 
@@ -26,6 +32,7 @@ export type EditorView =
   | 'erp'
   | 'outOfCatalog'
   | 'banners'
+  | 'popup'
   | 'appearance'
   | 'security'
   | 'purchaseReview';
@@ -607,6 +614,143 @@ export function ConfigEditor({
         <SegmentsOverview products={products} />
       </Panel>
     );
+  if (view === 'popup') {
+    const popup = config.popup ?? defaultPopup;
+    const setPopup = (next: Partial<PromoPopup>) =>
+      change('popup', { ...popup, ...next });
+    const setSlides = (slides: PromoPopup['slides']) => setPopup({ slides });
+    const live = activePopupSlides(popup, catalogDateKey()).length > 0;
+    const moveSlide = (i: number, delta: number) => {
+      const slides = [...popup.slides];
+      const j = i + delta;
+      if (j < 0 || j >= slides.length) return;
+      [slides[i], slides[j]] = [slides[j], slides[i]];
+      setSlides(slides);
+    };
+    return (
+      <Panel
+        title="Popup de encartes"
+        note="Ao entrar no site, o visitante vê os encartes num popup grande com o fundo desfocado, uma vez por visita. Com mais de um encarte, eles giram sozinhos. Fora da vigência o popup não aparece."
+      >
+        <output className="source-note block">
+          {live
+            ? 'No ar hoje (depois de salvar e publicar).'
+            : popup.enabled
+              ? popup.slides.length
+                ? 'Ativado, mas fora da vigência hoje.'
+                : 'Ativado, mas sem encartes.'
+              : 'Desativado.'}
+        </output>
+        <div className="settings-row">
+          <Toggle
+            label="Popup ativo"
+            value={popup.enabled}
+            onChange={(enabled) => setPopup({ enabled })}
+          />
+          <Field
+            label="Início da vigência"
+            type="date"
+            value={popup.startsAt}
+            onChange={(startsAt) => setPopup({ startsAt })}
+          />
+          <Field
+            label="Fim da vigência"
+            type="date"
+            value={popup.endsAt}
+            onChange={(endsAt) => setPopup({ endsAt })}
+          />
+          <Field
+            label="Troca de encarte (3 a 30 segundos)"
+            type="number"
+            value={String(popup.interval)}
+            onChange={(value) => setPopup({ interval: Number(value) })}
+          />
+        </div>
+        <p className="source-note">
+          Datas em branco deixam o popup sem limite de início ou de fim. A
+          vigência vale o dia inteiro, no horário de Brasília. Use encartes
+          em pé ou quadrados; o popup mostra a imagem inteira, sem cortar.
+        </p>
+        {popup.slides.map((slide, i) => (
+          <article className="settings-card" key={slide.id}>
+            <div className="setting-card-title">
+              <h2>Encarte {i + 1}</h2>
+              <div className="row-actions">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  aria-label="Mover para cima"
+                  disabled={i === 0}
+                  onClick={() => moveSlide(i, -1)}
+                >
+                  <ArrowUp />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  aria-label="Mover para baixo"
+                  disabled={i === popup.slides.length - 1}
+                  onClick={() => moveSlide(i, 1)}
+                >
+                  <ArrowDown />
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="icon"
+                  aria-label="Remover encarte"
+                  onClick={() => {
+                    if (
+                      window.confirm(
+                        'Remover este encarte? A remoção só será aplicada ao salvar.',
+                      )
+                    )
+                      setSlides(popup.slides.filter((s) => s.id !== slide.id));
+                  }}
+                >
+                  <Trash2 />
+                </Button>
+              </div>
+            </div>
+            <UploadField
+              label="Imagem do encarte"
+              value={slide.image}
+              onBusy={onBusy}
+              onChange={(image) =>
+                setSlides(
+                  popup.slides.map((s) =>
+                    s.id === slide.id ? { ...s, image } : s,
+                  ),
+                )
+              }
+            />
+            <Field
+              label="Descrição (lida por leitores de tela)"
+              value={slide.alt}
+              onChange={(alt) =>
+                setSlides(
+                  popup.slides.map((s) =>
+                    s.id === slide.id ? { ...s, alt } : s,
+                  ),
+                )
+              }
+            />
+          </article>
+        ))}
+        <Button
+          variant="outline"
+          disabled={popup.slides.length >= 10}
+          onClick={() =>
+            setSlides([
+              ...popup.slides,
+              { id: `encarte-${crypto.randomUUID()}`, image: '', alt: '' },
+            ])
+          }
+        >
+          <Plus /> Adicionar encarte
+        </Button>
+      </Panel>
+    );
+  }
   if (view === 'banners')
     return (
       <Panel

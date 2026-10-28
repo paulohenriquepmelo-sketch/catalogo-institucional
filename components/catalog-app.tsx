@@ -58,6 +58,7 @@ import {
   SiteHeader,
   SiteTopbar,
 } from './site-sections';
+import { PromoPopupDialog } from './promo-popup';
 import {
   Dialog,
   DialogContent,
@@ -885,6 +886,7 @@ export function CatalogApp({
           hasBrands={has('brands')}
           hasOffers={hasOffers}
         />
+        {!editorPreview && <PromoPopupDialog popup={config.popup} />}
         <ProductDetailsDialog
           selected={selected}
           onSelect={setSelected}
@@ -1137,6 +1139,7 @@ export function CatalogApp({
           )}
         </DialogContent>
       </Dialog>
+      {!editorPreview && <PromoPopupDialog popup={config.popup} />}
       <ProductDetailsDialog
         selected={selected}
         onSelect={setSelected}

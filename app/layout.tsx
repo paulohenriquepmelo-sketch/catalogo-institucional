@@ -11,6 +11,7 @@ import './marketing-polish.css';
 import './carousel-color-fix.css';
 import './theme-black-friday.css';
 import './site-v2.css';
+import './promo-popup.css';
 
 const dmSans = DM_Sans({ variable: '--font-dm-sans', subsets: ['latin'] });
 const manrope = Manrope({ variable: '--font-manrope', subsets: ['latin'] });
