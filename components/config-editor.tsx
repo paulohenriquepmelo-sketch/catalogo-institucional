@@ -567,8 +567,8 @@ export function ConfigEditor({
         <h4 className="segment-photos-title">Fotos dos segmentos</h4>
         <p className="source-note">
           A página inicial mostra os 4 primeiros segmentos com foto de capa
-          (proporção 2:1, por exemplo 800 × 400 px). Sem foto, o cartão mostra
-          o ícone do segmento.
+          (proporção 2:1, por exemplo 800 × 400 px). Sem foto enviada aqui, o
+          cartão usa a foto padrão do site.
         </p>
         <div className="settings-grid segment-photos">
           {SEGMENT_RULES.filter((rule) => !rule.hidden).map((rule) => {
@@ -597,7 +597,7 @@ export function ConfigEditor({
                       change('segmentImages', next);
                     }}
                   >
-                    <Trash2 /> Remover foto (volta o ícone)
+                    <Trash2 /> Remover foto (volta a foto padrão)
                   </Button>
                 )}
               </article>

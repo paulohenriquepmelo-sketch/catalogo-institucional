@@ -2,7 +2,9 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { products } from './fixtures';
 import { discover, emptyFilters, similarProducts } from '../lib/catalog-discovery';
-import { buildSegments } from '../lib/segments';
+import { buildSegments, segmentPhoto } from '../lib/segments';
+import { SEGMENT_RULES } from '../lib/segment-rules';
+import { existsSync } from 'node:fs';
 import { complementProducts } from '../lib/complements';
 import type { Product } from '../lib/catalog-data';
 
@@ -90,4 +92,15 @@ void test('search filter accepts the new segment names (and still the stored one
   const found = discover(catalog, { ...emptyFilters, segment: 'Padarias e confeitarias' });
   assert.ok(found.some((p) => p.name.startsWith('FAR TRIGO')));
   assert.ok(!found.some((p) => p.name.startsWith('CERVEJA')));
+});
+
+void test('foto do segmento: a do editor vence a padrão, e toda padrão existe', () => {
+  assert.equal(segmentPhoto('padarias', { padarias: '/api/uploads?key=x' }), '/api/uploads?key=x');
+  assert.equal(segmentPhoto('padarias', {}), '/segmentos/padarias.webp');
+  assert.equal(segmentPhoto('nao-existe', {}), undefined);
+  for (const rule of SEGMENT_RULES.filter((r) => !r.hidden)) {
+    const photo = segmentPhoto(rule.id);
+    assert.ok(photo, `sem foto padrão: ${rule.id}`);
+    assert.ok(existsSync(`public${photo}`), `arquivo faltando: ${photo}`);
+  }
 });
