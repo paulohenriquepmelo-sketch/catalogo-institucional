@@ -502,6 +502,14 @@ export function ConfigEditor({
                   )
                 }
               />
+              {/[\u00bf\ufffd]/.test(brand.name) && (
+                <p className="source-note">
+                  O nome tem um caractere quebrado vindo do ERP (¿). Para
+                  corrigir: adicione a marca com a grafia certa, publique e
+                  importe a planilha do ERP (os produtos passam sozinhos para
+                  ela) ou troque a marca nos produtos; depois remova esta.
+                </p>
+              )}
               {brand.published &&
                 brand.name !== MULTIBRAND &&
                 (brandCounts.get(brand.name) ?? 0) < MIN_BRAND_PRODUCTS && (

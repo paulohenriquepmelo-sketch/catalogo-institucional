@@ -244,6 +244,21 @@ export function validateImportValues(value: unknown): ImportValues {
   }
   return result;
 }
+// O ERP às vezes exporta "Ç" e outras letras acentuadas como "¿" (ou como o
+// caractere de substituição): "D BENTA PANIFICA¿AO". Cada caractere quebrado
+// vale por uma letra, para a marca cair na grafia correta cadastrada no editor.
+const BROKEN_CHAR = /[\u00bf\ufffd]/;
+export function sameBrandName(registered: string, imported: string) {
+  const a = normalize(registered);
+  const b = normalize(imported);
+  if (a === b) return true;
+  if (!BROKEN_CHAR.test(b) || BROKEN_CHAR.test(a)) return false;
+  const pattern = b
+    .split(BROKEN_CHAR)
+    .map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+    .join('.');
+  return new RegExp(`^${pattern}$`, 'u').test(a);
+}
 export function mergeImport(
   values: ImportValues,
   existing: Product | undefined,
@@ -280,8 +295,7 @@ export function mergeImport(
   };
   // Keep existing display spelling when the imported label is equivalent.
   p.brand =
-    config.brands.find((b) => normalize(b.name) === normalize(p.brand))?.name ??
-    p.brand;
+    config.brands.find((b) => sameBrandName(b.name, p.brand))?.name ?? p.brand;
   const path = config.taxonomy.find(
     (t) =>
       normalize(t.department) === normalize(p.department) &&
