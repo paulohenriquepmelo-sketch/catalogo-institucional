@@ -10,6 +10,8 @@ import {
   mappingError,
   type ImportValues,
   type ImportResult,
+  sameBrandName,
+  mergeImport,
 } from '../lib/product-import';
 import { validateXlsxArchive } from '../lib/xlsx-safety';
 import { defaultConfig } from '../lib/catalog-config';
@@ -587,3 +589,23 @@ void test(
     assert.ok(rows.some((r) => r.values.code === '32'));
   },
 );
+
+void test('marca com caractere quebrado do ERP cai na grafia correta cadastrada', () => {
+  assert.equal(sameBrandName('D BENTA PANIFICAÇÃO', 'D BENTA PANIFICA¿AO'), true);
+  assert.equal(sameBrandName('D BENTA PANIFICAÇÃO', 'D BENTA PANIFICA�AO'), true);
+  assert.equal(sameBrandName('YOKI', 'yoki'), true);
+  // Cada caractere quebrado vale por UMA letra; nomes diferentes não casam.
+  assert.equal(sameBrandName('D BENTA PANIFICAÇÃO', 'D BENTA PANIF¿AO'), false);
+  assert.equal(sameBrandName('DONA BENTA', 'D BENTA PANIFICA¿AO'), false);
+  const config = {
+    ...defaultConfig,
+    brands: [{ name: 'D BENTA PANIFICAÇÃO', logo: '', published: true, featured: false }],
+  };
+  const product = mergeImport(
+    { code: '7600', name: 'FERMENTO', department: 'A', section: 'B', category: 'C', brand: 'D BENTA PANIFICA¿AO' },
+    undefined,
+    config,
+    { publishNew: true } as Parameters<typeof mergeImport>[3],
+  );
+  assert.equal(product.brand, 'D BENTA PANIFICAÇÃO');
+});
