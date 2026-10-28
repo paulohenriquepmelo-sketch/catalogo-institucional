@@ -16,6 +16,24 @@ export function publishedBrands(brands: Brand[]) {
  */
 export const MULTIBRAND = 'MULTIMARCAS';
 
+/** Marca com menos produtos publicados que isto fica fora do site e do app,
+ * como se estivesse despublicada; volta sozinha ao chegar a este número. */
+export const MIN_BRAND_PRODUCTS = 4;
+
+export function brandsWithEnoughProducts(
+  brands: Brand[],
+  products: { brand: string; published?: boolean }[],
+) {
+  const count = new Map<string, number>();
+  for (const p of products)
+    if (p.published !== false) count.set(p.brand, (count.get(p.brand) ?? 0) + 1);
+  return brands.map((b) =>
+    b.published && b.name !== MULTIBRAND && (count.get(b.name) ?? 0) < MIN_BRAND_PRODUCTS
+      ? { ...b, published: false }
+      : b,
+  );
+}
+
 export function withMultibrand<T extends { brand: string }>(products: T[], brands: Brand[]) {
   const visible = new Set(publishedBrands(brands).map((b) => b.name));
   return products.map((p) => (visible.has(p.brand) ? p : { ...p, brand: MULTIBRAND }));

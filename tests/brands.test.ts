@@ -14,6 +14,8 @@ import {
   withMultibrand,
   publicBrands,
   MULTIBRAND,
+  MIN_BRAND_PRODUCTS,
+  brandsWithEnoughProducts,
 } from '../lib/catalog-brands';
 import { GET as getProductsRoute } from '../app/api/products/route';
 import {
@@ -477,4 +479,33 @@ void test('image cleanup lives in a danger zone with typed confirmation, out of 
   assert.doesNotMatch(overview, /clearProductAndLogoImages/);
   assert.match(app, /Zona de risco/);
   assert.match(app, /cleanupConfirm\.trim\(\) !== 'LIMPAR'/);
+});
+
+void test('marca com menos de 4 produtos publicados sai do site e volta ao chegar a 4', () => {
+  const brand = (name: string, published = true) => ({ name, logo: '', published, featured: false });
+  const items = (name: string, n: number, published = true) =>
+    Array.from({ length: n }, () => ({ brand: name, published }));
+  const brands = [brand('GRANDE'), brand('PEQUENA'), brand('RASCUNHO'), brand('DESLIGADA', false), brand(MULTIBRAND)];
+  const products = [
+    ...items('GRANDE', MIN_BRAND_PRODUCTS),
+    ...items('PEQUENA', MIN_BRAND_PRODUCTS - 1),
+    // Produto não publicado não conta.
+    ...items('RASCUNHO', 2),
+    ...items('RASCUNHO', 5, false),
+  ];
+  const result = brandsWithEnoughProducts(brands, products);
+  const on = (name: string) => result.find((b) => b.name === name)?.published;
+  assert.equal(on('GRANDE'), true);
+  assert.equal(on('PEQUENA'), false);
+  assert.equal(on('RASCUNHO'), false);
+  assert.equal(on('DESLIGADA'), false);
+  // MULTIMARCAS recebe os produtos das outras; nunca é escondida pela regra.
+  assert.equal(on(MULTIBRAND), true);
+  // Os produtos da marca pequena passam a aparecer em MULTIMARCAS.
+  assert.ok(withMultibrand(items('PEQUENA', 1), result).every((p) => p.brand === MULTIBRAND));
+  // Ao chegar a 4, a marca volta.
+  assert.equal(
+    brandsWithEnoughProducts(brands, [...products, { brand: 'PEQUENA', published: true }]).find((b) => b.name === 'PEQUENA')?.published,
+    true,
+  );
 });
