@@ -12,7 +12,7 @@ import {
   imageUrl,
 } from './catalog-config';
 import { classifySegment } from './segment-classifier';
-import { publicBrands, withMultibrand } from './catalog-brands';
+import { brandsWithEnoughProducts, publicBrands, withMultibrand } from './catalog-brands';
 import { defaultCampaign } from './catalog-campaign';
 import { defaultColors } from './catalog-colors';
 import { defaultLayout } from './catalog-layout';
@@ -317,18 +317,19 @@ export async function getPublishedCatalogSnapshot() {
   return generated;
 }
 
-// Leitura pública (site e app): produtos de marca despublicada aparecem em
-// MULTIMARCAS. Calculado uma vez por versão publicada.
+// Leitura pública (site e app): produtos de marca despublicada, ou com menos
+// de MIN_BRAND_PRODUCTS produtos, aparecem em MULTIMARCAS. Calculado uma vez por versão publicada.
 const publicCatalogs = new WeakMap<object, PublishedCatalogSnapshot>();
 export async function getPublicCatalog(): Promise<PublishedCatalogSnapshot> {
   const snapshot = await getPublishedCatalogSnapshot();
   let result = publicCatalogs.get(snapshot);
   if (!result) {
-    const products = withMultibrand(snapshot.products, snapshot.config.brands);
+    const brands = brandsWithEnoughProducts(snapshot.config.brands, snapshot.products);
+    const products = withMultibrand(snapshot.products, brands);
     result = {
       ...snapshot,
       products,
-      config: { ...snapshot.config, brands: publicBrands(snapshot.config.brands, products) },
+      config: { ...snapshot.config, brands: publicBrands(brands, products) },
     };
     publicCatalogs.set(snapshot, result);
   }

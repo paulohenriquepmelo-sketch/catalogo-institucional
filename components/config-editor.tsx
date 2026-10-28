@@ -6,6 +6,7 @@ import { Field, Choice, Toggle, Panel, UploadField } from './editor-controls';
 import { ArrowDown, ArrowUp, Plus, Trash2 } from 'lucide-react';
 import { BrandLogoPicker } from './brand-logo-picker';
 import { trimBrandLogos } from '@/lib/import-brand-logo';
+import { MIN_BRAND_PRODUCTS, MULTIBRAND } from '@/lib/catalog-brands';
 import { LayoutEditor } from './layout-editor';
 import {
   activePopupSlides,
@@ -61,6 +62,12 @@ export function ConfigEditor({
   const [trimming, setTrimming] = useState(false);
   const [promotionQuery, setPromotionQuery] = useState('');
   const [promotionLimit, setPromotionLimit] = useState(30);
+  const brandCounts = useMemo(() => {
+    const count = new Map<string, number>();
+    for (const p of products)
+      if (p.published !== false) count.set(p.brand, (count.get(p.brand) ?? 0) + 1);
+    return count;
+  }, [products]);
   const selectedBrands = config.brands
     .map((brand, i) => ({ brand, i }))
     .filter(({ brand }) =>
@@ -379,7 +386,7 @@ export function ConfigEditor({
     return (
       <Panel
         title="Marcas"
-        note="Marque Publicar para mostrar a marca no site. Destaque coloca a marca antes das demais. Isso não altera a publicação dos produtos vinculados."
+        note={`Marque Publicar para mostrar a marca no site. Destaque coloca a marca antes das demais. Isso não altera a publicação dos produtos vinculados. Marca com menos de ${MIN_BRAND_PRODUCTS} produtos publicados fica fora do site e do app automaticamente (os produtos aparecem em MULTIMARCAS) e volta sozinha ao chegar a ${MIN_BRAND_PRODUCTS}.`}
       >
         <Field
           label="Cor de fundo do carrossel de marcas"
@@ -495,6 +502,15 @@ export function ConfigEditor({
                   )
                 }
               />
+              {brand.published &&
+                brand.name !== MULTIBRAND &&
+                (brandCounts.get(brand.name) ?? 0) < MIN_BRAND_PRODUCTS && (
+                  <p className="source-note">
+                    Fora do site e do app: só{' '}
+                    {brandCounts.get(brand.name) ?? 0} produto(s) publicado(s).
+                    Volta sozinha com {MIN_BRAND_PRODUCTS}.
+                  </p>
+                )}
               <Toggle
                 label="Marca em destaque"
                 value={brand.featured === true}
