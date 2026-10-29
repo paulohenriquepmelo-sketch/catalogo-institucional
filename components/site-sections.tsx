@@ -65,8 +65,8 @@ import { catalogDateKey, type Product } from '@/lib/catalog-data';
 import { discover, emptyFilters } from '@/lib/catalog-discovery';
 
 // Layout institucional da página inicial e do catálogo completo, conforme o
-// esboço aprovado em 27/10/2026. Os temas especiais (ex.: Black Friday)
-// continuam usando o layout anterior, em catalog-app.tsx.
+// esboço aprovado em 27/10/2026. Os temas de data usam este mesmo layout e
+// só trocam a arte e os textos do banner (HomeHero).
 
 const rcaMessage =
   'Olá! Quero saber qual é o RCA (representante comercial) que atende a minha região. Minha cidade é: ';
@@ -454,23 +454,43 @@ export function HomeHero({ config }: { config: CatalogConfig }) {
   const photo = config.campaign?.enabled
     ? campaignSlides(config.campaign).find((s) => s.image)?.image
     : '';
+  // Tema de data ativo (fora o Padrão): a página continua a mesma; o banner
+  // mostra a arte do tema inteira e os textos escritos no editor.
+  const theme =
+    config.campaign?.enabled &&
+    config.campaign.mode === 'theme' &&
+    config.campaign.theme !== 'padrao'
+      ? config.campaign
+      : undefined;
+  const eyebrow = theme?.eyebrow.trim();
+  const title = theme?.title.trim();
+  const description = theme?.description.trim();
   return (
-    <section className="v2-hero" aria-labelledby="v2-hero-title">
+    <section
+      className={theme ? 'v2-hero is-theme' : 'v2-hero'}
+      aria-labelledby="v2-hero-title"
+    >
       <div className="v2-hero-media" aria-hidden="true">
         {photo && <img src={photo} alt="" fetchPriority="high" />}
       </div>
       <div className="v2-container v2-hero-inner">
         <div className="v2-hero-copy">
-          <span className="v2-hero-eyebrow">Distribuidora Laurencini</span>
-          <h2 id="v2-hero-title">
-            Há mais de 30 anos{' '}
-            <span className="v2-hero-line">
-              atendendo o <span className="v2-red">seu negócio.</span>
-            </span>
-          </h2>
+          <span className="v2-hero-eyebrow">
+            {eyebrow || 'Distribuidora Laurencini'}
+          </span>
+          {title ? (
+            <h2 id="v2-hero-title">{title}</h2>
+          ) : (
+            <h2 id="v2-hero-title">
+              Há mais de 30 anos{' '}
+              <span className="v2-hero-line">
+                atendendo o <span className="v2-red">seu negócio.</span>
+              </span>
+            </h2>
+          )}
           <p>
-            Com um portfólio completo, trabalhamos para levar qualidade,
-            variedade e as melhores marcas para o seu estabelecimento.
+            {description ||
+              'Com um portfólio completo, trabalhamos para levar qualidade, variedade e as melhores marcas para o seu estabelecimento.'}
           </p>
           <a className="v2-button v2-button-red" href="/produtos">
             Conheça nosso catálogo <ArrowRight aria-hidden="true" />
