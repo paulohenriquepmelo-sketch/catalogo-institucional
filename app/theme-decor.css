@@ -1,0 +1,762 @@
+/*
+ * Decoração e animação dos temas de data sobre a página do Padrão.
+ * Proposta do GPT-6 Astra, revisada: a página, as seções e as cores da
+ * marca não mudam; o tema só acrescenta enfeites no banner e nos cards.
+ * Vale com <main class="site-v2 v2-theme theme-<id>"> (catalog-app.tsx).
+ * Tudo para em prefers-reduced-motion; o banner tem botão de pausar.
+ */
+.v2-theme {
+  --td-accent: #e9bf65;
+  --td-secondary: #d81f26;
+  --td-light: #fff5d9;
+  --td-frame-pattern: none;
+  --td-particle-motion: td-fall;
+  --td-particle-duration: 11s;
+  --td-ornament-size: clamp(56px, 7vw, 104px);
+
+  /* SVGs monocromáticos: a cor vem de background-color. */
+  --td-star: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='black' d='m32 4 8 18 20 2-15 14 5 21-18-11-18 11 5-21L4 24l20-2z'/%3E%3C/svg%3E");
+
+  --td-snow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='black' stroke-width='4' stroke-linecap='round'%3E%3Cpath d='M32 5v54M9 18l46 28M9 46l46-28M23 10l9 9 9-9M23 54l9-9 9 9M9 28l12-3-2-12M45 51l-2-12 12-3M9 36l12 3-2 12M45 13l-2 12 12 3'/%3E%3C/g%3E%3C/svg%3E");
+
+  --td-heart: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='black' d='M32 56 8 33C-8 17 15-2 32 15 49-2 72 17 56 33z'/%3E%3C/svg%3E");
+
+  --td-heart-outline: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='none' stroke='black' stroke-width='4' stroke-linejoin='round' d='M32 56 9 34C-5 20 14 2 32 18 50 2 69 20 55 34z'/%3E%3C/svg%3E");
+
+  --td-petal: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='black' d='M12 51C0 25 23 3 52 9c9 29-14 53-40 42z'/%3E%3C/svg%3E");
+
+  --td-gift: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='black' stroke-width='4' stroke-linejoin='round'%3E%3Cpath d='M8 24h48v12H8zM12 36v23h40V36M32 24v35M32 24C4 26 12 0 26 12zM32 24C60 26 52 0 38 12z'/%3E%3C/g%3E%3C/svg%3E");
+
+  --td-bow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='none' stroke='black' stroke-width='4' stroke-linejoin='round' d='M30 28C1 33 3 1 22 10l10 16 10-16c19-9 21 23-8 18M27 32 12 58l14-4 6 7 4-29M36 32l16 26-14-4-6 7'/%3E%3C/svg%3E");
+
+  --td-wreath: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='black' stroke-width='5' stroke-linecap='round'%3E%3Ccircle cx='32' cy='34' r='21' stroke-dasharray='6 4'/%3E%3Ccircle cx='32' cy='34' r='15' stroke-width='2'/%3E%3Cpath d='M32 13C9 16 16-3 29 7l3 6 3-6c13-10 20 9-3 6M29 15l-6 10M35 15l6 10'/%3E%3C/g%3E%3C/svg%3E");
+
+  --td-streamer: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='none' stroke='black' stroke-width='7' stroke-linecap='round' d='M42 5C4 5 8 28 34 27s24 27-12 32'/%3E%3C/svg%3E");
+
+  --td-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='black' fill-rule='evenodd' d='M3 15q15-8 29 3 14-11 29-3l-5 28q-11 15-24-2-13 17-24 2zM13 25v8l12 3-2-8zM51 25l-10 3-2 8 12-3z'/%3E%3C/svg%3E");
+
+  --td-balloon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='black' stroke-width='3'%3E%3Cellipse cx='32' cy='22' rx='17' ry='20'/%3E%3Cpath d='m32 42-4 5h8zM32 47c-12 6 12 10 0 16M22 13q-5 7-3 12'/%3E%3C/g%3E%3C/svg%3E");
+
+  --td-bolt: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='black' d='M36 2 10 37h18l-3 25 29-38H35z'/%3E%3C/svg%3E");
+
+  --td-particle-icon: var(--td-star);
+  --td-ornament-icon: var(--td-star);
+  --td-badge-icon: var(--td-star);
+}
+
+/* Fora de um tema de data, os enfeites dos cards e do selo não aparecem. */
+.td-card-charm,
+.td-card-decor,
+.td-badge-icon {
+  display: none;
+}
+.v2-theme :is(.td-card-charm, .td-card-decor, .td-badge-icon) {
+  display: block;
+}
+
+/* Botão para pausar a animação do banner */
+.site-v2 .v2-hero-pause {
+  position: absolute;
+  right: 16px;
+  bottom: 14px;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid rgb(255 255 255 / 45%);
+  border-radius: 999px;
+  background: rgb(0 0 0 / 45%);
+  color: #fff;
+  font: 600 12px/1 var(--v2-body);
+  cursor: pointer;
+}
+.site-v2 .v2-hero-pause:hover {
+  background: rgb(0 0 0 / 65%);
+}
+.site-v2 .v2-hero-pause svg {
+  width: 14px;
+  height: 14px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .site-v2 .v2-hero-pause {
+    display: none;
+  }
+}
+
+/* Identidade de cada tema */
+
+.v2-theme.theme-natal {
+  --td-accent: #edc875;
+  --td-secondary: #d81f26;
+  --td-light: #fff8e8;
+  --td-particle-icon: var(--td-snow);
+  --td-ornament-icon: var(--td-wreath);
+  --td-badge-icon: var(--td-snow);
+}
+
+.v2-theme.theme-ano-novo {
+  --td-accent: #f3d58c;
+  --td-secondary: #fff2ce;
+  --td-light: #ffffff;
+  --td-particle-icon: var(--td-star);
+  --td-ornament-icon: var(--td-star);
+  --td-badge-icon: var(--td-star);
+  --td-particle-motion: td-celebrate;
+  --td-particle-duration: 9s;
+}
+
+.v2-theme.theme-dia-das-maes {
+  --td-accent: #efabc1;
+  --td-secondary: #d81f26;
+  --td-light: #ffe2eb;
+  --td-particle-icon: var(--td-petal);
+  --td-ornament-icon: var(--td-heart-outline);
+  --td-badge-icon: var(--td-heart);
+  --td-particle-motion: td-petal;
+  --td-particle-duration: 14s;
+}
+
+.v2-theme.theme-aniversario {
+  --td-accent: #edc875;
+  --td-secondary: #d81f26;
+  --td-light: #fff4d9;
+  --td-particle-icon: none;
+  --td-ornament-icon: var(--td-bow);
+  --td-badge-icon: var(--td-gift);
+  --td-particle-duration: 9s;
+}
+
+.v2-theme.theme-carnaval {
+  --td-accent: #efca65;
+  --td-secondary: #d81f26;
+  --td-light: #b8d6ff;
+  --td-particle-icon: var(--td-streamer);
+  --td-ornament-icon: var(--td-mask);
+  --td-badge-icon: var(--td-mask);
+  --td-particle-motion: td-petal;
+  --td-particle-duration: 9s;
+  --td-frame-pattern: repeating-linear-gradient(
+    135deg,
+    transparent 0 8px,
+    var(--td-secondary) 8px 13px,
+    transparent 13px 21px
+  );
+}
+
+.v2-theme.theme-dia-das-criancas {
+  --td-accent: #f5ce66;
+  --td-secondary: #d81f26;
+  --td-light: #bddcff;
+  --td-particle-icon: var(--td-star);
+  --td-ornament-icon: var(--td-balloon);
+  --td-badge-icon: var(--td-star);
+  --td-particle-motion: td-float;
+  --td-particle-duration: 12s;
+  --td-frame-pattern: radial-gradient(
+    circle,
+    var(--td-secondary) 0 2px,
+    transparent 2.5px
+  );
+}
+
+.v2-theme.theme-black-friday {
+  --td-accent: #82caff;
+  --td-secondary: #d81f26;
+  --td-light: #e7f5ff;
+  --td-particle-icon: var(--td-bolt);
+  --td-ornament-icon: var(--td-bolt);
+  --td-badge-icon: var(--td-bolt);
+  --td-particle-motion: td-rise;
+  --td-particle-duration: 8s;
+  --td-frame-pattern: repeating-linear-gradient(
+    90deg,
+    transparent 0 32px,
+    var(--td-secondary) 32px 40px,
+    transparent 40px 64px
+  );
+}
+
+/* Toda marcação decorativa também recebe aria-hidden no TSX. */
+
+.v2-theme :where(
+  .td-hero-decor,
+  .td-particle,
+  .td-ornament,
+  .td-cta-shine,
+  .td-card-decor,
+  .td-card-charm,
+  .td-badge-icon
+) {
+  pointer-events: none;
+  user-select: none;
+}
+
+/* BANNER
+   A decoração fica dentro de .v2-hero-media:
+   acompanha a foto e o recorte diagonal, inclusive no celular.
+*/
+
+.site-v2.v2-theme .v2-hero-media > .td-hero-decor {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: block;
+  overflow: hidden;
+  contain: paint;
+}
+
+.site-v2.v2-theme .v2-hero::after {
+  background: var(--td-accent);
+  pointer-events: none;
+}
+
+/* Máscaras compartilhadas */
+
+.v2-theme :where(.td-particle, .td-ornament, .td-badge-icon, .td-card-charm) {
+  display: block;
+  background-color: var(--td-accent);
+  -webkit-mask-image: var(--td-icon);
+  mask-image: var(--td-icon);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+
+/* 10 partículas no desktop; 5 no celular.
+   Distâncias em cqh acompanham a altura real da área da foto.
+*/
+
+.site-v2.v2-theme .td-hero-decor {
+  container-type: size;
+}
+
+.v2-theme .td-particle {
+  --td-icon: var(--td-particle-icon);
+  --td-drift: 18px;
+  --td-spin: 130deg;
+  position: absolute;
+  top: -24px;
+  left: var(--td-x, 50%);
+  width: var(--td-size, 10px);
+  height: var(--td-size, 10px);
+  opacity: 0;
+
+  animation-name: var(--td-particle-motion);
+  animation-duration: var(--td-particle-duration);
+  animation-delay: var(--td-delay, 0s);
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+.v2-theme .td-particle:nth-child(1) {
+  --td-x: 21%; --td-size: 17px; --td-delay: -2s;
+}
+.v2-theme .td-particle:nth-child(2) {
+  --td-x: 38%; --td-size: 25px; --td-delay: -7s;
+  --td-drift: -19px;
+}
+.v2-theme .td-particle:nth-child(3) {
+  --td-x: 53%; --td-size: 15px; --td-delay: -4s;
+}
+.v2-theme .td-particle:nth-child(4) {
+  --td-x: 69%; --td-size: 21px; --td-delay: -9s;
+  --td-drift: -23px;
+}
+.v2-theme .td-particle:nth-child(5) {
+  --td-x: 85%; --td-size: 17px; --td-delay: -5s;
+}
+.v2-theme .td-particle:nth-child(6) {
+  --td-x: 29%; --td-size: 13px; --td-delay: -10s;
+}
+.v2-theme .td-particle:nth-child(7) {
+  --td-x: 46%; --td-size: 19px; --td-delay: -1s;
+  --td-drift: -14px;
+}
+.v2-theme .td-particle:nth-child(8) {
+  --td-x: 61%; --td-size: 13px; --td-delay: -6s;
+}
+.v2-theme .td-particle:nth-child(9) {
+  --td-x: 77%; --td-size: 23px; --td-delay: -3s;
+}
+.v2-theme .td-particle:nth-child(10) {
+  --td-x: 94%; --td-size: 15px; --td-delay: -8s;
+  --td-drift: -28px;
+}
+
+.v2-theme .td-particle:nth-child(3n) {
+  background-color: var(--td-light);
+}
+
+.v2-theme:is(.theme-aniversario, .theme-carnaval)
+  .td-particle:nth-child(3n + 1) {
+  background-color: var(--td-secondary);
+}
+
+.v2-theme.theme-aniversario .td-particle {
+  height: calc(var(--td-size) * 0.55);
+  border-radius: 1px;
+}
+
+.v2-theme.theme-carnaval .td-particle {
+  height: calc(var(--td-size) * 1.8);
+}
+
+.v2-theme.theme-carnaval .td-particle:nth-child(even) {
+  --td-icon: none;
+  height: 6px;
+  border-radius: 2px;
+}
+
+.v2-theme.theme-black-friday .td-particle {
+  height: calc(var(--td-size) * 1.6);
+}
+
+/* Enfeite superior: entrada única, sem balanço infinito. */
+
+.v2-theme .td-ornament {
+  --td-icon: var(--td-ornament-icon);
+  position: absolute;
+  top: 12px;
+  right: clamp(16px, 4vw, 60px);
+  width: var(--td-ornament-size);
+  height: var(--td-ornament-size);
+  opacity: 0.88;
+  transform-origin: 50% 0;
+  animation: td-ornament-in 950ms cubic-bezier(.2, .7, .2, 1) both;
+}
+
+/* CTA: brilho apenas no contorno; texto e seta não recebem overlay. */
+
+.site-v2.v2-theme .v2-hero .v2-button {
+  position: relative;
+  isolation: isolate;
+}
+
+.v2-theme .td-cta-shine {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  padding: 2px;
+
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+}
+
+.v2-theme .td-cta-shine::before {
+  content: "";
+  position: absolute;
+  inset: -50% -100%;
+  background: linear-gradient(
+    110deg,
+    transparent 44%,
+    rgba(255, 255, 255, 0.85) 50%,
+    transparent 56%
+  );
+  opacity: 0;
+  animation: td-cta-sweep 12s ease-in-out infinite;
+}
+
+/* CARDS
+   Não decorar duas vezes: a aplicação do span no TSX é diferente
+   para card avulso e card contido em .v2-new-card.
+*/
+
+.site-v2.v2-theme :is(.product-card, .v2-new-card) {
+  position: relative;
+}
+
+.site-v2.v2-theme .v2-new-card {
+  border-radius: var(--v2-radius, 10px);
+}
+
+/* O recorte deixa somente um anel de 3px visível.
+   Não existe brilho sobre a área central da foto ou do texto.
+*/
+
+.v2-theme .td-card-decor {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: block;
+  overflow: hidden;
+  border-radius: inherit;
+  padding: 3px;
+
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+
+  background:
+    var(--td-frame-pattern),
+    linear-gradient(var(--td-secondary), var(--td-secondary))
+      top right / 22px 3px no-repeat,
+    linear-gradient(var(--td-secondary), var(--td-secondary))
+      bottom left / 22px 3px no-repeat,
+    linear-gradient(
+      135deg,
+      var(--td-accent),
+      transparent 32%,
+      transparent 67%,
+      var(--td-accent)
+    );
+}
+
+.v2-theme.theme-dia-das-criancas .td-card-decor {
+  background-size: 12px 12px, 22px 3px, 22px 3px, auto;
+}
+
+.v2-theme .td-card-decor::after {
+  content: "";
+  position: absolute;
+  inset: -50% -100%;
+  opacity: 0;
+  background: linear-gradient(
+    115deg,
+    transparent 43%,
+    var(--td-light) 49%,
+    #fff 50%,
+    var(--td-light) 51%,
+    transparent 57%
+  );
+  transform: translateX(-45%);
+}
+
+/* Uma passagem por interação; não há loop nos cards. */
+
+@media (hover: hover) and (pointer: fine) {
+  .v2-theme :is(.product-card, .v2-new-card):hover
+    > .td-card-decor::after {
+    animation: td-card-sweep 850ms ease-out both;
+  }
+}
+
+.v2-theme :is(.product-card, .v2-new-card):focus-within
+  > .td-card-decor::after {
+  animation: td-card-sweep 850ms ease-out both;
+}
+
+/* Entrada dos cards dos destaques ao rolar a página (animação de rolagem
+   nativa; onde o navegador não suporta, os cards só aparecem). */
+@supports (animation-timeline: view()) {
+  .site-v2.v2-theme .v2-featured .product-card {
+    animation: td-card-in linear both;
+    animation-timeline: view(block);
+    animation-range: entry 0% entry 70%;
+  }
+}
+
+/* Enfeite pequeno no canto da foto: balança ao passar o mouse. */
+.site-v2.v2-theme .td-card-charm {
+  --td-icon: var(--td-badge-icon);
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 3;
+  width: 20px;
+  height: 20px;
+  background-color: var(--v2-red, #d81f26);
+  opacity: 0.85;
+  transform-origin: 50% 0;
+}
+.site-v2.v2-theme.theme-black-friday .td-card-charm,
+.site-v2.v2-theme.theme-ano-novo .td-card-charm {
+  background-color: var(--v2-navy, #0b2266);
+}
+@media (hover: hover) and (pointer: fine) {
+  .site-v2.v2-theme :is(.product-card, .v2-new-card):hover .td-card-charm {
+    animation: td-charm-swing 900ms ease-in-out both;
+  }
+}
+@keyframes td-charm-swing {
+  0%, 100% { transform: rotate(0); }
+  25% { transform: rotate(14deg); }
+  55% { transform: rotate(-10deg); }
+  80% { transform: rotate(5deg); }
+}
+
+/* SELO
+   Mantém cores, texto e posicionamento existentes.
+   O ícone é decorativo; o conteúdo textual continua acessível.
+*/
+
+.site-v2.v2-theme .v2-new-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: calc(100% - 20px);
+  box-sizing: border-box;
+}
+
+.v2-theme .td-badge-icon {
+  --td-icon: var(--td-badge-icon);
+  flex: 0 0 11px;
+  width: 11px;
+  height: 11px;
+  background-color: currentColor;
+}
+
+/* MOBILE */
+
+@media (max-width: 860px) {
+  .v2-theme {
+    --td-ornament-size: 42px;
+  }
+
+  .v2-theme .td-particle:nth-child(n + 6) {
+    display: none;
+    animation: none;
+  }
+
+  .v2-theme .td-ornament {
+    top: 10px;
+    right: 14px;
+    opacity: 0.78;
+  }
+
+  /* O layout original remove a diagonal no mobile.
+     Um filete horizontal acompanha a borda inferior da foto. */
+  .site-v2.v2-theme .td-hero-decor::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 0;
+    height: 2px;
+    background: var(--td-accent);
+    pointer-events: none;
+  }
+}
+
+/* Fallback: sem unidades de container, mantém enfeites estáticos.
+   Evita calcular trajetórias usando a altura da viewport inteira. */
+
+@supports not (height: 1cqh) {
+  .v2-theme .td-particle {
+    animation: none;
+    top: 20%;
+    opacity: 0.4;
+  }
+
+  .v2-theme .td-particle:nth-child(even) {
+    top: 55%;
+  }
+
+  .v2-theme .td-particle:nth-child(3n) {
+    top: 75%;
+  }
+}
+
+/* Fallback para máscaras compostas:
+   retira somente os reflexos, preservando uma moldura simples. */
+
+@supports not (
+  (mask-composite: exclude) or (-webkit-mask-composite: xor)
+) {
+  .v2-theme .td-cta-shine {
+    display: none;
+  }
+
+  .v2-theme .td-card-decor {
+    padding: 0;
+    background: none;
+    border: 1px solid var(--td-accent);
+  }
+
+  .v2-theme .td-card-decor::after {
+    display: none;
+  }
+}
+
+/* PAUSA
+   Abrange partículas, entrada do enfeite e brilho do CTA.
+   Também pausa animações CSS futuras adicionadas ao banner.
+*/
+
+.site-v2.v2-theme .v2-hero.is-paused,
+.site-v2.v2-theme .v2-hero.is-paused::before,
+.site-v2.v2-theme .v2-hero.is-paused::after,
+.site-v2.v2-theme .v2-hero.is-paused *,
+.site-v2.v2-theme .v2-hero.is-paused *::before,
+.site-v2.v2-theme .v2-hero.is-paused *::after {
+  animation-play-state: paused !important;
+}
+
+/* KEYFRAMES */
+
+@keyframes td-fall {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+    opacity: 0;
+  }
+  12% { opacity: 0.95; }
+  82% { opacity: 0.8; }
+  100% {
+    transform:
+      translate3d(var(--td-drift), calc(100cqh + 48px), 0)
+      rotate(var(--td-spin));
+    opacity: 0;
+  }
+}
+
+@keyframes td-petal {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(-25deg);
+    opacity: 0;
+  }
+  15% { opacity: 0.95; }
+  50% {
+    transform:
+      translate3d(calc(var(--td-drift) * -1), 50cqh, 0)
+      rotate(75deg);
+  }
+  85% { opacity: 0.8; }
+  100% {
+    transform:
+      translate3d(var(--td-drift), calc(100cqh + 48px), 0)
+      rotate(190deg);
+    opacity: 0;
+  }
+}
+
+@keyframes td-celebrate {
+  0%, 12% {
+    transform: translate3d(0, 65cqh, 0) scale(0.65);
+    opacity: 0;
+  }
+  35% { opacity: 0.95; }
+  75% { opacity: 0.7; }
+  100% {
+    transform:
+      translate3d(var(--td-drift), 12cqh, 0)
+      rotate(95deg) scale(1.15);
+    opacity: 0;
+  }
+}
+
+@keyframes td-float {
+  0% {
+    transform: translate3d(0, 80cqh, 0) rotate(-15deg);
+    opacity: 0;
+  }
+  20% { opacity: 0.95; }
+  55% {
+    transform: translate3d(var(--td-drift), 45cqh, 0) rotate(20deg);
+  }
+  80% { opacity: 0.8; }
+  100% {
+    transform: translate3d(0, 10cqh, 0) rotate(-10deg);
+    opacity: 0;
+  }
+}
+
+@keyframes td-rise {
+  0%, 15% {
+    transform: translate3d(0, calc(100cqh + 30px), 0);
+    opacity: 0;
+  }
+  30% { opacity: 0.95; }
+  75% { opacity: 0.75; }
+  100% {
+    transform: translate3d(var(--td-drift), 0, 0);
+    opacity: 0;
+  }
+}
+
+@keyframes td-ornament-in {
+  from {
+    transform: translateY(-28px) rotate(-10deg);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) rotate(0);
+    opacity: 0.88;
+  }
+}
+
+@keyframes td-cta-sweep {
+  0%, 84% {
+    transform: translateX(-45%);
+    opacity: 0;
+  }
+  87% { opacity: 0.8; }
+  95% {
+    transform: translateX(45%);
+    opacity: 0.8;
+  }
+  96%, 100% {
+    transform: translateX(45%);
+    opacity: 0;
+  }
+}
+
+@keyframes td-card-sweep {
+  0% {
+    transform: translateX(-45%);
+    opacity: 0;
+  }
+  20% { opacity: 0.95; }
+  80% { opacity: 0.95; }
+  100% {
+    transform: translateX(45%);
+    opacity: 0;
+  }
+}
+
+@keyframes td-card-in {
+  from {
+    opacity: 0;
+    translate: 0 12px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+/* ACESSIBILIDADE
+   Interrompe também transições e movimentos herdados dos cards.
+   Enfeites estáticos continuam identificando o tema.
+*/
+
+@media (prefers-reduced-motion: reduce) {
+  .site-v2.v2-theme,
+  .site-v2.v2-theme *,
+  .site-v2.v2-theme *::before,
+  .site-v2.v2-theme *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+
+  .site-v2.v2-theme :is(.product-card, .v2-new-card),
+  .site-v2.v2-theme :is(.product-card, .v2-new-card):hover {
+    transform: none !important;
+    translate: none !important;
+  }
+
+  .v2-theme .td-particle,
+  .v2-theme .td-cta-shine,
+  .v2-theme .td-card-decor::after {
+    display: none !important;
+  }
+
+  .v2-theme .td-ornament {
+    transform: none !important;
+    opacity: 0.85;
+  }
+}

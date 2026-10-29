@@ -10,6 +10,7 @@ import './globals.css';
 import './marketing-polish.css';
 import './carousel-color-fix.css';
 import './site-v2.css';
+import './theme-decor.css';
 import './promo-popup.css';
 
 const dmSans = DM_Sans({ variable: '--font-dm-sans', subsets: ['latin'] });

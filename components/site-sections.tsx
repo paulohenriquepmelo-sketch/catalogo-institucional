@@ -20,7 +20,9 @@ import {
   Menu,
   MessageCircle,
   Package,
+  Pause,
   Phone,
+  Play,
   Search,
   Settings2,
   Star,
@@ -465,13 +467,23 @@ export function HomeHero({ config }: { config: CatalogConfig }) {
   const eyebrow = theme?.eyebrow.trim();
   const title = theme?.title.trim();
   const description = theme?.description.trim();
+  // A animação do tema não para sozinha: o botão deixa pausar.
+  const [paused, setPaused] = useState(false);
   return (
     <section
-      className={theme ? 'v2-hero is-theme' : 'v2-hero'}
+      className={`v2-hero${theme ? ' is-theme' : ''}${paused ? ' is-paused' : ''}`}
       aria-labelledby="v2-hero-title"
     >
       <div className="v2-hero-media" aria-hidden="true">
         {photo && <img src={photo} alt="" fetchPriority="high" />}
+        {theme && (
+          <span className="td-hero-decor">
+            {Array.from({ length: 10 }, (_, i) => (
+              <span className="td-particle" key={i} />
+            ))}
+            <span className="td-ornament" />
+          </span>
+        )}
       </div>
       <div className="v2-container v2-hero-inner">
         <div className="v2-hero-copy">
@@ -494,9 +506,20 @@ export function HomeHero({ config }: { config: CatalogConfig }) {
           </p>
           <a className="v2-button v2-button-red" href="/produtos">
             Conheça nosso catálogo <ArrowRight aria-hidden="true" />
+            {theme && <span className="td-cta-shine" aria-hidden="true" />}
           </a>
         </div>
       </div>
+      {theme && (
+        <button
+          type="button"
+          className="v2-hero-pause"
+          onClick={() => setPaused((p) => !p)}
+        >
+          {paused ? <Play aria-hidden="true" /> : <Pause aria-hidden="true" />}
+          {paused ? 'Retomar animação' : 'Pausar animação'}
+        </button>
+      )}
     </section>
   );
 }
@@ -782,7 +805,10 @@ function ShowcasePanel({
           >
             {products.map((product) => (
               <div className="v2-new-card" key={product.id}>
-                <span className="v2-new-badge">{badge(product)}</span>
+                <span className="v2-new-badge">
+                  <span className="td-badge-icon" aria-hidden="true" />
+                  {badge(product)}
+                </span>
                 <ProductCard product={product} onOpen={onOpen} />
               </div>
             ))}

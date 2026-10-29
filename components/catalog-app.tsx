@@ -492,6 +492,14 @@ export function CatalogApp({
     }
     return null;
   }
+  // Tema de data ativo (fora o Padrão): mesma página, com enfeites
+  // e animação no banner e nos cards (app/theme-decor.css).
+  const themeId =
+    config.campaign?.enabled &&
+    config.campaign.mode === 'theme' &&
+    config.campaign.theme !== 'padrao'
+      ? config.campaign.theme
+      : '';
   const hasOffers =
     has('offers') &&
     config.offers.published &&
@@ -514,7 +522,7 @@ export function CatalogApp({
   return (
       <main
         id="inicio"
-        className={`public-catalog site-v2 ${fullCatalogPage ? 'full-catalog-page' : ''}`}
+        className={`public-catalog site-v2 ${fullCatalogPage ? 'full-catalog-page' : ''} ${themeId ? `v2-theme theme-${themeId}` : ''}`}
         style={style}
       >
         <a className="skip-link" href="#catalogo">
