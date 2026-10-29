@@ -471,15 +471,20 @@ void test('Acabaram de chegar follows the ERP code, not the import date', async 
   assert.ok(!selectNewProducts(items, { limit: 10 }).some((p) => p.code === '11800'));
 });
 
-void test('tabaco fica na lista geral, mas nunca em destaque, oferta ou novidades', async () => {
-  const { isTobaccoProduct, withoutTobaccoPromotion } = await import('../lib/restricted-products');
+void test('tabaco e fogos ficam na lista geral, mas nunca em destaque, oferta ou novidades', async () => {
+  const { isRestrictedProduct, withoutRestrictedPromotion } = await import('../lib/restricted-products');
   const { selectNewProducts, selectActiveOffers } = await import('../components/product-showcase-carousel');
   const { validateProduct } = await import('../lib/catalog-repository');
   const { defaultConfig } = await import('../lib/catalog-config');
   for (const name of ['FUMO SABIA DESFIADO 22G', 'PAPEL P/CIGARRO SABIA', 'CHARUTO DANNEMANN'])
-    assert.ok(isTobaccoProduct({ name, category: 'UTILIDADES' }), name);
+    assert.ok(isRestrictedProduct({ name, category: 'UTILIDADES' }), name);
   for (const name of ['BATATA PALHA DUCHEF 1KG', 'SHAMPOO SEDA 325ML', 'BACON DEFUMADO 1KG', 'FUMACA LIQUIDA 100ML'])
-    assert.ok(!isTobaccoProduct({ name, category: 'MERCEARIA' }), name);
+    assert.ok(!isRestrictedProduct({ name, category: 'MERCEARIA' }), name);
+  for (const name of ['TRAQUES 30UN', 'ESTALINHO FANTASMINHA (GLOBINHO)', 'GIRANDOLA MINI SHOW 468 TIRO E CORES'])
+    assert.ok(isRestrictedProduct({ name, category: 'UTILIDADES' }), name);
+  assert.ok(isRestrictedProduct({ name: 'BOMBA N° 04', category: 'FOGOS' }));
+  for (const name of ['BALA PLUTONITA BOMBA EXPLOSIVA SORT 192G', 'VELA PARANA N 03', 'FOGAO 4 BOCAS'])
+    assert.ok(!isRestrictedProduct({ name, category: 'MERCEARIA' }), name);
 
   const offer = { enabled: true, discount: 10, startsAt: '2026-01-01', endsAt: '2099-12-31' };
   const fumo = {
@@ -491,12 +496,12 @@ void test('tabaco fica na lista geral, mas nunca em destaque, oferta ou novidade
     published: true,
     details: { offer, showAsNew: true },
   };
-  const clean = withoutTobaccoPromotion(fumo);
+  const clean = withoutRestrictedPromotion(fumo);
   assert.equal(clean.featured, false);
   assert.equal(clean.details?.offer, undefined);
   assert.equal(clean.details?.showAsNew, false);
   assert.equal(clean.published, true);
-  assert.equal(withoutTobaccoPromotion(products[0]), products[0]);
+  assert.equal(withoutRestrictedPromotion(products[0]), products[0]);
 
   // A gravação pelo editor ou pela importação já tira o tabaco das vitrines.
   const saved = validateProduct(fumo, {
