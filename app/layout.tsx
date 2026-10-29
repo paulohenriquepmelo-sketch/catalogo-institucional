@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { DM_Sans, Manrope, Montserrat } from 'next/font/google';
+import { DM_Sans, Fraunces, Fredoka, Manrope, Montserrat } from 'next/font/google';
 import { env } from 'cloudflare:workers';
 import {
   getConfig,
@@ -10,7 +10,7 @@ import './globals.css';
 import './marketing-polish.css';
 import './carousel-color-fix.css';
 import './site-v2.css';
-import './theme-decor.css';
+import './theme-v3.css';
 import './promo-popup.css';
 
 const dmSans = DM_Sans({ variable: '--font-dm-sans', subsets: ['latin'] });
@@ -22,6 +22,18 @@ const bfDisplay = Montserrat({
   subsets: ['latin'],
   weight: ['700', '800', '900'],
   style: ['normal', 'italic'],
+  preload: false,
+});
+// Fontes dos temas de data (app/theme-v3.css): Dia das Mães e Dia das
+// Crianças. Também sem preload.
+const themeSerif = Fraunces({
+  variable: '--font-theme-serif',
+  subsets: ['latin'],
+  preload: false,
+});
+const themeFun = Fredoka({
+  variable: '--font-theme-fun',
+  subsets: ['latin'],
   preload: false,
 });
 
@@ -79,7 +91,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body
-        className={`${dmSans.variable} ${manrope.variable} ${bfDisplay.variable}`}
+        className={`${dmSans.variable} ${manrope.variable} ${bfDisplay.variable} ${themeSerif.variable} ${themeFun.variable}`}
       >
         {children}
       </body>
