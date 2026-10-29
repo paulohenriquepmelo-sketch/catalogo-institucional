@@ -48,6 +48,7 @@ import {
 } from '@/lib/catalog-config';
 import { publishedBrands } from '@/lib/catalog-brands';
 import { buildSegments, segmentPhoto, type Segment } from '@/lib/segments';
+import { isTobaccoProduct } from '@/lib/restricted-products';
 import { CATALOG_NOTICE, OFFERS_NOTICE } from '@/lib/catalog-notices';
 import { PRIVACY_PATH, privacyPolicyReady } from '@/lib/privacy-policy';
 import { segmentIconById } from '@/lib/segment-icons';
@@ -957,7 +958,10 @@ export function HomeFeatured({
   onOpen: (product: Product) => void;
 }) {
   // A lista já vem com os destaques primeiro; aqui só entram itens com foto.
-  const shown = useMemo(() => items.filter((p) => p.image).slice(0, 12), [items]);
+  const shown = useMemo(
+    () => items.filter((p) => p.image && !isTobaccoProduct(p)).slice(0, 12),
+    [items],
+  );
   if (!shown.length) return null;
   return (
     <section id="catalogo" className="v2-featured" aria-labelledby="v2-featured-title">
