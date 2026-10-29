@@ -12,6 +12,7 @@ import {
   imageUrl,
 } from './catalog-config';
 import { classifySegment } from './segment-classifier';
+import { withoutTobaccoPromotion } from './restricted-products';
 import { brandsWithEnoughProducts, publicBrands, withMultibrand } from './catalog-brands';
 import { defaultCampaign } from './catalog-campaign';
 import { defaultColors } from './catalog-colors';
@@ -325,7 +326,8 @@ export async function getPublicCatalog(): Promise<PublishedCatalogSnapshot> {
   let result = publicCatalogs.get(snapshot);
   if (!result) {
     const brands = brandsWithEnoughProducts(snapshot.config.brands, snapshot.products);
-    const products = withMultibrand(snapshot.products, brands);
+    // Também vale para o que foi publicado antes da regra do tabaco.
+    const products = withMultibrand(snapshot.products, brands).map(withoutTobaccoPromotion);
     result = {
       ...snapshot,
       products,
@@ -465,7 +467,7 @@ export function validateProduct(
       endsAt: offer.endsAt,
     };
   }
-  return {
+  return withoutTobaccoPromotion({
     id: v.id,
     name: v.name.trim(),
     code: v.code.trim(),
@@ -482,7 +484,7 @@ export function validateProduct(
     updatedAt: v.updatedAt,
     createdAt: v.createdAt,
     details,
-  };
+  });
 }
 export async function saveCatalogProduct(
   value: unknown,

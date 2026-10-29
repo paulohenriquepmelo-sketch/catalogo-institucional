@@ -471,6 +471,48 @@ void test('Acabaram de chegar follows the ERP code, not the import date', async 
   assert.ok(!selectNewProducts(items, { limit: 10 }).some((p) => p.code === '11800'));
 });
 
+void test('tabaco fica na lista geral, mas nunca em destaque, oferta ou novidades', async () => {
+  const { isTobaccoProduct, withoutTobaccoPromotion } = await import('../lib/restricted-products');
+  const { selectNewProducts, selectActiveOffers } = await import('../components/product-showcase-carousel');
+  const { validateProduct } = await import('../lib/catalog-repository');
+  const { defaultConfig } = await import('../lib/catalog-config');
+  for (const name of ['FUMO SABIA DESFIADO 22G', 'PAPEL P/CIGARRO SABIA', 'CHARUTO DANNEMANN'])
+    assert.ok(isTobaccoProduct({ name, category: 'UTILIDADES' }), name);
+  for (const name of ['BATATA PALHA DUCHEF 1KG', 'SHAMPOO SEDA 325ML', 'BACON DEFUMADO 1KG', 'FUMACA LIQUIDA 100ML'])
+    assert.ok(!isTobaccoProduct({ name, category: 'MERCEARIA' }), name);
+
+  const offer = { enabled: true, discount: 10, startsAt: '2026-01-01', endsAt: '2099-12-31' };
+  const fumo = {
+    ...products[0],
+    id: 409,
+    code: '99999',
+    name: 'FUMO SABIA DESFIADO 22G',
+    featured: true,
+    published: true,
+    details: { offer, showAsNew: true },
+  };
+  const clean = withoutTobaccoPromotion(fumo);
+  assert.equal(clean.featured, false);
+  assert.equal(clean.details?.offer, undefined);
+  assert.equal(clean.details?.showAsNew, false);
+  assert.equal(clean.published, true);
+  assert.equal(withoutTobaccoPromotion(products[0]), products[0]);
+
+  // A gravação pelo editor ou pela importação já tira o tabaco das vitrines.
+  const saved = validateProduct(fumo, {
+    ...defaultConfig,
+    brands: [{ name: fumo.brand, logo: '', published: true, featured: false }],
+    taxonomy: [{ department: fumo.department, section: fumo.section, category: fumo.category }],
+  });
+  assert.equal(saved.featured, false);
+  assert.equal(saved.details?.offer, undefined);
+  assert.equal(saved.published, true);
+
+  // E as vitrines ignoram o que tiver sido gravado antes da regra.
+  assert.deepEqual(selectNewProducts([fumo], { limit: 10 }), []);
+  assert.deepEqual(selectActiveOffers([fumo], '2026-10-29', 10), []);
+});
+
 void test('image cleanup lives in a danger zone with typed confirmation, out of the overview', () => {
   const app = readFileSync('components/editor-app.tsx', 'utf8');
   const start = app.indexOf("view === 'overview'");

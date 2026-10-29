@@ -13,6 +13,7 @@ import {
 import { catalogDateKey, type Product } from '@/lib/catalog-data';
 import type { ProductShowcase } from '@/lib/catalog-config';
 import { OFFERS_NOTICE } from '@/lib/catalog-notices';
+import { isTobaccoProduct } from '@/lib/restricted-products';
 import { ProductCard } from './product-card';
 
 const localDateKey = catalogDateKey;
@@ -48,7 +49,7 @@ export function selectNewProducts(
   const from = settings.fromCode ?? 0;
   return items
     .filter((product) => {
-      if (product.details?.showAsNew === false) return false;
+      if (product.details?.showAsNew === false || isTobaccoProduct(product)) return false;
       return product.details?.showAsNew === true || codeNumber(product.code) >= from;
     })
     .sort(
@@ -68,6 +69,7 @@ export function selectActiveOffers(
     .filter((product) => {
       const offer = product.details?.offer;
       return (
+        !isTobaccoProduct(product) &&
         offer?.enabled === true &&
         offer.startsAt <= today &&
         offer.endsAt >= today

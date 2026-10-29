@@ -29,6 +29,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { buildSegments } from '@/lib/segments';
+import { isTobaccoProduct, TOBACCO_RULE } from '@/lib/restricted-products';
 import { defaultConfig, type CatalogConfig } from '@/lib/catalog-config';
 import {
   catalogDateKey,
@@ -97,6 +98,7 @@ export function EditorApp({ userName }: { userName: string }) {
   const [items, setItems] = useState<Product[]>([]);
   const [draft, setDraft] = useState<Product>(blank);
   const [baseline, setBaseline] = useState(blank);
+  const tobacco = isTobaccoProduct(draft);
   const [config, setConfig] = useState<CatalogConfig>(defaultConfig);
   const [cleanupConfirm, setCleanupConfirm] = useState('');
   const [savedConfig, setSavedConfig] = useState(defaultConfig);
@@ -705,9 +707,11 @@ export function EditorApp({ userName }: { userName: string }) {
                   />
                   <Toggle
                     label="Produto em destaque"
-                    value={draft.featured === true}
+                    value={draft.featured === true && !tobacco}
+                    disabled={tobacco}
                     onChange={(featured) => setDraft({ ...draft, featured })}
                   />
+                  {tobacco && <p className="source-note wide">{TOBACCO_RULE}</p>}
                   <section className="offer-editor wide">
                     <div>
                       <h3>Oferta e promoção</h3>
@@ -719,7 +723,8 @@ export function EditorApp({ userName }: { userName: string }) {
                     </div>
                     <Toggle
                       label="Produto em oferta"
-                      value={draft.details?.offer?.enabled === true}
+                      value={draft.details?.offer?.enabled === true && !tobacco}
+                      disabled={tobacco}
                       onChange={(enabled) => {
                         const start = new Date();
                         const end = new Date(start);

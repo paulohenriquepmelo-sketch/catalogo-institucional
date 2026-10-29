@@ -20,6 +20,7 @@ import { catalogDateKey, type Product } from '@/lib/catalog-data';
 import { ColorEditor } from './color-editor';
 import { resolveColors } from '@/lib/catalog-colors';
 import { buildSegments } from '@/lib/segments';
+import { isTobaccoProduct } from '@/lib/restricted-products';
 import { SEGMENT_RULES } from '@/lib/segment-rules';
 
 export type EditorView =
@@ -332,7 +333,8 @@ export function ConfigEditor({
               )
               .slice(0, promotionLimit)
               .map((product) => {
-                const isNew = product.details?.showAsNew !== false;
+                const tobacco = isTobaccoProduct(product);
+                const isNew = product.details?.showAsNew !== false && !tobacco;
                 return (
                   <article key={product.id}>
                     <div className="promotion-product-identity">
@@ -351,7 +353,8 @@ export function ConfigEditor({
                     </div>
                     <Toggle
                       label="Oferta"
-                      value={product.details?.offer?.enabled === true}
+                      value={product.details?.offer?.enabled === true && !tobacco}
+                      disabled={tobacco}
                       onChange={(enabled) =>
                         void onProductToggle?.(product, 'offers', enabled)
                       }
@@ -359,6 +362,7 @@ export function ConfigEditor({
                     <Toggle
                       label="Novo"
                       value={isNew}
+                      disabled={tobacco}
                       onChange={(enabled) =>
                         void onProductToggle?.(product, 'new-products', enabled)
                       }
