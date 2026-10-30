@@ -5796,6 +5796,19 @@ a:focus-visible {
   box-shadow: 0 0 0 3px rgb(239 49 47 / 13%);
 }
 
+.editor-shell .campaign-theme-grid > button:disabled,
+.editor-shell .campaign-theme-grid > button:disabled:hover {
+  cursor: not-allowed;
+  opacity: 0.55;
+  border-color: #e2e5df;
+  transform: none;
+  box-shadow: none;
+}
+.editor-shell .campaign-theme-grid small {
+  font-size: 10px;
+  font-weight: 600;
+  color: #7a5a12;
+}
 .editor-shell .campaign-theme-grid > button:focus-visible {
   outline: 3px solid rgb(38 63 133 / 20%);
   outline-offset: 3px;
