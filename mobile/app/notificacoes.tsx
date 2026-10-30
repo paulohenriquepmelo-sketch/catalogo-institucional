@@ -10,9 +10,13 @@ import {
   type ListRenderItem,
 } from 'react-native';
 import { AppIcon } from '@/components/AppIcon';
+import { ThemedBackground } from '@/components/ThemedBackground';
+import { PanelHeading, ThemedPanel } from '@/components/ThemedPanel';
 import { useCatalog } from '@/lib/catalog-store';
 import { buildNotifications, markNotificationsSeen } from '@/lib/notifications';
-import { colors, radius, spacing, typography } from '@/lib/theme';
+import { useAppTheme } from '@/lib/theme-provider';
+import { readableColor } from '@/lib/theme-contrast';
+import { radius, spacing, typography } from '@/lib/theme';
 
 function timeAgo(at: number) {
   const diff = Date.now() - at;
@@ -29,66 +33,87 @@ function timeAgo(at: number) {
 
 export default function NotificacoesScreen() {
   const { products, config, offline } = useCatalog();
-
+  const { tokens } = useAppTheme();
   const notifications = useMemo(
     () => buildNotifications(products, config),
     [products, config],
   );
-  const renderNotification = useCallback<
-    ListRenderItem<(typeof notifications)[number]>
-  >(
+
+  const styles = useMemo(() => StyleSheet.create({
+    list: { flex: 1 },
+    content: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxl },
+    header: { marginHorizontal: -spacing.lg, marginBottom: spacing.lg },
+    notice: { padding: spacing.lg, backgroundColor: tokens.soft },
+    noticeText: { ...typography.body, color: tokens.ink },
+    card: {
+      minHeight: 44,
+      marginBottom: spacing.sm,
+      borderRadius: radius.md,
+      borderWidth: 1,
+      borderColor: tokens.border,
+      backgroundColor: tokens.soft,
+      padding: spacing.md,
+      gap: spacing.md,
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+    },
+    pressed: { opacity: 0.85 },
+    icon: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: tokens.accent,
+    },
+    body: { flex: 1, gap: spacing.xs },
+    title: { ...typography.body, color: tokens.ink, fontWeight: '700' },
+    message: { ...typography.body, color: tokens.muted },
+    time: { ...typography.small, color: tokens.muted, marginTop: spacing.xs },
+    empty: {
+      alignItems: 'center',
+      padding: spacing.xl,
+      gap: spacing.md,
+      borderRadius: radius.md,
+      backgroundColor: tokens.soft,
+    },
+    emptyTitle: { ...typography.subtitle, color: tokens.ink },
+    emptyText: { ...typography.body, color: tokens.muted, textAlign: 'center' },
+  }), [tokens]);
+
+  const renderNotification = useCallback<ListRenderItem<(typeof notifications)[number]>>(
     ({ item }) => (
       <Pressable
-        style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+        accessibilityRole="button"
+        accessibilityLabel={`${item.title}. ${item.message}`}
+        style={({ pressed }) => [styles.card, pressed && styles.pressed]}
         onPress={() => router.push(`/produto/${item.productId}`)}
       >
-        <View
-          style={[
-            styles.iconWrap,
-            item.kind === 'offer' ? styles.iconOffer : styles.iconNew,
-          ]}
-        >
+        <View style={styles.icon}>
           <AppIcon
             name={item.kind === 'offer' ? 'percent' : 'sparkles'}
-            size={20}
-            color="#fff"
+            size={22}
+            color={readableColor(tokens.onAccent, tokens.accent)}
           />
         </View>
-        <View style={styles.cardBody}>
-          <Text style={styles.cardTitle} numberOfLines={2}>{item.title}</Text>
-          <Text style={styles.cardMessage} numberOfLines={2}>{item.message}</Text>
-          <Text style={styles.cardTime}>{timeAgo(item.at)}</Text>
+        <View style={styles.body}>
+          <Text style={styles.title}>{item.title}</Text>
+          <Text style={styles.message}>{item.message}</Text>
+          <Text style={styles.time}>{timeAgo(item.at)}</Text>
         </View>
-        <AppIcon name="chevron-forward" size={18} color={colors.textMuted} />
       </Pressable>
     ),
-    [],
+    [styles, tokens],
   );
 
-  // Abrir a tela marca tudo como visto e zera o contador do sino.
   useEffect(() => {
     void markNotificationsSeen();
   }, []);
 
   return (
-    <View style={styles.screen}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Notificações</Text>
-        <Text style={styles.subtitle}>
-          {notifications.length === 0
-            ? 'Nenhuma novidade por enquanto'
-            : `${notifications.length} ${notifications.length === 1 ? 'aviso' : 'avisos'} do catálogo`}
-        </Text>
-      </View>
-
-      {offline ? (
-        <View style={styles.offlineBanner}>
-          <AppIcon name="cloud-offline" size={16} color="#7a5b00" />
-          <Text style={styles.offlineText}>Sem conexão — avisos do catálogo salvo.</Text>
-        </View>
-      ) : null}
-
+    <ThemedBackground>
       <FlatList
+        style={styles.list}
         data={notifications}
         keyExtractor={(item) => item.id}
         initialNumToRender={8}
@@ -96,11 +121,28 @@ export default function NotificacoesScreen() {
         updateCellsBatchingPeriod={80}
         windowSize={5}
         removeClippedSubviews={Platform.OS === 'android'}
-        contentContainerStyle={styles.list}
+        contentContainerStyle={styles.content}
         renderItem={renderNotification}
+        ListHeaderComponent={
+          <View style={styles.header}>
+            <ThemedPanel>
+              <PanelHeading
+                title="Notificações"
+                subtitle={notifications.length === 0
+                  ? 'Nenhuma novidade por enquanto'
+                  : `${notifications.length} ${notifications.length === 1 ? 'aviso' : 'avisos'} do catálogo`}
+              />
+            </ThemedPanel>
+            {offline ? (
+              <View style={styles.notice}>
+                <Text style={styles.noticeText}>Sem conexão — avisos do catálogo salvo.</Text>
+              </View>
+            ) : null}
+          </View>
+        }
         ListEmptyComponent={
           <View style={styles.empty}>
-            <AppIcon name="notifications" size={44} color={colors.border} />
+            <AppIcon name="notifications" size={40} color={tokens.muted} />
             <Text style={styles.emptyTitle}>Tudo em dia</Text>
             <Text style={styles.emptyText}>
               Quando houver ofertas ativas ou produtos novos no catálogo, os avisos aparecem aqui.
@@ -108,55 +150,6 @@ export default function NotificacoesScreen() {
           </View>
         }
       />
-    </View>
+    </ThemedBackground>
   );
 }
-
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.background },
-  header: { padding: spacing.lg, paddingBottom: spacing.sm },
-  title: { ...typography.title, color: colors.text },
-  subtitle: { ...typography.small, color: colors.textMuted, marginTop: 2 },
-  offlineBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-    backgroundColor: '#fff3cd',
-    padding: spacing.sm,
-    paddingHorizontal: spacing.lg,
-  },
-  offlineText: { ...typography.small, color: '#7a5b00', flex: 1 },
-  list: { padding: spacing.lg, paddingTop: spacing.sm, gap: spacing.sm },
-  card: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.md,
-  },
-  cardPressed: { opacity: 0.85 },
-  iconWrap: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  iconOffer: { backgroundColor: colors.accent },
-  iconNew: { backgroundColor: colors.primary },
-  cardBody: { flex: 1, gap: 2 },
-  cardTitle: { ...typography.body, color: colors.text, fontWeight: '700' },
-  cardMessage: { ...typography.small, color: colors.textMuted },
-  cardTime: { ...typography.small, color: colors.textMuted, opacity: 0.7, marginTop: 2 },
-  empty: { alignItems: 'center', paddingVertical: spacing.xxl, gap: spacing.sm },
-  emptyTitle: { ...typography.subtitle, color: colors.text, marginTop: spacing.sm },
-  emptyText: {
-    ...typography.body,
-    color: colors.textMuted,
-    textAlign: 'center',
-    paddingHorizontal: spacing.lg,
-  },
-});

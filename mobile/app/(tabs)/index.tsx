@@ -4,6 +4,7 @@ import type { NavigationProp, ParamListBase } from 'expo-router/react-navigation
 import {
   Image,
   Linking,
+  Platform,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -12,62 +13,156 @@ import {
   View,
 } from 'react-native';
 import { AppIcon, type AppIconName } from '@/components/AppIcon';
-import { useCatalog } from '@/lib/catalog-store';
-import { activeOffers, BASE_URL, campaignBackground, newProducts, publishedBrands } from '@/lib/api';
-import { useLocalImageUri } from '@/lib/image-cache';
-import { colors, radius, spacing, typography } from '@/lib/theme';
-import { ProductRow } from '@/components/ProductRow';
 import { BannerCarousel } from '@/components/BannerCarousel';
 import { CachedImage } from '@/components/CachedImage';
+import { ProductRow } from '@/components/ProductRow';
+import { ThemedBackground } from '@/components/ThemedBackground';
+import { PanelHeading, ThemedPanel } from '@/components/ThemedPanel';
+import { useCatalog } from '@/lib/catalog-store';
+import {
+  activeOffers,
+  BASE_URL,
+  campaignBackground,
+  newProducts,
+  publishedBrands,
+} from '@/lib/api';
+import { useLocalImageUri } from '@/lib/image-cache';
+import { useAppTheme } from '@/lib/theme-provider';
+import { splitThemeTitle } from '@/lib/theme-registry';
+import { panelAccent, readableColor } from '@/lib/theme-contrast';
+import { radius, spacing, typography } from '@/lib/theme';
+
+const LOCAL_HERO = require('../../assets/hero-laurencini.png');
+// O navegador não implementa resolveAssetSource. A proporção de reserva
+// só define o quadro; contain mantém a arte institucional inteira.
+const LOCAL_SOURCE = Platform.OS === 'web' ? undefined : Image.resolveAssetSource(LOCAL_HERO);
+const LOCAL_RATIO = LOCAL_SOURCE?.height
+  ? LOCAL_SOURCE.width / LOCAL_SOURCE.height
+  : 3;
+const PRELOAD_TABS = ['catalogo', 'segmentos', 'ofertas', 'novidades', 'marcas'] as const;
 
 function normalizeText(text: string) {
-  return text
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase();
+  return text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 }
 
-// Escolhe um ícone coerente para a seção pelo nome dela. Como as seções
-// vêm do catálogo publicado (ex.: "1-ALIMENTOS", "1.3-BISCOITOS"), o
-// casamento é por palavra-chave, com um ícone genérico como reserva.
 function iconForSection(name: string): AppIconName {
-  const n = normalizeText(name);
-  if (n.includes('bebid')) return 'beer';
-  if (n.includes('aliment') || n.includes('merceari') || n.includes('food')) return 'basket';
-  if (n.includes('higien')) return 'medkit';
-  if (n.includes('limpez') || n.includes('saneant')) return 'spray';
-  if (n.includes('perfum') || n.includes('cosmet')) return 'flask';
-  if (n.includes('descart') || n.includes('copo')) return 'cafe';
-  if (n.includes('biscoit') || n.includes('bomb') || n.includes('doce') || n.includes('choc'))
-    return 'cube';
+  const normalized = normalizeText(name);
+  if (normalized.includes('bebid')) return 'beer';
+  if (/aliment|merceari|food/.test(normalized)) return 'basket';
+  if (normalized.includes('higien')) return 'medkit';
+  if (/limpez|saneant/.test(normalized)) return 'spray';
+  if (/perfum|cosmet/.test(normalized)) return 'flask';
+  if (/descart|copo/.test(normalized)) return 'cafe';
+  if (/biscoit|bomb|doce|choc/.test(normalized)) return 'cube';
   return 'grid';
 }
 
-function countdown(end?: string, now = Date.now()) {
-  const endTime = end ? new Date(`${end}T23:59:59`).getTime() : now;
-  const remaining = Math.max(0, endTime - now);
-  const days = Math.floor(remaining / 86_400_000);
-  const hours = Math.floor((remaining / 3_600_000) % 24);
-  const minutes = Math.floor((remaining / 60_000) % 60);
-  const seconds = Math.floor((remaining / 1000) % 60);
-  return [days, hours, minutes, seconds].map((value) => String(value).padStart(2, '0'));
+function useHomeStyles() {
+  const { tokens } = useAppTheme();
+  return useMemo(() => StyleSheet.create({
+    scroll: { flex: 1 },
+    content: { paddingBottom: spacing.xl, gap: spacing.lg },
+    notice: { padding: spacing.md, backgroundColor: tokens.soft },
+    noticeText: { ...typography.body, color: tokens.ink },
+    heroText: { padding: spacing.xl, gap: spacing.md },
+    eyebrow: {
+      ...typography.small,
+      color: '#ffffff',
+      fontWeight: '700',
+      textTransform: 'uppercase',
+    },
+    title: {
+      fontSize: 30,
+      fontWeight: '800',
+      color: '#ffffff',
+      textShadowColor: '#000000',
+      textShadowOffset: { width: 0, height: 2 },
+      textShadowRadius: 4,
+    },
+    titleArt: { width: '100%', maxWidth: 340, aspectRatio: 1200 / 703 },
+    titleAccent: { color: panelAccent(tokens.titleAccent, tokens.dark) },
+    description: { ...typography.body, color: '#ffffff' },
+    year: {
+      fontSize: 64,
+      fontWeight: '900',
+      color: panelAccent('#f7d273', tokens.dark),
+      fontVariant: ['tabular-nums'],
+    },
+    heroImage: { width: '100%' },
+    button: {
+      minHeight: 48,
+      minWidth: 44,
+      justifyContent: 'center',
+      alignItems: 'center',
+      alignSelf: 'flex-start',
+      paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.md,
+      backgroundColor: tokens.accent,
+      borderRadius: radius.md,
+    },
+    buttonText: {
+      ...typography.body,
+      fontWeight: '800',
+      color: readableColor(tokens.onAccent, tokens.accent),
+    },
+    benefits: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      padding: spacing.lg,
+      gap: spacing.lg,
+    },
+    benefit: { flexGrow: 1, flexBasis: 140, gap: spacing.sm },
+    benefitText: { ...typography.small, color: '#ffffff' },
+    categories: { paddingHorizontal: spacing.lg, gap: spacing.sm },
+    category: {
+      width: 148,
+      minHeight: 100,
+      backgroundColor: tokens.soft,
+      borderColor: tokens.border,
+      borderWidth: 1,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      gap: spacing.sm,
+    },
+    categoryText: { ...typography.body, color: tokens.ink, fontWeight: '700' },
+    section: { paddingBottom: spacing.lg, gap: spacing.sm },
+    brandRow: { paddingHorizontal: spacing.lg, gap: spacing.md },
+    brandCard: {
+      width: 144,
+      minHeight: 112,
+      backgroundColor: tokens.soft,
+      borderColor: tokens.border,
+      borderWidth: 1,
+      borderRadius: radius.md,
+      padding: spacing.sm,
+      gap: spacing.sm,
+      alignItems: 'center',
+    },
+    brandLogo: { width: '100%', height: 64, backgroundColor: '#ffffff' },
+    brandName: { ...typography.body, color: tokens.ink, textAlign: 'center' },
+    contact: { padding: spacing.lg, gap: spacing.md },
+    contactTitle: { ...typography.title, color: '#ffffff' },
+    countdown: {
+      paddingHorizontal: spacing.lg,
+      paddingBottom: spacing.sm,
+      color: '#ffffff',
+      ...typography.body,
+      fontVariant: ['tabular-nums'],
+    },
+  }), [tokens]);
 }
-
-// Abas pré-carregadas em segundo plano, da mais usada para a menos usada.
-const PRELOAD_TABS = ['catalogo', 'segmentos', 'ofertas', 'novidades', 'marcas'] as const;
 
 export default function HomeScreen() {
   const { config, products, refreshing, refresh, offline } = useCatalog();
-
-  // Monta as outras abas em segundo plano, uma de cada vez, depois que o
-  // catálogo chegou e a Início já está na tela. Quando o usuário toca numa
-  // aba, a lista dela já está pronta e a troca é instantânea.
+  const { tokens, copy } = useAppTheme();
+  const styles = useHomeStyles();
   const navigation = useNavigation<NavigationProp<ParamListBase>>();
   const hasProducts = products.length > 0;
+
   useEffect(() => {
     if (!hasProducts) return;
-    const timers = PRELOAD_TABS.map((name, i) =>
-      setTimeout(() => navigation.preload(name), 1_200 + i * 500),
+    const timers = PRELOAD_TABS.map((name, index) =>
+      setTimeout(() => navigation.preload(name), 1_200 + index * 500),
     );
     return () => timers.forEach(clearTimeout);
   }, [navigation, hasProducts]);
@@ -77,7 +172,6 @@ export default function HomeScreen() {
     [products, config?.offers.limit],
   );
   const news = useMemo(
-    // Mesma regra da aba Novidades: a partir do código do ERP (fromCode).
     () => newProducts(products, config?.newProducts.fromCode, config?.newProducts.limit ?? 12),
     [products, config?.newProducts.fromCode, config?.newProducts.limit],
   );
@@ -85,19 +179,12 @@ export default function HomeScreen() {
     () => publishedBrands(config?.brands ?? []).slice(0, 10),
     [config?.brands],
   );
-  const heroUri = useLocalImageUri(campaignBackground(config));
-  // Tamanho real do mix, arredondado para baixo na centena ("Mais de 2.500").
   const catalogSizeLabel = useMemo(() => {
     const count = products.filter((product) => product.published !== false).length;
-    if (count < 100) return 'Mix completo\npara o seu negócio';
+    if (count < 100) return 'Mix completo para o seu negócio';
     const rounded = Math.floor(count / 100) * 100;
-    // Ponto de milhar sem depender do suporte a idiomas do aparelho.
-    return `Mais de ${String(rounded).replace(/\B(?=(\d{3})+(?!\d))/g, '.')}\nprodutos`;
+    return `Mais de ${String(rounded).replace(/\B(?=(\d{3})+(?!\d))/g, '.')} produtos`;
   }, [products]);
-  // Atalhos de categoria montados a partir das seções que realmente existem
-  // no catálogo (as mais numerosas primeiro). Antes eram nomes fixos no
-  // código ("bebidas", "higiene"…) que podiam não existir nos dados — e aí
-  // o atalho abria o catálogo sem nenhum resultado.
   const shortcuts = useMemo(() => {
     const counts = new Map<string, number>();
     for (const product of products) {
@@ -108,398 +195,253 @@ export default function HomeScreen() {
     return Array.from(counts.entries())
       .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'pt-BR'))
       .slice(0, 8)
-      .map(([name]) => ({ label: name, icon: iconForSection(name) }));
+      .map(([label]) => ({ label, icon: iconForSection(label) }));
   }, [products]);
   const nextOfferEnd = useMemo(
-    () => offers.map((product) => product.details?.offer?.endsAt).filter(Boolean).sort()[0],
+    () => offers
+      .map((product) => product.details?.offer?.endsAt)
+      .filter((value): value is string => Boolean(value))
+      .sort()[0],
     [offers],
   );
 
   return (
-    <ScrollView
-      style={styles.screen}
-      contentContainerStyle={styles.content}
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={colors.primary} />
-      }
-    >
-      {offline ? (
-        <View style={styles.offlineBanner}>
-          <AppIcon name="cloud-offline" size={16} color="#7a5b00" />
-          <Text style={styles.offlineText}>Sem conexão — mostrando o último catálogo salvo.</Text>
-        </View>
-      ) : null}
-
-      <HeroBanner uri={heroUri} catalogSizeLabel={catalogSizeLabel} />
-
-      {/* Banners publicados no editor do site — antes o componente existia
-          mas não era usado em lugar nenhum, então nada do que era publicado
-          como banner chegava a aparecer no app. */}
-      {config?.banners?.length ? <BannerCarousel banners={config.banners} /> : null}
-
+    <ThemedBackground>
       <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.categories}
+        style={styles.scroll}
+        contentContainerStyle={styles.content}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={refresh}
+            tintColor={tokens.link}
+            colors={[tokens.link]}
+          />
+        }
       >
-        {shortcuts.map((shortcut) => (
-          <Pressable
-            key={shortcut.label}
-            onPress={() =>
-              router.navigate({
-                pathname: '/(tabs)/catalogo',
-                params: { section: shortcut.label },
-              })
-            }
-            style={styles.categoryCard}
-          >
-            <AppIcon name={shortcut.icon} size={28} color={colors.primaryDark} />
-            <Text style={styles.categoryLabel} numberOfLines={2}>
-              {shortcut.label}
-            </Text>
-          </Pressable>
-        ))}
-        <Pressable
-          onPress={() => router.navigate('/(tabs)/catalogo')}
-          style={[styles.categoryCard, styles.categoryCardActive]}
-        >
-          <AppIcon name="grid" size={28} color={colors.accent} />
-          <Text style={[styles.categoryLabel, styles.categoryLabelActive]} numberOfLines={2}>
-            Ver tudo
-          </Text>
-        </Pressable>
-      </ScrollView>
-
-      {config?.offers.published && offers.length > 0 ? (
-        <View style={styles.section}>
-          <View style={styles.offerCallout}>
-            <View style={styles.percentSeal}>
-              <AppIcon name="percent" size={37} color="#fff" />
-            </View>
-            <View style={styles.offerCopy}>
-              <Text style={styles.offerTitle}>OFERTA DA SEMANA</Text>
-              <Text style={styles.offerSubtitle}>Aproveite nossas promoções semanais!</Text>
-              <Text style={styles.offerFootnote}>Qualidade e economia para o seu negócio.</Text>
-            </View>
-            <OfferCountdown endsAt={nextOfferEnd} />
-          </View>
-          <ProductRow products={offers} />
-        </View>
-      ) : null}
-
-      {config?.newProducts.published && news.length > 0 ? (
-        <View style={styles.section}>
-          <SectionTitle
-            icon="cube"
-            title="NOVIDADES NO CATÁLOGO"
-            subtitle="Produtos que acabaram de chegar!"
-            badge="NOVO"
-            onPress={() => router.navigate('/(tabs)/novidades')}
-          />
-          <ProductRow products={news} />
-        </View>
-      ) : null}
-
-      {brands.length > 0 ? (
-        <View style={styles.section}>
-          <SectionTitle
-            icon="handshake"
-            title="Marcas parceiras"
-            subtitle="Qualidade que você já conhece."
-            onPress={() => router.navigate('/(tabs)/marcas')}
-          />
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.brandRow}>
-            {brands.map((brand) => (
-              <Pressable
-                key={brand.name}
-                onPress={() => router.navigate({ pathname: '/(tabs)/catalogo', params: { brand: brand.name } })}
-                style={styles.brandCard}
-              >
-                {brand.logo ? (
-                  <CachedImage uri={brand.logo} style={styles.brandLogo} />
-                ) : (
-                  <Text style={styles.brandFallback} numberOfLines={1}>{brand.name}</Text>
-                )}
-              </Pressable>
-            ))}
-            <Pressable onPress={() => router.navigate('/(tabs)/marcas')} style={styles.brandNext}>
-              <AppIcon name="chevron-forward" size={24} color={colors.primary} />
-            </Pressable>
-          </ScrollView>
-        </View>
-      ) : null}
-
-      <View style={styles.clientBanner}>
-        <AppIcon name="business" size={42} color="#fff" />
-        <View style={styles.clientCopy}>
-          <Text style={styles.clientTitle}>Seja um cliente Laurencini</Text>
-          <Text style={styles.clientText}>Condições especiais para atacado.{`\n`}Fale com nossa equipe!</Text>
-        </View>
-        <Pressable
-          onPress={() => Linking.openURL(config?.email ? `mailto:${config.email}` : BASE_URL)}
-          style={styles.clientButton}
-        >
-          <Text style={styles.clientButtonText}>Quero ser cliente</Text>
-          <AppIcon name="arrow-forward" size={18} color="#fff" />
-        </Pressable>
-      </View>
-    </ScrollView>
-  );
-}
-
-const LOCAL_HERO = require('../../assets/hero-laurencini.png');
-const LOCAL_HERO_SIZE = Image.resolveAssetSource(LOCAL_HERO);
-
-/**
- * Topo da Início: a imagem do site INTEIRA (sem corte), com a frase à
- * direita, sobre o céu, em faixas no mesmo estilo da faixa da própria arte.
- * Os destaques ficam numa faixa logo abaixo, para não cobrir a imagem.
- */
-function HeroBanner({ uri, catalogSizeLabel }: { uri?: string; catalogSizeLabel: string }) {
-  // Proporção lida da própria imagem: se a campanha mudar, o quadro acompanha.
-  const [ratio, setRatio] = useState(3);
-  const [width, setWidth] = useState(0);
-  useEffect(() => {
-    if (!uri) {
-      setRatio(LOCAL_HERO_SIZE.width / LOCAL_HERO_SIZE.height);
-      return;
-    }
-    let active = true;
-    Image.getSize(
-      uri,
-      (w, h) => active && h > 0 && setRatio(w / h),
-      () => undefined,
-    );
-    return () => {
-      active = false;
-    };
-  }, [uri]);
-
-  // Texto proporcional à largura do quadro (celular, tablet), com limites.
-  const fontSize = Math.min(22, Math.max(10, width * 0.03));
-
-  return (
-    <View style={styles.heroCard}>
-      <View onLayout={(event) => setWidth(event.nativeEvent.layout.width)}>
-        <Image
-          source={uri ? { uri } : LOCAL_HERO}
-          style={[styles.heroImage, { aspectRatio: ratio }]}
-          resizeMode="contain"
-          fadeDuration={0}
-        />
-        {width > 0 ? (
-          <View style={styles.heroCopy} pointerEvents="none">
-            <Text style={[styles.heroRibbon, styles.heroRibbonDark, { fontSize }]}>
-              MAIS QUE PRODUTOS,
-            </Text>
-            <Text style={[styles.heroRibbon, styles.heroRibbonAccent, { fontSize: fontSize * 1.08 }]}>
-              PARCERIA PARA{`\n`}O SEU NEGÓCIO.
+        {offline ? (
+          <View style={styles.notice}>
+            <Text style={styles.noticeText}>
+              Sem conexão — mostrando o último catálogo salvo.
             </Text>
           </View>
         ) : null}
+
+        <HeroBanner catalogSizeLabel={catalogSizeLabel} />
+        {config?.banners?.length ? <BannerCarousel banners={config.banners} /> : null}
+
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.categories}
+        >
+          {shortcuts.map((shortcut) => (
+            <Pressable
+              key={shortcut.label}
+              accessibilityRole="button"
+              onPress={() => router.navigate({
+                pathname: '/(tabs)/catalogo',
+                params: { section: shortcut.label },
+              })}
+              style={styles.category}
+            >
+              <AppIcon name={shortcut.icon} size={26} color={tokens.link} />
+              <Text style={styles.categoryText}>{shortcut.label}</Text>
+            </Pressable>
+          ))}
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => router.navigate('/(tabs)/catalogo')}
+            style={styles.category}
+          >
+            <AppIcon name="grid" size={26} color={tokens.link} />
+            <Text style={styles.categoryText}>Ver todos os produtos</Text>
+          </Pressable>
+        </ScrollView>
+
+        {config?.offers.published && offers.length > 0 ? (
+          <ThemedPanel variant="ofertas" style={styles.section}>
+            <PanelHeading
+              title={copy.offers}
+              subtitle="Qualidade e economia para o seu negócio."
+              actionLabel="Ver todas as ofertas"
+              onAction={() => router.navigate('/(tabs)/ofertas')}
+            />
+            {nextOfferEnd ? <OfferCountdown endsAt={nextOfferEnd} /> : null}
+            <ProductRow products={offers} />
+          </ThemedPanel>
+        ) : null}
+
+        {config?.newProducts.published && news.length > 0 ? (
+          <ThemedPanel style={styles.section}>
+            <PanelHeading
+              title="Acabaram de chegar"
+              subtitle="Novidades para completar seu mix."
+              actionLabel="Ver todas as novidades"
+              onAction={() => router.navigate('/(tabs)/novidades')}
+            />
+            <ProductRow products={news} />
+          </ThemedPanel>
+        ) : null}
+
+        {brands.length > 0 ? (
+          <ThemedPanel variant="marcas" style={styles.section}>
+            <PanelHeading
+              title="Marcas"
+              subtitle="Qualidade que você já conhece."
+              actionLabel="Ver todas as marcas"
+              onAction={() => router.navigate('/(tabs)/marcas')}
+            />
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.brandRow}
+            >
+              {brands.map((brand) => (
+                <Pressable
+                  key={brand.name}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Ver produtos de ${brand.name}`}
+                  onPress={() => router.navigate({
+                    pathname: '/(tabs)/catalogo',
+                    params: { brand: brand.name },
+                  })}
+                  style={styles.brandCard}
+                >
+                  {brand.logo ? <CachedImage uri={brand.logo} style={styles.brandLogo} /> : null}
+                  <Text style={styles.brandName}>{brand.name}</Text>
+                </Pressable>
+              ))}
+            </ScrollView>
+          </ThemedPanel>
+        ) : null}
+
+        <ThemedPanel style={styles.contact}>
+          <Text accessibilityRole="header" style={styles.contactTitle}>
+            Seja um cliente Laurencini
+          </Text>
+          <Text style={styles.description}>
+            Fale com nossa equipe e conheça as condições para o seu negócio.
+          </Text>
+          <Pressable
+            accessibilityRole="link"
+            onPress={() => {
+              void Linking.openURL(config?.email ? `mailto:${config.email}` : BASE_URL);
+            }}
+            style={styles.button}
+          >
+            <Text style={styles.buttonText}>Quero ser cliente</Text>
+          </Pressable>
+        </ThemedPanel>
+      </ScrollView>
+    </ThemedBackground>
+  );
+}
+
+function HeroBanner({ catalogSizeLabel }: { catalogSizeLabel: string }) {
+  const { config } = useCatalog();
+  const { id, arts, year } = useAppTheme();
+  const styles = useHomeStyles();
+  const campaign = config?.campaign;
+  const configuredArt = id === 'padrao' ? campaignBackground(config) : arts.hero;
+  const uri = useLocalImageUri(configuredArt || undefined);
+  const [ratio, setRatio] = useState(LOCAL_RATIO);
+
+  useEffect(() => {
+    setRatio(LOCAL_RATIO);
+    if (!uri) return;
+    let active = true;
+    Image.getSize(uri, (width, height) => {
+      if (active && width > 0 && height > 0) setRatio(width / height);
+    }, () => undefined);
+    return () => { active = false; };
+  }, [uri]);
+
+  const [first, second, third] = splitThemeTitle(
+    campaign?.title?.trim() || 'Distribuidora Laurencini | Seu mix completo',
+  );
+
+  return (
+    <ThemedPanel art={id === 'padrao' ? undefined : arts.hero}>
+      <View style={styles.heroText}>
+        {campaign?.eyebrow ? <Text style={styles.eyebrow}>{campaign.eyebrow}</Text> : null}
+        {id === 'natal' && arts.extras.titulo ? (
+          // Natal: título em arte fixa, igual ao esboço aprovado no site.
+          <View
+            accessible
+            accessibilityRole="header"
+            accessibilityLabel={[first, second, third].filter(Boolean).join(' ')}
+          >
+            <CachedImage uri={arts.extras.titulo} style={styles.titleArt} resizeMode="contain" />
+          </View>
+        ) : (
+          <Text accessibilityRole="header" style={styles.title}>
+            {first}
+            {second ? <Text style={styles.titleAccent}>{'\n'}{second}</Text> : null}
+            {third ? <Text>{'\n'}{third}</Text> : null}
+          </Text>
+        )}
+        {id === 'ano-novo' ? <Text style={styles.year}>{year}</Text> : null}
+        <Text style={styles.description}>
+          {campaign?.description || 'Atacado e distribuição para abastecer o seu negócio.'}
+        </Text>
+        <Pressable
+          accessibilityRole="button"
+          style={styles.button}
+          onPress={() => router.navigate('/(tabs)/catalogo')}
+        >
+          <Text style={styles.buttonText}>Explorar catálogo</Text>
+        </Pressable>
       </View>
-      <View style={styles.heroBenefits}>
-        <Benefit icon="truck" label={'Entrega no Norte\ne Serrana do ES'} />
+
+      {/* No celular, a arte inteira vem abaixo do texto, sem faixas fixas. */}
+      <Image
+        source={uri ? { uri } : LOCAL_HERO}
+        style={[styles.heroImage, { aspectRatio: ratio }]}
+        resizeMode="contain"
+        fadeDuration={0}
+        accessible={false}
+      />
+      <View style={styles.benefits}>
+        <Benefit icon="truck" label="Entrega no Norte e na região Serrana do ES" />
         <Benefit icon="cube" label={catalogSizeLabel} />
-        <Benefit icon="pricetags" label={'Preço de atacado\npara revenda'} />
+        <Benefit icon="business" label="Atacado e distribuição para o seu negócio" />
       </View>
-    </View>
+    </ThemedPanel>
   );
 }
 
 function Benefit({ icon, label }: { icon: AppIconName; label: string }) {
+  const styles = useHomeStyles();
   return (
     <View style={styles.benefit}>
-      <AppIcon name={icon} size={26} color="#fff" />
+      <AppIcon name={icon} size={24} color="#ffffff" />
       <Text style={styles.benefitText}>{label}</Text>
     </View>
   );
 }
 
-// O relógio precisa atualizar a cada segundo, mas isolado num componente
-// próprio: antes o estado do tempo ficava na Home e re-renderizava a tela
-// inteira — hero, banners e as duas listas de produtos — 60 vezes por
-// minuto, que era boa parte da lentidão.
-function OfferCountdown({ endsAt }: { endsAt?: string }) {
+function OfferCountdown({ endsAt }: { endsAt: string }) {
+  const styles = useHomeStyles();
   const [now, setNow] = useState(Date.now());
-
   useEffect(() => {
     const timer = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(timer);
   }, []);
 
-  const [days, hours, minutes, seconds] = countdown(endsAt, now);
+  const end = new Date(`${endsAt}T23:59:59`).getTime();
+  if (!Number.isFinite(end)) return null;
+  const remaining = Math.max(0, end - now);
+  const days = Math.floor(remaining / 86_400_000);
+  const hours = Math.floor(remaining / 3_600_000) % 24;
+  const minutes = Math.floor(remaining / 60_000) % 60;
+  const seconds = Math.floor(remaining / 1000) % 60;
 
   return (
-    <View style={styles.timerPanel}>
-      <View style={styles.timerIntro}>
-        <AppIcon name="alarm" size={21} color="#fff" />
-        <Text style={styles.timerIntroText}>Termina em:</Text>
-      </View>
-      <TimeUnit value={days} label="dias" />
-      <TimeUnit value={hours} label="horas" />
-      <TimeUnit value={minutes} label="min" />
-      <TimeUnit value={seconds} label="seg" />
-    </View>
+    <Text style={styles.countdown}>
+      {remaining > 0
+        ? `Termina em ${days} dias, ${hours}h ${minutes}min ${seconds}s`
+        : 'Prazo encerrado'}
+    </Text>
   );
 }
-
-function TimeUnit({ value, label }: { value: string; label: string }) {
-  return (
-    <View style={styles.timeUnit}>
-      <Text style={styles.timeValue}>{value}</Text>
-      <Text style={styles.timeLabel}>{label}</Text>
-    </View>
-  );
-}
-
-function SectionTitle({
-  icon,
-  title,
-  subtitle,
-  badge,
-  onPress,
-}: {
-  icon: AppIconName;
-  title: string;
-  subtitle: string;
-  badge?: string;
-  onPress: () => void;
-}) {
-  return (
-    <View style={styles.sectionTitle}>
-      <AppIcon name={icon} size={29} color={colors.primary} />
-      <View style={styles.sectionTitleCopy}>
-        <View style={styles.sectionTitleLine}>
-          <Text style={styles.sectionHeading}>{title}</Text>
-          {badge ? <Text style={styles.newBadge}>{badge}</Text> : null}
-        </View>
-        <Text style={styles.sectionSubtitle}>{subtitle}</Text>
-      </View>
-      <Pressable onPress={onPress} hitSlop={8} style={styles.seeAll}>
-        <Text style={styles.seeAllText}>Ver todas</Text>
-        <AppIcon name="chevron-forward" size={18} color={colors.primaryDark} />
-      </Pressable>
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#f6f9fd' },
-  content: { paddingBottom: spacing.xl },
-  offlineBanner: {
-    flexDirection: 'row', alignItems: 'center', gap: spacing.xs,
-    backgroundColor: '#fff3cd', padding: spacing.sm, paddingHorizontal: spacing.lg,
-  },
-  offlineText: { ...typography.small, color: '#7a5b00', flex: 1 },
-  heroCard: {
-    margin: spacing.sm,
-    marginBottom: 6,
-    borderRadius: radius.lg,
-    overflow: 'hidden',
-    backgroundColor: colors.primaryDark,
-  },
-  heroImage: { width: '100%' },
-  // Canto superior direito: é céu nas duas artes (site e app).
-  heroCopy: {
-    position: 'absolute',
-    top: '7%',
-    right: '3%',
-    width: '46%',
-    alignItems: 'flex-end',
-    gap: 4,
-  },
-  heroRibbon: {
-    color: '#fff',
-    fontWeight: '900',
-    textAlign: 'right',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 4,
-    overflow: 'hidden',
-  },
-  heroRibbonDark: { backgroundColor: colors.primaryDark },
-  heroRibbonAccent: { backgroundColor: colors.accent },
-  heroBenefits: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingHorizontal: spacing.md, paddingVertical: spacing.sm, gap: spacing.xs,
-  },
-  benefit: { flexDirection: 'row', alignItems: 'center', gap: 6, maxWidth: '32%' },
-  benefitText: { color: '#fff', fontSize: 10, lineHeight: 13, fontWeight: '600' },
-  categories: { paddingHorizontal: spacing.sm, paddingVertical: spacing.sm, gap: spacing.sm },
-  categoryCard: {
-    width: 88, height: 92, borderRadius: radius.md, borderWidth: 1,
-    borderColor: '#e2eaf4', backgroundColor: '#fff', alignItems: 'center',
-    justifyContent: 'center', gap: 8, padding: 6,
-  },
-  categoryCardActive: { borderColor: colors.accent, borderWidth: 1.5 },
-  categoryLabel: { color: colors.primaryDark, fontSize: 11, fontWeight: '700', textAlign: 'center' },
-  categoryLabelActive: { color: colors.accent },
-  section: { marginBottom: spacing.md },
-  offerCallout: {
-    marginHorizontal: spacing.sm, marginBottom: spacing.sm, padding: spacing.sm,
-    borderRadius: radius.md, backgroundColor: '#fff2f2', flexDirection: 'row',
-    alignItems: 'center', gap: spacing.sm, flexWrap: 'wrap',
-  },
-  percentSeal: {
-    width: 58, height: 58, borderRadius: 18, backgroundColor: colors.accent,
-    alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '-8deg' }],
-  },
-  offerCopy: { flex: 1, minWidth: 190 },
-  offerTitle: { color: colors.accent, fontSize: 20, fontWeight: '900' },
-  offerSubtitle: { color: colors.primaryDark, fontSize: 13, fontWeight: '800' },
-  offerFootnote: { color: '#60708d', fontSize: 11, marginTop: 2 },
-  timerPanel: {
-    flexGrow: 1, minWidth: 300, minHeight: 68, borderRadius: radius.md,
-    backgroundColor: '#ed172a', flexDirection: 'row', alignItems: 'center',
-    justifyContent: 'space-around', paddingHorizontal: spacing.sm,
-  },
-  timerIntro: { alignItems: 'center', marginRight: 4 },
-  timerIntroText: { color: '#fff', fontSize: 9, marginTop: 2 },
-  timeUnit: { alignItems: 'center' },
-  timeValue: {
-    minWidth: 39, paddingVertical: 5, borderRadius: 6, overflow: 'hidden',
-    backgroundColor: '#fff', color: colors.accent, fontSize: 20, fontWeight: '900', textAlign: 'center',
-  },
-  timeLabel: { color: '#fff', fontSize: 9, marginTop: 2 },
-  sectionTitle: {
-    minHeight: 66, marginHorizontal: spacing.sm, marginBottom: spacing.sm,
-    borderRadius: radius.md, backgroundColor: '#eef7ff', flexDirection: 'row',
-    alignItems: 'center', gap: spacing.sm, paddingHorizontal: spacing.md,
-  },
-  sectionTitleCopy: { flex: 1 },
-  sectionTitleLine: { flexDirection: 'row', alignItems: 'center', gap: 7 },
-  sectionHeading: { color: colors.primaryDark, fontSize: 16, fontWeight: '900' },
-  sectionSubtitle: { color: '#587092', fontSize: 11, marginTop: 2 },
-  newBadge: {
-    color: '#fff', backgroundColor: '#159ee9', borderRadius: radius.pill,
-    paddingHorizontal: 9, paddingVertical: 2, fontSize: 9, fontWeight: '800', overflow: 'hidden',
-  },
-  seeAll: { flexDirection: 'row', alignItems: 'center' },
-  seeAllText: { color: colors.primaryDark, fontSize: 12, fontWeight: '800' },
-  brandRow: { paddingHorizontal: spacing.sm, gap: spacing.sm, alignItems: 'center' },
-  brandCard: {
-    width: 104, height: 68, borderRadius: radius.md, borderWidth: 1,
-    borderColor: '#e0e8f2', backgroundColor: '#fff', padding: spacing.sm,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  brandLogo: { width: '100%', height: '100%' },
-  brandFallback: { color: colors.primary, fontWeight: '800', textAlign: 'center' },
-  brandNext: {
-    width: 50, height: 68, borderRadius: 25, backgroundColor: '#e7f0fb',
-    alignItems: 'center', justifyContent: 'center', marginLeft: spacing.xs,
-  },
-  clientBanner: {
-    marginHorizontal: spacing.sm, marginTop: spacing.sm, padding: spacing.lg,
-    borderRadius: radius.md, backgroundColor: '#034598', flexDirection: 'row',
-    alignItems: 'center', gap: spacing.md, flexWrap: 'wrap',
-  },
-  clientCopy: { flex: 1, minWidth: 180 },
-  clientTitle: { color: '#fff', fontSize: 17, fontWeight: '800' },
-  clientText: { color: 'rgba(255,255,255,0.86)', fontSize: 11, lineHeight: 15, marginTop: 3 },
-  clientButton: {
-    minHeight: 42, borderWidth: 1, borderColor: '#fff', borderRadius: radius.sm,
-    paddingHorizontal: spacing.md, flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
-  },
-  clientButtonText: { color: '#fff', fontSize: 12, fontWeight: '700' },
-});

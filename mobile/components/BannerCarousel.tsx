@@ -1,8 +1,6 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Linking,
-  NativeScrollEvent,
-  NativeSyntheticEvent,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -11,134 +9,87 @@ import {
 } from 'react-native';
 import { CachedImage } from '@/components/CachedImage';
 import { useResponsiveLayout } from '@/lib/useResponsiveLayout';
-import { colors, radius, spacing, typography } from '@/lib/theme';
+import { useAppTheme } from '@/lib/theme-provider';
+import { radius, spacing, typography } from '@/lib/theme';
 import type { Banner } from '@/lib/api';
 
 export function BannerCarousel({ banners }: { banners: Banner[] }) {
-  const visible = banners.filter((b) => b.visible !== false);
+  const { tokens } = useAppTheme();
+  const { width, spacing: adaptiveSpacing } = useResponsiveLayout();
+  const visible = useMemo(() => banners.filter((banner) => banner.visible !== false), [banners]);
   const [active, setActive] = useState(0);
-  // useWindowDimensions (dentro do hook) é reativo — recalcula ao girar a
-  // tela, diferente de Dimensions.get() que era medido só uma vez.
-  const { width: screenWidth, spacing: adaptiveSpacing } = useResponsiveLayout();
+  const slideWidth = width - adaptiveSpacing.lg * 2;
+  const gap = adaptiveSpacing.md;
+
+  const styles = useMemo(() => StyleSheet.create({
+    root: { marginVertical: spacing.sm },
+    slide: {
+      minHeight: 44,
+      borderRadius: radius.lg,
+      overflow: 'hidden',
+      backgroundColor: tokens.soft,
+      borderColor: tokens.border,
+      borderWidth: 1,
+    },
+    image: { width: '100%', aspectRatio: 2, backgroundColor: '#ffffff' },
+    caption: { padding: spacing.md, gap: spacing.xs, backgroundColor: tokens.dark },
+    title: { ...typography.subtitle, color: '#ffffff' },
+    description: { ...typography.body, color: '#ffffff' },
+    dots: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      gap: spacing.sm,
+      padding: spacing.sm,
+    },
+    dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: tokens.border },
+    active: { width: 20, backgroundColor: tokens.link },
+  }), [tokens]);
 
   if (!visible.length) return null;
 
-  const slideWidth = screenWidth - adaptiveSpacing.lg * 2;
-
   return (
-    <View>
-      <View style={styles.track}>
-        <BannerSlider
-          banners={visible}
-          onIndexChange={setActive}
-          slideWidth={slideWidth}
-          gap={adaptiveSpacing.md}
-          horizontalPadding={adaptiveSpacing.lg}
-        />
-      </View>
-      {visible.length > 1 && (
-        <View style={styles.dots}>
-          {visible.map((b, i) => (
-            <View key={b.id} style={[styles.dot, i === active && styles.dotActive]} />
+    <View style={styles.root}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        snapToInterval={slideWidth + gap}
+        decelerationRate="fast"
+        contentContainerStyle={{ paddingHorizontal: adaptiveSpacing.lg, gap }}
+        onMomentumScrollEnd={(event) => {
+          const index = Math.round(event.nativeEvent.contentOffset.x / (slideWidth + gap));
+          setActive(Math.min(visible.length - 1, Math.max(0, index)));
+        }}
+      >
+        {visible.map((banner) => (
+          <Pressable
+            key={banner.id}
+            accessibilityRole={banner.link ? 'link' : undefined}
+            accessibilityLabel={banner.title || 'Banner da distribuidora'}
+            disabled={!banner.link}
+            onPress={() => {
+              if (banner.link) void Linking.openURL(banner.link);
+            }}
+            style={[styles.slide, { width: slideWidth }]}
+          >
+            <CachedImage uri={banner.image} style={styles.image} />
+            {banner.title || banner.description ? (
+              <View style={styles.caption}>
+                {banner.title ? <Text style={styles.title}>{banner.title}</Text> : null}
+                {banner.description ? (
+                  <Text style={styles.description}>{banner.description}</Text>
+                ) : null}
+              </View>
+            ) : null}
+          </Pressable>
+        ))}
+      </ScrollView>
+      {visible.length > 1 ? (
+        <View style={styles.dots} accessible accessibilityLabel={`Banner ${Math.min(active + 1, visible.length)} de ${visible.length}`}>
+          {visible.map((banner, index) => (
+            <View key={banner.id} style={[styles.dot, index === active && styles.active]} />
           ))}
         </View>
-      )}
+      ) : null}
     </View>
   );
 }
-
-function BannerSlider({
-  banners,
-  onIndexChange,
-  slideWidth,
-  gap,
-  horizontalPadding,
-}: {
-  banners: Banner[];
-  onIndexChange: (i: number) => void;
-  slideWidth: number;
-  gap: number;
-  horizontalPadding: number;
-}) {
-  // Altura calculada explicitamente (proporção 2:1) — não usar height:'100%'
-  // aqui, pois o ScrollView pai não tem altura própria definida e isso
-  // colapsava os banners para 0px de altura.
-  const slideHeight = slideWidth * 0.5;
-
-  return (
-    <ScrollView
-      horizontal
-      pagingEnabled
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={{ paddingHorizontal: horizontalPadding }}
-      snapToInterval={slideWidth + gap}
-      decelerationRate="fast"
-      onMomentumScrollEnd={(e: NativeSyntheticEvent<NativeScrollEvent>) => {
-        const index = Math.round(e.nativeEvent.contentOffset.x / (slideWidth + gap));
-        onIndexChange(Math.min(banners.length - 1, Math.max(0, index)));
-      }}
-    >
-      {banners.map((banner, i) => (
-        <Pressable
-          key={banner.id}
-          style={[
-            styles.slideBase,
-            { width: slideWidth, height: slideHeight },
-            i > 0 && { marginLeft: gap },
-          ]}
-          onPress={() => banner.link && Linking.openURL(banner.link)}
-        >
-          <CachedImage uri={banner.image} style={styles.image} resizeMode="contain" />
-          {(banner.title || banner.description) && (
-            <View style={styles.caption}>
-              {banner.title ? (
-                <Text style={styles.captionTitle} numberOfLines={1}>
-                  {banner.title}
-                </Text>
-              ) : null}
-              {banner.description ? (
-                <Text style={styles.captionText} numberOfLines={2}>
-                  {banner.description}
-                </Text>
-              ) : null}
-            </View>
-          )}
-        </Pressable>
-      ))}
-    </ScrollView>
-  );
-}
-
-const styles = StyleSheet.create({
-  track: { marginBottom: spacing.sm },
-  slideBase: {
-    borderRadius: radius.lg,
-    overflow: 'hidden',
-    backgroundColor: colors.surface,
-  },
-  image: { width: '100%', height: '100%' },
-  caption: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    padding: spacing.md,
-    backgroundColor: 'rgba(23,47,111,0.82)',
-  },
-  captionTitle: { ...typography.subtitle, color: '#fff' },
-  captionText: { ...typography.small, color: '#fff' },
-  dots: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: spacing.xs,
-    marginTop: spacing.sm,
-    marginBottom: spacing.sm,
-  },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: colors.border,
-  },
-  dotActive: { backgroundColor: colors.primary, width: 16 },
-});

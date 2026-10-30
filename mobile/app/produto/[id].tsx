@@ -2,14 +2,18 @@ import { useEffect, useMemo, useState } from 'react';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
 import type { ParamListBase } from 'expo-router/react-navigation';
 import type { NativeStackNavigationProp } from 'expo-router/native-stack';
-import { Image, Linking, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { AppIcon } from '@/components/AppIcon';
+import { ProductRow } from '@/components/ProductRow';
+import { ThemedBackground } from '@/components/ThemedBackground';
+import { PanelHeading, ThemedPanel } from '@/components/ThemedPanel';
 import { isDiscontinued, useCatalog } from '@/lib/catalog-store';
 import { isOfferEligible, similarProducts } from '@/lib/api';
 import { complementProducts } from '@/lib/complements';
 import { useLocalImageUri } from '@/lib/image-cache';
-import { colors, radius, spacing, typography } from '@/lib/theme';
-import { ProductRow } from '@/components/ProductRow';
+import { useAppTheme } from '@/lib/theme-provider';
+import { readableColor } from '@/lib/theme-contrast';
+import { radius, spacing, typography } from '@/lib/theme';
 import { detailFields } from '@/lib/product-fields';
 
 const RELATED_LIMIT = 8;
@@ -17,21 +21,17 @@ const RELATED_LIMIT = 8;
 export default function ProdutoScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { products, config } = useCatalog();
+  const { tokens } = useAppTheme();
   const [broken, setBroken] = useState(false);
-
   const product = useMemo(
     () => products.find((item) => String(item.id) === id),
     [products, id],
   );
   const imageUri = useLocalImageUri(product?.image);
-
-  useEffect(() => {
-    setBroken(false);
-  }, [imageUri]);
-
   const navigation = useNavigation<NativeStackNavigationProp<ParamListBase>>();
   const [transitionDone, setTransitionDone] = useState(false);
 
+  useEffect(() => setBroken(false), [imageUri]);
   useEffect(() => {
     const finish = () => setTransitionDone(true);
     const fallback = setTimeout(finish, 450);
@@ -53,209 +53,191 @@ export default function ProdutoScreen() {
     return complementProducts(products, product, RELATED_LIMIT - similar.length, skip);
   }, [products, product, transitionDone, similar]);
 
+  const styles = useMemo(() => StyleSheet.create({
+    scroll: { flex: 1 },
+    content: { paddingBottom: spacing.xxl, gap: spacing.lg },
+    body: { paddingHorizontal: spacing.lg, gap: spacing.lg },
+    surface: {
+      padding: spacing.lg,
+      backgroundColor: tokens.soft,
+      borderRadius: radius.md,
+      borderWidth: 1,
+      borderColor: tokens.border,
+      gap: spacing.sm,
+    },
+    photo: {
+      width: '100%',
+      aspectRatio: 1,
+      backgroundColor: '#ffffff',
+      borderRadius: radius.lg,
+      borderWidth: 1,
+      borderColor: tokens.border,
+      overflow: 'hidden',
+    },
+    image: { width: '100%', height: '100%' },
+    placeholder: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.lg },
+    placeholderText: { ...typography.body, color: '#526057', textAlign: 'center' },
+    badge: {
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
+      borderRadius: radius.sm,
+      backgroundColor: tokens.accent,
+      alignSelf: 'flex-start',
+    },
+    badgeText: { ...typography.body, color: readableColor(tokens.onAccent, tokens.accent), fontWeight: '700' },
+    brand: { ...typography.small, color: tokens.muted },
+    name: { ...typography.title, color: tokens.ink },
+    code: { ...typography.body, color: tokens.link, fontWeight: '700', fontVariant: ['tabular-nums'] },
+    muted: { ...typography.body, color: tokens.muted },
+    text: { ...typography.body, color: tokens.ink },
+    discontinued: {
+      backgroundColor: tokens.tint,
+      padding: spacing.md,
+      borderRadius: radius.sm,
+    },
+    discontinuedText: { ...typography.body, color: readableColor(tokens.ink, tokens.tint), fontWeight: '800' },
+    blockTitle: { ...typography.subtitle, color: tokens.ink },
+    detailRow: {
+      paddingVertical: spacing.sm,
+      borderBottomWidth: 1,
+      borderBottomColor: tokens.border,
+      gap: spacing.xs,
+    },
+    detailLabel: { ...typography.small, color: tokens.muted },
+    detailValue: { ...typography.body, color: tokens.ink },
+    link: {
+      minHeight: 44,
+      minWidth: 44,
+      justifyContent: 'center',
+      paddingVertical: spacing.sm,
+    },
+    linkText: { ...typography.body, color: tokens.link, fontWeight: '700' },
+    related: { paddingBottom: spacing.lg },
+    empty: { padding: spacing.xl, backgroundColor: tokens.soft },
+  }), [tokens]);
+
   if (!product) {
     return (
-      <View style={styles.notFound}>
-        <AppIcon name="circle-alert" size={32} color={colors.textMuted} />
-        <Text style={styles.notFoundText}>Produto não encontrado.</Text>
-      </View>
+      <ThemedBackground>
+        <ThemedPanel><PanelHeading title="Produto" /></ThemedPanel>
+        <View style={styles.empty}>
+          <Text style={styles.text}>Produto não encontrado.</Text>
+        </View>
+      </ThemedBackground>
     );
   }
 
   const offer = product.details?.offer;
-  const discontinued = isDiscontinued(product);
-  const hasOffer = isOfferEligible(product);
+  const email = config?.email;
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-      <View style={styles.imageWrap}>
-        {imageUri && !broken ? (
-          <Image
-            source={{ uri: imageUri }}
-            style={styles.image}
-            resizeMode="contain"
-            resizeMethod="resize"
-            fadeDuration={0}
-            onError={() => setBroken(true)}
-          />
-        ) : (
-          <View style={styles.placeholder}>
-            <AppIcon name="image" size={40} color={colors.textMuted} />
-          </View>
-        )}
-        {hasOffer && offer ? (
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>{offer.discount}% OFF</Text>
-          </View>
-        ) : null}
-      </View>
-
-      <Text style={styles.brand}>{product.brand}</Text>
-      <Text style={styles.name}>{product.name}</Text>
-
-      {product.code ? (
-        <Text style={styles.code} selectable>
-          Código {product.code}
-        </Text>
-      ) : null}
-
-      {discontinued ? (
-        <View style={styles.discontinuedBanner}>
-          <AppIcon name="circle-alert" size={18} color="#fff" />
-          <Text style={styles.discontinuedText}>ITEM DESCONTINUADO</Text>
-        </View>
-      ) : null}
-
-      <Text style={styles.path}>
-        {[product.department, product.section, product.category].filter(Boolean).join(' • ')}
-      </Text>
-
-      {product.segment ? (
-        <Text style={styles.segment}>Segmento: {product.segment}</Text>
-      ) : null}
-
-      {product.description ? (
-        <Text style={styles.description}>{product.description}</Text>
-      ) : null}
-
-      {product.specs?.length > 0 ? (
-        <View style={styles.specsBlock}>
-          <Text style={styles.blockTitle}>Especificações</Text>
-          {product.specs.map((spec, index) => (
-            <Text key={`${product.id}-${index}-${spec}`} style={styles.specLine}>
-              • {spec}
-            </Text>
-          ))}
-        </View>
-      ) : null}
-
-      {product.details ? (
-        <View style={styles.specsBlock}>
-          <Text style={styles.blockTitle}>Dados técnicos</Text>
-          {detailFields.map(([key, label]) => {
-            const value = product.details?.[key];
-            if (!value) return null;
-            return (
-              <View key={key} style={styles.detailRow}>
-                <Text style={styles.detailLabel}>{label}</Text>
-                <Text style={styles.detailValue}>{value}</Text>
+    <ThemedBackground>
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
+        <ThemedPanel>
+          <PanelHeading title="Informações do produto" />
+        </ThemedPanel>
+        <View style={styles.body}>
+          <View style={styles.photo}>
+            {imageUri && !broken ? (
+              <Image
+                source={{ uri: imageUri }}
+                style={styles.image}
+                resizeMode="contain"
+                resizeMethod="resize"
+                fadeDuration={0}
+                accessibilityLabel={`Foto de ${product.name}`}
+                onError={() => setBroken(true)}
+              />
+            ) : (
+              <View style={styles.placeholder}>
+                <AppIcon name="image" size={40} color="#526057" />
+                <Text style={styles.placeholderText}>
+                  {product.image ? 'Foto indisponível no momento.' : 'Imagem não cadastrada.'}
+                </Text>
               </View>
-            );
-          })}
-        </View>
-      ) : null}
+            )}
+          </View>
 
-      <View style={styles.contactBlock}>
-        <Text style={styles.blockTitle}>Contato comercial</Text>
-        {config?.email ? (
-          <Text
-            style={styles.contactLink}
-            onPress={() => Linking.openURL(`mailto:${config.email}`)}
-          >
-            <AppIcon name="mail" size={14} color={colors.primary} /> {config.email}
-          </Text>
-        ) : (
-          <Text style={styles.detailValue}>Contato comercial ainda não cadastrado.</Text>
-        )}
-      </View>
+          <View style={styles.surface}>
+            <Text style={styles.brand}>{product.brand}</Text>
+            <Text accessibilityRole="header" style={styles.name}>{product.name}</Text>
+            {product.code ? (
+              <Text selectable style={styles.code}>Código {product.code}</Text>
+            ) : null}
+            {isOfferEligible(product) && offer ? (
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>{offer.discount}% OFF</Text>
+              </View>
+            ) : null}
+            {isDiscontinued(product) ? (
+              <View style={styles.discontinued}>
+                <Text style={styles.discontinuedText}>ITEM DESCONTINUADO</Text>
+              </View>
+            ) : null}
+            <Text style={styles.muted}>
+              {[product.department, product.section, product.category].filter(Boolean).join(' • ')}
+            </Text>
+            {product.segment ? (
+              <Text style={styles.muted}>Segmento: {product.segment}</Text>
+            ) : null}
+            {product.description ? <Text style={styles.text}>{product.description}</Text> : null}
+          </View>
 
-      {similar.length > 0 ? (
-        <View style={styles.similarBlock}>
-          <Text style={styles.blockTitle}>Produtos parecidos</Text>
-          <ProductRow products={similar} />
-        </View>
-      ) : null}
+          {product.specs?.length > 0 ? (
+            <View style={styles.surface}>
+              <Text accessibilityRole="header" style={styles.blockTitle}>Especificações</Text>
+              {product.specs.map((spec, index) => (
+                <Text key={`${product.id}-${index}-${spec}`} style={styles.text}>• {spec}</Text>
+              ))}
+            </View>
+          ) : null}
 
-      {complements.length > 0 ? (
-        <View style={styles.similarBlock}>
-          <Text style={styles.blockTitle}>Combina com este produto</Text>
-          <ProductRow products={complements} />
+          {product.details ? (
+            <View style={styles.surface}>
+              <Text accessibilityRole="header" style={styles.blockTitle}>Dados técnicos</Text>
+              {detailFields.map(([key, label]) => {
+                const value = product.details?.[key];
+                if (!value) return null;
+                return (
+                  <View key={key} style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>{label}</Text>
+                    <Text selectable style={styles.detailValue}>{value}</Text>
+                  </View>
+                );
+              })}
+            </View>
+          ) : null}
+
+          <View style={styles.surface}>
+            <Text accessibilityRole="header" style={styles.blockTitle}>Contato comercial</Text>
+            {email ? (
+              <Pressable
+                accessibilityRole="link"
+                accessibilityLabel={`Enviar e-mail para ${email}`}
+                style={styles.link}
+                onPress={() => { void Linking.openURL(`mailto:${email}`); }}
+              >
+                <Text style={styles.linkText}>{email}</Text>
+              </Pressable>
+            ) : (
+              <Text style={styles.text}>Contato comercial ainda não cadastrado.</Text>
+            )}
+          </View>
         </View>
-      ) : null}
-    </ScrollView>
+
+        {similar.length > 0 ? (
+          <ThemedPanel style={styles.related}>
+            <PanelHeading title="Produtos parecidos" />
+            <ProductRow products={similar} />
+          </ThemedPanel>
+        ) : null}
+        {complements.length > 0 ? (
+          <ThemedPanel style={styles.related}>
+            <PanelHeading title="Combina com este produto" />
+            <ProductRow products={complements} />
+          </ThemedPanel>
+        ) : null}
+      </ScrollView>
+    </ThemedBackground>
   );
 }
-
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.background },
-  content: { padding: spacing.lg, paddingBottom: spacing.xxl },
-  imageWrap: {
-    width: '100%',
-    aspectRatio: 1,
-    borderRadius: radius.lg,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    overflow: 'hidden',
-    marginBottom: spacing.lg,
-  },
-  image: { width: '100%', height: '100%' },
-  placeholder: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  badge: {
-    position: 'absolute',
-    top: spacing.sm,
-    left: spacing.sm,
-    backgroundColor: colors.accent,
-    borderRadius: radius.sm,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 4,
-  },
-  badgeText: { color: '#fff', fontWeight: '700' },
-  brand: { ...typography.small, color: colors.textMuted, fontWeight: '600' },
-  name: { ...typography.title, color: colors.text, marginTop: 2 },
-  code: {
-    ...typography.body,
-    color: colors.primary,
-    fontWeight: '700',
-    marginTop: 4,
-    fontVariant: ['tabular-nums'],
-  },
-  discontinuedBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-    alignSelf: 'flex-start',
-    backgroundColor: '#374151',
-    borderRadius: radius.sm,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 6,
-    marginTop: spacing.sm,
-  },
-  discontinuedText: {
-    color: '#fff',
-    fontSize: 11,
-    fontWeight: '900',
-    letterSpacing: 0.4,
-  },
-  path: { ...typography.small, color: colors.textMuted, marginTop: 4 },
-  segment: {
-    ...typography.small,
-    color: colors.textMuted,
-    marginTop: 2,
-    marginBottom: spacing.md,
-  },
-  description: { ...typography.body, color: colors.text, marginBottom: spacing.lg },
-  specsBlock: { marginBottom: spacing.lg },
-  blockTitle: { ...typography.subtitle, color: colors.text, marginBottom: spacing.sm },
-  specLine: { ...typography.body, color: colors.text, marginBottom: 4 },
-  detailRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 6,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  detailLabel: { ...typography.small, color: colors.textMuted, flex: 1 },
-  detailValue: { ...typography.body, color: colors.text, flex: 1, textAlign: 'right' },
-  contactBlock: { marginBottom: spacing.lg },
-  contactLink: { ...typography.body, color: colors.primary, fontWeight: '600' },
-  similarBlock: { marginHorizontal: -spacing.lg, marginBottom: spacing.lg },
-  notFound: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.sm,
-    backgroundColor: colors.background,
-  },
-  notFoundText: { ...typography.body, color: colors.textMuted },
-});
