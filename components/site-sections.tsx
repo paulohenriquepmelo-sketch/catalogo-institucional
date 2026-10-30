@@ -67,8 +67,69 @@ import { catalogDateKey, type Product } from '@/lib/catalog-data';
 import { discover, emptyFilters } from '@/lib/catalog-discovery';
 
 // Layout institucional da página inicial e do catálogo completo, conforme o
-// esboço aprovado em 27/10/2026. Os temas de data usam este mesmo layout e
-// só trocam a arte e os textos do banner (HomeHero).
+// esboço aprovado em 27/10/2026. Os temas de data usam este mesmo layout;
+// app/theme-v4.css veste cada seção e este mapa traz os textos de cada tema.
+const themeCopy = {
+  natal: { topbar: 'Natal na Distribuidora Laurencini', offers: 'Seleção de Natal' },
+  'ano-novo': {
+    topbar: 'Ano Novo, mais oportunidades para o seu negócio!',
+    offers: 'Seleção de Ano Novo',
+  },
+  'dia-das-maes': {
+    topbar: 'Dia das Mães: carinho em cada escolha',
+    offers: 'Seleção para as mães',
+  },
+  aniversario: {
+    topbar: 'Celebramos nossa história com você',
+    offers: 'Seleção de Aniversário',
+  },
+  carnaval: {
+    topbar: 'O Carnaval chegou na Distribuidora Laurencini!',
+    offers: 'Seleção de Carnaval',
+  },
+  'dia-das-criancas': {
+    topbar: 'Dia das Crianças: mais sorrisos para o seu negócio',
+    offers: 'Seleção para as crianças',
+  },
+  'black-friday': {
+    topbar: 'Black Friday na Distribuidora Laurencini',
+    offers: 'Seleção Black Friday',
+  },
+} as const;
+
+type SeasonalThemeId = keyof typeof themeCopy;
+
+function isSeasonalThemeId(value: unknown): value is SeasonalThemeId {
+  return typeof value === 'string' && Object.hasOwn(themeCopy, value);
+}
+
+/** Tema de data ativo (fora o Padrão) e os textos dele. */
+function activeSeasonalTheme(config?: CatalogConfig) {
+  const campaign = config?.campaign;
+  if (!campaign?.enabled || campaign.mode !== 'theme' || !isSeasonalThemeId(campaign.theme))
+    return undefined;
+  return { campaign, copy: themeCopy[campaign.theme] };
+}
+
+/** Divide o título do banner: a segunda parte sai na cor de destaque do tema.
+ * Quebra de linha ou " | " escolhem o ponto; sem eles, o primeiro ". " ou ", ".
+ * Sem separador, o título fica inteiro. */
+export function splitThemeTitle(title: string): [string, string?] {
+  for (const sep of [/\r?\n/, / \| /, /\. /, /, /]) {
+    const m = sep.exec(title);
+    if (!m) continue;
+    const keep = m[0].startsWith('.') || m[0].startsWith(',') ? m[0][0] : '';
+    const first = (title.slice(0, m.index) + keep).trim();
+    const second = title.slice(m.index + m[0].length).trim();
+    if (first && second) return [first, second];
+  }
+  return [title];
+}
+
+/** Ícone do tema (desenhado pelo CSS). */
+function ThemeMark() {
+  return <span className="td-theme-mark" aria-hidden="true" />;
+}
 
 const rcaMessage =
   'Olá! Quero saber qual é o RCA (representante comercial) que atende a minha região. Minha cidade é: ';
@@ -171,11 +232,14 @@ export function contactLinks(config: CatalogConfig) {
 
 export function SiteTopbar({ config }: { config: CatalogConfig }) {
   const links = contactLinks(config);
+  const seasonal = activeSeasonalTheme(config);
   return (
     <div className="v2-topbar">
       <div className="v2-container v2-topbar-inner">
         <span className="v2-topbar-message">
-          Qualidade, variedade e atendimento para o seu negócio.
+          {seasonal && <ThemeMark />}
+          {seasonal?.copy.topbar ||
+            'Qualidade, variedade e atendimento para o seu negócio.'}
         </span>
         <div className="v2-topbar-contacts">
           {config.phone && (
@@ -456,17 +520,12 @@ export function HomeHero({ config }: { config: CatalogConfig }) {
   const photo = config.campaign?.enabled
     ? campaignSlides(config.campaign).find((s) => s.image)?.image
     : '';
-  // Tema de data ativo (fora o Padrão): a página continua a mesma; o banner
-  // mostra a arte do tema inteira e os textos escritos no editor.
-  const theme =
-    config.campaign?.enabled &&
-    config.campaign.mode === 'theme' &&
-    config.campaign.theme !== 'padrao'
-      ? config.campaign
-      : undefined;
+  // Tema de data ativo: a arte do tema cobre o banner e os textos vêm do editor.
+  const theme = activeSeasonalTheme(config)?.campaign;
   const eyebrow = theme?.eyebrow.trim();
   const title = theme?.title.trim();
   const description = theme?.description.trim();
+  const [titleFirst, titleSecond] = splitThemeTitle(title || '');
   // A animação do tema não para sozinha: o botão deixa pausar.
   const [paused, setPaused] = useState(false);
   return (
@@ -488,10 +547,19 @@ export function HomeHero({ config }: { config: CatalogConfig }) {
       <div className="v2-container v2-hero-inner">
         <div className="v2-hero-copy">
           <span className="v2-hero-eyebrow">
+            {theme && <ThemeMark />}
             {eyebrow || 'Distribuidora Laurencini'}
           </span>
           {title ? (
-            <h2 id="v2-hero-title">{title}</h2>
+            <h2 id="v2-hero-title">
+              {titleFirst}
+              {titleSecond && (
+                <>
+                  {' '}
+                  <span className="v2-hero-title-accent">{titleSecond}</span>
+                </>
+              )}
+            </h2>
           ) : (
             <h2 id="v2-hero-title">
               Há mais de 30 anos{' '}
@@ -612,7 +680,10 @@ export function HomeSegments({
     <section id="segmentos" className="v2-segments" aria-labelledby="v2-segments-title">
       <div className="v2-container v2-segments-inner">
         <div className="v2-segments-intro">
-          <span className="v2-eyebrow">Nossos segmentos</span>
+          <span className="v2-eyebrow">
+            <ThemeMark />
+            Nossos segmentos
+          </span>
           <h2 id="v2-segments-title">Conheça nossos segmentos</h2>
           <p>Atendemos diversos segmentos com um mix completo de produtos.</p>
           {segments.length > 4 && (
@@ -856,11 +927,14 @@ export function OffersPanel({
   settings,
   items,
   onOpen,
+  config,
 }: {
   settings: ProductShowcase;
   items: Product[];
   onOpen: (product: Product) => void;
+  config?: CatalogConfig;
 }) {
+  const seasonal = activeSeasonalTheme(config);
   const shown = useMemo(
     () =>
       settings.published
@@ -874,7 +948,7 @@ export function OffersPanel({
       id="ofertas"
       tone="red"
       eyebrow={settings.eyebrow || 'Economize agora'}
-      title={settings.title}
+      title={seasonal?.copy.offers ?? settings.title}
       label="ofertas"
       products={shown}
       badge={(product) => {

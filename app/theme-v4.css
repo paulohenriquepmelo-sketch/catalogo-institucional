@@ -1,0 +1,1025 @@
+/*
+ * theme-v4.css
+ * Carregar depois de site-v2.css, substituindo theme-v3.css.
+ *
+ * Assets esperados:
+ * /themes/<id>.webp
+ * /themes/<id>-painel.webp
+ *
+ * --t-accent: cor de destaque solicitada.
+ * --t-link: variante com contraste para texto pequeno sobre fundo claro.
+ * --t-title-accent: variante para título grande sobre o fundo do banner.
+ * As cores dos logos e os controles do carrossel são preservados.
+ */
+
+/* ---------- Paletas ---------- */
+
+.site-v2.v2-theme.theme-natal {
+  --t-dark: #8e0d1f;
+  --t-rgb: 142, 13, 31;
+  --t-footer: #0f3d2a;
+  --t-accent: #d81f26;
+  --t-on-accent: #ffffff;
+  --t-link: #b51620;
+  --t-title-accent: #ff777d;
+  --t-support: #d4a537;
+  --t-paper: #fffdfa;
+  --t-soft: #fcf4ed;
+  --t-tint: #fce8e9;
+  --t-border: #ead8cf;
+  --t-ink: #382325;
+  --t-muted: #655352;
+  --t-icon: "★";
+  --t-hero: url("/themes/natal.webp");
+  --t-panel: url("/themes/natal-painel.webp");
+}
+
+.site-v2.v2-theme.theme-ano-novo {
+  --t-dark: #0b1d4a;
+  --t-rgb: 11, 29, 74;
+  --t-footer: #0b1d4a;
+  --t-accent: #c9a043;
+  --t-on-accent: #171b29;
+  --t-link: #755315;
+  --t-title-accent: #f3e3b5;
+  --t-support: #f3e3b5;
+  --t-paper: #fffefa;
+  --t-soft: #faf7ee;
+  --t-tint: #f5edda;
+  --t-border: #e6dcc5;
+  --t-ink: #0b1d4a;
+  --t-muted: #555b69;
+  --t-icon: "★";
+  --t-hero: url("/themes/ano-novo.webp");
+  --t-panel: url("/themes/ano-novo-painel.webp");
+}
+
+.site-v2.v2-theme.theme-dia-das-maes {
+  --t-dark: #6d1f45;
+  --t-rgb: 109, 31, 69;
+  --t-footer: #6d1f45;
+  --t-accent: #c2185b;
+  --t-on-accent: #ffffff;
+  --t-link: #a3134b;
+  --t-title-accent: #ffb7d0;
+  --t-support: #fde8ef;
+  --t-paper: #fffafb;
+  --t-soft: #fde8ef;
+  --t-tint: #fde8ef;
+  --t-border: #ecd3dd;
+  --t-ink: #42152c;
+  --t-muted: #68515d;
+  --t-icon: "♥";
+  --t-hero: url("/themes/dia-das-maes.webp");
+  --t-panel: url("/themes/dia-das-maes-painel.webp");
+}
+
+.site-v2.v2-theme.theme-aniversario {
+  --t-dark: #0b2266;
+  --t-rgb: 11, 34, 102;
+  --t-footer: #0b2266;
+  --t-accent: #c8952c;
+  --t-on-accent: #101c38;
+  --t-link: #765011;
+  --t-title-accent: #38b6ff;
+  --t-support: #38b6ff;
+  --t-paper: #fcfdff;
+  --t-soft: #eef5fc;
+  --t-tint: #e6f1fc;
+  --t-border: #d6e2ef;
+  --t-ink: #0b2266;
+  --t-muted: #526078;
+  --t-icon: "★";
+  --t-hero: url("/themes/aniversario.webp");
+  --t-panel: url("/themes/aniversario-painel.webp");
+}
+
+.site-v2.v2-theme.theme-carnaval {
+  --t-dark: #3a0f6b;
+  --t-rgb: 58, 15, 107;
+  --t-footer: #3a0f6b;
+  --t-accent: #d81b78;
+  --t-on-accent: #ffffff;
+  --t-link: #ac135e;
+  --t-title-accent: #f5b301;
+  --t-support: #f5b301;
+  --t-paper: #fffbff;
+  --t-soft: #faf0fb;
+  --t-tint: #fae5f2;
+  --t-border: #e9d3e9;
+  --t-ink: #35194f;
+  --t-muted: #64516d;
+  --t-icon: "★";
+  --t-hero: url("/themes/carnaval.webp");
+  --t-panel: url("/themes/carnaval-painel.webp");
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas {
+  --t-dark: #0b2266;
+  --t-rgb: 11, 34, 102;
+  --t-footer: #0b2266;
+  --t-accent: #e8481c;
+  --t-on-accent: #171717;
+  --t-link: #a52e0c;
+  --t-title-accent: #c93710;
+  --t-support: #ffc928;
+  --t-paper: #fffefa;
+  --t-soft: #fff9e6;
+  --t-tint: #fff0bd;
+  --t-border: #eadfbf;
+  --t-ink: #0b2266;
+  --t-muted: #5d5a4b;
+  --t-icon: "★";
+  --t-hero: url("/themes/dia-das-criancas.webp");
+  --t-panel: url("/themes/dia-das-criancas-painel.webp");
+}
+
+.site-v2.v2-theme.theme-black-friday {
+  --t-dark: #0a0a0a;
+  --t-rgb: 10, 10, 10;
+  --t-footer: #0a0a0a;
+  --t-accent: #e50914;
+  --t-on-accent: #ffffff;
+  --t-link: #ff7b82;
+  --t-title-accent: #ff3541;
+  --t-support: #e50914;
+  --t-paper: #0a0a0a;
+  --t-soft: #111111;
+  --t-tint: #351216;
+  --t-border: #593035;
+  --t-ink: #ffffff;
+  --t-muted: #d0c6c8;
+  --t-icon: "★";
+  --t-hero: url("/themes/black-friday.webp");
+  --t-panel: url("/themes/black-friday-painel.webp");
+}
+
+/* ---------- Base compartilhada, restrita aos sete IDs ---------- */
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) {
+  --v2-surface: var(--t-paper);
+  --v2-soft: var(--t-soft);
+  --v2-border: var(--t-border);
+  --v2-shadow: 0 6px 22px rgba(var(--t-rgb), 0.08);
+  --v2-red: var(--t-accent);
+  --v2-red-line: var(--t-accent);
+  --v2-text: var(--t-ink);
+  --v2-muted: var(--t-muted);
+  /* --v2-ink é preservado para não mudar as setas dos carrosséis. */
+  background: var(--t-paper);
+  color: var(--t-ink);
+  overflow-x: clip;
+}
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) :is(.v2-container, .v2-hero-copy, .v2-segments-intro, .v2-brands-head > div, .v2-section-head > div, .v2-contact-main > div, .v2-footer-grid > *) {
+  min-width: 0;
+}
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) :is(a, button, input, select, textarea):focus-visible {
+  outline: 3px solid #ffffff;
+  outline-offset: 3px;
+  box-shadow: 0 0 0 6px #111111;
+}
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-eyebrow {
+  color: var(--t-link);
+}
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) :is(.v2-segments-intro, .v2-section-head) h2 {
+  color: var(--t-ink);
+}
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) :is(.v2-segments-intro, .v2-section-head) p {
+  color: var(--t-muted);
+}
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .td-theme-mark {
+  display: inline-block;
+  margin-inline-end: 0.55em;
+  color: inherit;
+  font-family: Arial, sans-serif;
+  font-style: normal;
+  line-height: 1;
+  vertical-align: baseline;
+  pointer-events: none;
+}
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .td-theme-mark::before {
+  content: var(--t-icon);
+}
+
+/* ---------- Botões ---------- */
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) :is(.v2-button-red, .v2-topbar .v2-topbar-rca) {
+  background: var(--t-accent);
+  color: var(--t-on-accent);
+  border: 1px solid transparent;
+  box-shadow: 0 4px 14px rgba(var(--t-rgb), 0.14);
+  transition: transform 160ms ease, opacity 160ms ease;
+}
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) :is(.v2-button-red, .v2-topbar .v2-topbar-rca):hover {
+  background: var(--t-accent);
+  color: var(--t-on-accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-button-outline {
+  background: var(--t-paper);
+  color: var(--t-ink);
+  border-color: var(--t-border);
+}
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-button-outline:hover {
+  color: var(--t-link);
+  border-color: var(--t-link);
+}
+
+/* ---------- Faixa e cabeçalho ---------- */
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-topbar {
+  background: var(--t-dark);
+  color: #ffffff;
+}
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-topbar-inner {
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px 18px;
+}
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-topbar-message {
+  display: block;
+  flex: 1 1 250px;
+  min-width: 0;
+  padding-block: 9px;
+  line-height: 1.5;
+}
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-topbar .td-theme-mark {
+  color: var(--t-support);
+}
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-topbar-contacts {
+  flex-wrap: wrap;
+  min-width: 0;
+  gap: 12px 20px;
+}
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-topbar .v2-topbar-rca {
+  min-height: 40px;
+  white-space: normal;
+}
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-header {
+  background: #ffffff;
+  border-bottom-color: var(--t-accent);
+}
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-nav a.is-active {
+  color: var(--t-link);
+}
+
+/* ---------- Banner: arte em toda a superfície ---------- */
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-hero {
+  display: block;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: var(--t-dark);
+  color: #ffffff;
+}
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-hero-media {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  clip-path: none;
+  background-color: var(--t-dark);
+  background-image: var(--t-hero);
+  background-position: right center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-hero-media > img {
+  display: none;
+}
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-hero-media::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(
+    90deg,
+    rgba(var(--t-rgb), 0.99) 0%,
+    rgba(var(--t-rgb), 0.97) 35%,
+    rgba(var(--t-rgb), 0.91) 47%,
+    rgba(var(--t-rgb), 0.25) 65%,
+    rgba(var(--t-rgb), 0) 85%
+  );
+  pointer-events: none;
+}
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-hero::after {
+  display: none;
+}
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-hero-inner {
+  min-height: clamp(310px, 25vw, 380px);
+  padding-block: 36px;
+}
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-hero-copy {
+  width: 45%;
+  max-width: 620px;
+  gap: 16px;
+}
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-hero h2 {
+  color: #ffffff;
+  font-family: var(--v2-display);
+  font-size: clamp(30px, 2.65vw, 42px);
+  line-height: 1.12;
+  overflow-wrap: break-word;
+}
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-hero-title-accent {
+  display: block;
+  color: var(--t-title-accent);
+}
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-hero p {
+  color: #ffffff;
+  line-height: 1.55;
+}
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-hero-eyebrow {
+  color: #ffffff;
+  line-height: 1.5;
+}
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-hero-eyebrow .td-theme-mark {
+  color: var(--t-support);
+}
+
+/* Banner claro do Dia das Crianças. */
+.site-v2.v2-theme.theme-dia-das-criancas .v2-hero,
+.site-v2.v2-theme.theme-dia-das-criancas .v2-hero-media {
+  background-color: #fff1bc;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-hero-media::before {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 245, 207, 0.99) 0%,
+    rgba(255, 245, 207, 0.98) 35%,
+    rgba(255, 245, 207, 0.94) 47%,
+    rgba(255, 245, 207, 0.2) 65%,
+    rgba(255, 245, 207, 0) 85%
+  );
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-hero h2,
+.site-v2.v2-theme.theme-dia-das-criancas .v2-hero p,
+.site-v2.v2-theme.theme-dia-das-criancas .v2-hero-eyebrow {
+  color: #0b2266;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-hero-eyebrow .td-theme-mark {
+  color: #a52e0c;
+}
+
+/*
+ * Decoração estática: não existe animação a pausar.
+ * O estado/hook existente pode permanecer para uma futura animação.
+ */
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) :is(.td-hero-decor, .td-particle, .td-ornament, .td-cta-shine, .td-card-decor, .td-badge-icon, .v2-hero-pause) {
+  display: none;
+  animation: none;
+  pointer-events: none;
+}
+
+/* ---------- Diferenciais e segmentos ---------- */
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-benefits {
+  background: var(--t-paper);
+}
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) :is(.v2-benefit, .v2-segment-card) {
+  background: #ffffff;
+  border-color: var(--t-border);
+  box-shadow: 0 4px 16px rgba(var(--t-rgb), 0.07);
+}
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-benefit-icon {
+  background: var(--t-tint);
+  color: var(--t-link);
+}
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) :is(.v2-benefit strong, .v2-segment-body strong) {
+  color: var(--t-ink);
+}
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) :is(.v2-benefit small, .v2-segment-body small) {
+  color: var(--t-muted);
+}
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-segments {
+  background: var(--t-soft);
+}
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-segment-badge {
+  background: var(--t-accent);
+  color: var(--t-on-accent);
+}
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-segment-more {
+  color: var(--t-link);
+}
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-segment-media.is-icon {
+  background: var(--t-tint);
+  color: var(--t-link);
+}
+
+/* ---------- Marcas, ofertas e lançamentos ---------- */
+
+/*
+ * O painel visual é .v2-brands, dentro de .v2-brands-wrap.
+ * .v2-offers está nesse painel interno, não no wrapper.
+ */
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) :is(.v2-brands-wrap, .v2-contact-wrap, .v2-featured) {
+  background: var(--t-paper);
+}
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-brands-wrap:not(.v2-new-wrap) .v2-brands,
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-new-wrap .v2-brands.v2-offers,
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-new-wrap .v2-brands:not(.v2-offers) {
+  background-color: var(--t-dark);
+  background-image:
+    /* Mais escuro no meio (cards e textos), mais claro nas bordas, onde
+       ficam os enfeites da arte. */
+    linear-gradient(
+      90deg,
+      rgba(var(--t-rgb), 0.7) 0%,
+      rgba(var(--t-rgb), 0.88) 14%,
+      rgba(var(--t-rgb), 0.88) 84%,
+      rgba(var(--t-rgb), 0.42) 100%
+    ),
+    var(--t-panel);
+  background-position: center, right center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  color: #ffffff;
+  border: 1px solid rgba(var(--t-rgb), 0.16);
+}
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) :is(.v2-brands-head h2, .v2-brands-head p, .v2-brands .v2-eyebrow-light, .v2-panel-note, .v2-link-light) {
+  color: #ffffff;
+  opacity: 1;
+}
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-link-light {
+  border-bottom-color: var(--t-accent);
+}
+
+/* Nenhuma regra altera logos, cards de marca, setas ou itens do carrossel. */
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-new-wrap .v2-new-badge {
+  display: block;
+  top: 8px;
+  left: 8px;
+  right: 8px;
+  width: auto;
+  max-width: calc(100% - 16px);
+  padding: 5px 6px;
+  background: var(--t-accent);
+  color: var(--t-on-accent);
+  text-align: center;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  letter-spacing: 0.015em;
+  line-height: 1.3;
+}
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-new-card .product-card {
+  border-color: var(--t-border);
+}
+
+/* Reserva espaço para o selo, inclusive quando a data quebra de linha. */
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-new-card .product-card .product-image-wrap {
+  margin-top: 48px;
+}
+
+/* Dia das Crianças: como no esboço, a seleção de ofertas fica clara
+   (amarela), com textos azul-marinho. */
+.site-v2.v2-theme.theme-dia-das-criancas .v2-new-wrap .v2-brands.v2-offers {
+  background-color: #ffe9a3;
+  background-image:
+    linear-gradient(
+      90deg,
+      rgba(255, 233, 163, 0.55) 0%,
+      rgba(255, 236, 170, 0.9) 14%,
+      rgba(255, 236, 170, 0.9) 86%,
+      rgba(255, 233, 163, 0.55) 100%
+    ),
+    var(--t-panel);
+  color: #0b2266;
+  border-color: #eadfbf;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-offers :is(.v2-brands-head h2, .v2-brands-head p, .v2-eyebrow-light, .v2-panel-note) {
+  color: #0b2266;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-offers .v2-eyebrow-light {
+  color: #a8320f;
+}
+
+/* ---------- Produtos ---------- */
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .product-card {
+  position: relative;
+  background: #ffffff;
+  color: var(--t-ink);
+  border-color: var(--t-border);
+  box-shadow: 0 2px 10px rgba(var(--t-rgb), 0.06);
+}
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .product-card:hover {
+  border-color: var(--t-link);
+  box-shadow: 0 8px 22px rgba(var(--t-rgb), 0.13);
+}
+
+/* !important vence carousel-color-fix.css. */
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .product-card .product-brand {
+  color: var(--t-link) !important;
+}
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .product-card .product-name {
+  color: var(--t-ink) !important;
+}
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .product-card .product-card-meta,
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .product-card .product-card-meta span {
+  color: var(--t-muted) !important;
+}
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .product-card .td-card-charm {
+  display: block;
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  z-index: 2;
+  width: 18px;
+  height: 18px;
+  background: none;
+  color: var(--t-accent);
+  font: 15px/18px Arial, sans-serif;
+  text-align: center;
+  pointer-events: none;
+}
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .td-card-charm::before {
+  content: var(--t-icon);
+}
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-new-card .td-card-charm {
+  top: 52px;
+}
+
+.site-v2.v2-theme.theme-natal .td-card-charm,
+.site-v2.v2-theme.theme-aniversario .td-card-charm {
+  color: #c8952c;
+}
+
+/* ---------- Contato ---------- */
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-contact {
+  background-color: var(--t-dark);
+  background-image:
+    linear-gradient(
+      90deg,
+      rgba(var(--t-rgb), 1) 0%,
+      rgba(var(--t-rgb), 0.95) 62%,
+      rgba(var(--t-rgb), 0.35) 100%
+    ),
+    var(--t-panel);
+  background-position: center, right center;
+  background-size: cover, auto 100%;
+  background-repeat: no-repeat;
+  color: #ffffff;
+}
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-contact-photo {
+  display: none;
+}
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-contact-icon {
+  background: var(--t-accent);
+  color: var(--t-on-accent);
+}
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) :is(.v2-contact h2, .v2-contact p, .v2-contact-list a, .v2-contact-list small) {
+  color: #ffffff;
+}
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-contact-list strong {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Rodapé ---------- */
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-footer {
+  background: var(--t-footer);
+  color: #ffffff;
+  border-top-color: var(--t-accent);
+  border-bottom-color: var(--t-accent);
+}
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) :is(.v2-footer-brand p, .v2-footer-col a, .v2-footer-link, .v2-footer-cta small, .v2-footer-bottom, .v2-footer-notice, .v2-footer-notice strong, .v2-footer-privacy) {
+  color: #f3edf0;
+  opacity: 1;
+}
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-footer-col a {
+  overflow-wrap: anywhere;
+}
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-footer-bottom > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Black Friday: superfícies escuras ---------- */
+
+.site-v2.v2-theme.theme-black-friday .v2-header {
+  background: #0a0a0a;
+  border-bottom-color: #e50914;
+  box-shadow: 0 3px 18px rgba(229, 9, 20, 0.16);
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-nav,
+.site-v2.v2-theme.theme-black-friday .v2-search,
+.site-v2.v2-theme.theme-black-friday .v2-menu-button,
+.site-v2.v2-theme.theme-black-friday .v2-suggest {
+  background: #111111;
+  color: #ffffff;
+  border-color: #593035;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-nav a,
+.site-v2.v2-theme.theme-black-friday .v2-nav .v2-editor-link,
+.site-v2.v2-theme.theme-black-friday .v2-nav .v2-nav-download,
+.site-v2.v2-theme.theme-black-friday .v2-search input,
+.site-v2.v2-theme.theme-black-friday .v2-search button,
+.site-v2.v2-theme.theme-black-friday .v2-search-icon {
+  color: #ffffff;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-nav a.is-active,
+.site-v2.v2-theme.theme-black-friday .v2-nav a:hover {
+  color: #ff7b82;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-nav .v2-nav-download {
+  border-color: #775157;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-nav .v2-nav-download:hover,
+.site-v2.v2-theme.theme-black-friday .v2-search button:hover,
+.site-v2.v2-theme.theme-black-friday .v2-search .v2-suggest li button.is-active,
+.site-v2.v2-theme.theme-black-friday .v2-search .v2-suggest li button:focus-visible {
+  background: #2a191b;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-search input::placeholder {
+  color: #c8bfc1;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-search:focus-within {
+  border-color: #ff7b82;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-suggest-text strong {
+  color: #ffffff;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-suggest-text small,
+.site-v2.v2-theme.theme-black-friday .v2-suggest-empty {
+  color: #d0c6c8;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-search .v2-suggest-all {
+  background: #251619;
+  color: #ffffff;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-search .v2-suggest-all:hover {
+  background: #362024;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-benefit,
+.site-v2.v2-theme.theme-black-friday .v2-segment-card,
+.site-v2.v2-theme.theme-black-friday .product-card,
+.site-v2.v2-theme.theme-black-friday .v2-new-card .product-card {
+  background: #1a1a1a;
+  color: #ffffff;
+  border-color: #593035;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-benefit-icon {
+  background: #351216;
+  color: #ff3541;
+}
+
+.site-v2.v2-theme.theme-black-friday .product-card .product-image-wrap,
+.site-v2.v2-theme.theme-black-friday .product-card:not(.without-photo) .product-image-wrap,
+.site-v2.v2-theme.theme-black-friday .product-card .product-card-body {
+  background: #1a1a1a;
+}
+
+.site-v2.v2-theme.theme-black-friday .product-card .missing-image {
+  color: #d0c6c8;
+}
+
+.site-v2.v2-theme.theme-black-friday .product-card:hover {
+  border-color: #e50914;
+  box-shadow: 0 6px 22px rgba(229, 9, 20, 0.16);
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-brands-wrap .v2-brands {
+  border-color: #8c151d;
+  box-shadow: 0 0 18px rgba(229, 9, 20, 0.12);
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-contact {
+  border: 1px solid #8c151d;
+}
+
+/* Catálogo completo: elementos cujos fundos eram brancos fixos. */
+.site-v2.v2-theme.theme-black-friday .v2-catalog-intro {
+  background: #111111;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-catalog-intro p {
+  color: #d0c6c8;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-filters,
+.site-v2.v2-theme.theme-black-friday .v2-filters-toggle,
+.site-v2.v2-theme.theme-black-friday .v2-filter-field select,
+.site-v2.v2-theme.theme-black-friday .v2-filters-clear,
+.site-v2.v2-theme.theme-black-friday .clear-query {
+  background: #1a1a1a;
+  color: #ffffff;
+  border-color: #593035;
+  color-scheme: dark;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-filters h2,
+.site-v2.v2-theme.theme-black-friday .v2-filter-field label,
+.site-v2.v2-theme.theme-black-friday .v2-breadcrumb [aria-current] {
+  color: #ffffff;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-breadcrumb a:hover,
+.site-v2.v2-theme.theme-black-friday .v2-filters-clear:hover:not(:disabled) {
+  color: #ff7b82;
+  border-color: #ff7b82;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-filter-check input {
+  accent-color: #e50914;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-skeleton {
+  background: #242024;
+  animation: none;
+}
+
+/* ---------- Responsividade ---------- */
+
+/* Evita sobreposição do menu completo em larguras intermediárias. */
+@media (min-width: 1025px) and (max-width: 1300px) {
+  .site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-header-inner {
+    flex-wrap: wrap;
+    gap: 12px 20px;
+    padding-block: 12px;
+  }
+
+  .site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-nav {
+    flex-wrap: wrap;
+    gap: 10px 16px;
+  }
+
+  .site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-search {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 1180px) {
+  .site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-topbar-inner {
+    justify-content: center;
+  }
+
+  .site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-topbar-message {
+    flex-basis: 100%;
+    text-align: center;
+  }
+
+  .site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-topbar-contacts {
+    justify-content: center;
+    padding-bottom: 8px;
+  }
+
+  .site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-hero-copy {
+    width: 46%;
+    max-width: none;
+  }
+}
+
+/* Compensa a mudança estrutural que site-v2.css faz aos 860px. */
+@media (max-width: 860px) {
+  .site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-hero-inner {
+    min-height: 380px;
+    padding-block: 32px;
+  }
+
+  .site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-hero-copy {
+    width: 52%;
+  }
+
+  .site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-hero-media::before {
+    background: linear-gradient(
+      90deg,
+      rgba(var(--t-rgb), 0.99) 0%,
+      rgba(var(--t-rgb), 0.96) 52%,
+      rgba(var(--t-rgb), 0.2) 78%,
+      rgba(var(--t-rgb), 0) 100%
+    );
+  }
+
+  .site-v2.v2-theme.theme-dia-das-criancas .v2-hero-media::before {
+    background: linear-gradient(
+      90deg,
+      rgba(255, 245, 207, 0.99) 0%,
+      rgba(255, 245, 207, 0.97) 52%,
+      rgba(255, 245, 207, 0.2) 78%,
+      rgba(255, 245, 207, 0) 100%
+    );
+  }
+}
+
+@media (max-width: 760px) {
+  .site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-topbar-inner {
+    gap: 0;
+  }
+
+  .site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-topbar-message {
+    padding-block: 10px;
+    font-size: 12px;
+  }
+
+  .site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-topbar-contacts {
+    width: 100%;
+    padding-bottom: 10px;
+  }
+
+  .site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-topbar-secondary {
+    display: none;
+  }
+
+  .site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-topbar .v2-topbar-rca {
+    width: 100%;
+    justify-content: center;
+    padding: 9px 12px;
+    line-height: 1.4;
+  }
+
+  /*
+   * Reserva 200px inferiores para a arte.
+   * O degradê cobre toda a região de texto, mesmo com título longo.
+   * Nenhuma altura fixa limita o conteúdo.
+   */
+  .site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-hero-inner {
+    min-height: 0;
+    padding-block: 30px 62vw;
+  }
+
+  .site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-hero-copy {
+    width: 100%;
+    max-width: 560px;
+    gap: 14px;
+  }
+
+  .site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-hero-media {
+    /* A arte inteira (3:2) embaixo do texto, na largura da tela. */
+    background-position: center bottom;
+    background-size: 100% auto;
+    background-repeat: no-repeat;
+  }
+
+  .site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-hero-media::before {
+    background: linear-gradient(
+      180deg,
+      rgba(var(--t-rgb), 0.99) 0%,
+      rgba(var(--t-rgb), 0.97) calc(100% - 66vw),
+      rgba(var(--t-rgb), 0) calc(100% - 50vw),
+      rgba(var(--t-rgb), 0) 100%
+    );
+  }
+
+  .site-v2.v2-theme.theme-dia-das-criancas .v2-hero-media::before {
+    background: linear-gradient(
+      180deg,
+      rgba(255, 245, 207, 0.99) 0%,
+      rgba(255, 245, 207, 0.98) calc(100% - 66vw),
+      rgba(255, 245, 207, 0) calc(100% - 50vw),
+      rgba(255, 245, 207, 0) 100%
+    );
+  }
+
+  .site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-hero h2 {
+    font-size: clamp(28px, 6vw, 36px);
+  }
+
+  .site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-button {
+    max-width: 100%;
+    white-space: normal;
+    padding-block: 10px;
+    text-align: center;
+    line-height: 1.4;
+  }
+
+  .site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-footer-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) :is(.v2-footer-brand, .v2-footer-contact, .v2-footer-cta) {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 640px) {
+  .site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-contact-list li {
+    max-width: 100%;
+    padding-inline: 0;
+    border-left: 0;
+  }
+
+  .site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-contact-list a {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-footer-logo {
+    max-width: calc(100% - 28px);
+  }
+
+  .site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-new-wrap .v2-new-badge {
+    left: 5px;
+    right: 5px;
+    max-width: calc(100% - 10px);
+    padding-inline: 4px;
+    font-size: 10px;
+    letter-spacing: 0;
+  }
+}
+
+@media (max-width: 380px) {
+  .site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-footer-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ---------- Movimento e pausa ---------- */
+
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-hero.is-paused *,
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-hero.is-paused *::before,
+.site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-hero.is-paused *::after {
+  animation-play-state: paused !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday),
+  .site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) *,
+  .site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) *::before,
+  .site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+
+  .site-v2.v2-theme:is(.theme-natal, .theme-ano-novo, .theme-dia-das-maes, .theme-aniversario, .theme-carnaval, .theme-dia-das-criancas, .theme-black-friday) .v2-hero-pause {
+    display: none !important;
+  }
+}

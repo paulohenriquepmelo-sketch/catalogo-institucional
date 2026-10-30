@@ -608,6 +608,7 @@ export function CatalogApp({
             <HomeFeatured items={items} onOpen={setSelected} />
             {has('offers') && (
               <OffersPanel
+                config={config}
                 settings={{
                   ...config.offers,
                   title:
