@@ -1,6 +1,11 @@
 import { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { activeOffers, newProducts, type CatalogConfig, type Product } from './api';
+import {
+  activeOffers,
+  newProducts,
+  type CatalogConfig,
+  type Product,
+} from '@/lib/api';
 
 const SEEN_KEY = '@catalogo/notifications-seen';
 
@@ -13,27 +18,38 @@ export type AppNotification = {
   at: number;
 };
 
-// Estado compartilhado simples: o sino do cabeçalho precisa saber, na hora,
-// que a tela de notificações foi aberta para zerar o contador.
 let seenAt = 0;
 let hydrated = false;
+let hydrationPromise: Promise<void> | null = null;
 const listeners = new Set<() => void>();
 
-function emit() {
+function emit(): void {
   for (const listener of listeners) listener();
 }
 
-async function hydrateSeenAt() {
+async function hydrateSeenAt(): Promise<void> {
   if (hydrated) return;
-  hydrated = true;
-  try {
-    const raw = await AsyncStorage.getItem(SEEN_KEY);
-    const parsed = raw ? Number(raw) : 0;
-    seenAt = Number.isFinite(parsed) ? parsed : 0;
-  } catch {
-    seenAt = 0;
-  }
-  emit();
+  if (hydrationPromise) return hydrationPromise;
+
+  hydrationPromise = (async () => {
+    let cached = 0;
+    try {
+      const raw = await AsyncStorage.getItem(SEEN_KEY);
+      const parsed = raw ? Number(raw) : 0;
+      cached = Number.isFinite(parsed) ? parsed : 0;
+    } catch {
+      cached = 0;
+    }
+
+    // Uma abertura da tela durante a leitura prevalece sobre o cache antigo.
+    if (!hydrated) {
+      seenAt = cached;
+      hydrated = true;
+      emit();
+    }
+  })();
+
+  return hydrationPromise;
 }
 
 export async function markNotificationsSeen(): Promise<void> {
@@ -43,7 +59,7 @@ export async function markNotificationsSeen(): Promise<void> {
   try {
     await AsyncStorage.setItem(SEEN_KEY, String(seenAt));
   } catch {
-    // Sem persistência o contador volta na próxima abertura — aceitável.
+    // O contador permanece correto nesta sessão.
   }
 }
 
@@ -61,17 +77,14 @@ export function useNotificationsSeenAt(): number {
   return value;
 }
 
-function formatDate(value?: string) {
-  if (!value) return '';
+function formatDate(value: string): string {
   const parsed = new Date(`${value}T12:00:00`);
-  if (Number.isNaN(parsed.getTime())) return value;
-  return parsed.toLocaleDateString('pt-BR');
+  return Number.isNaN(parsed.getTime()) ? value : parsed.toLocaleDateString('pt-BR');
 }
 
 /**
- * Monta a lista de notificações a partir do próprio catálogo publicado:
- * ofertas ativas e produtos novos. Sem inventar nada — tudo vem dos dados
- * que o app já baixou, então funciona inclusive offline.
+ * Os seletores compartilhados excluem produtos restritos e ofertas fora
+ * da vigência, inclusive ao montar notificações a partir do cache offline.
  */
 export function buildNotifications(
   products: Product[],
@@ -82,16 +95,14 @@ export function buildNotifications(
   for (const product of activeOffers(products, 25)) {
     const offer = product.details?.offer;
     if (!offer) continue;
-    const startedAt = Date.parse(`${offer.startsAt}T00:00:00`);
+
     list.push({
       id: `offer-${product.id}`,
       kind: 'offer',
       title: `${offer.discount}% OFF em ${product.name}`,
-      message: offer.endsAt
-        ? `Oferta válida até ${formatDate(offer.endsAt)}.`
-        : 'Oferta ativa no catálogo.',
+      message: `Oferta válida até ${formatDate(offer.endsAt)}.`,
       productId: product.id,
-      at: Number.isFinite(startedAt) ? startedAt : Date.now(),
+      at: Date.parse(`${offer.startsAt}T00:00:00`),
     });
   }
 
@@ -103,7 +114,8 @@ export function buildNotifications(
       title: `Novo no catálogo: ${product.name}`,
       message: product.brand ? `Marca ${product.brand}.` : 'Recém-adicionado ao catálogo.',
       productId: product.id,
-      at: Number.isFinite(createdAt) ? createdAt : Date.now(),
+      // Sem data, evita criar uma notificação "nova" a cada renderização.
+      at: Number.isFinite(createdAt) ? createdAt : 0,
     });
   }
 

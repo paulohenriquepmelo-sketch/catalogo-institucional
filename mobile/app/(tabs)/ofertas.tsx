@@ -1,25 +1,16 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  ActivityIndicator,
-  FlatList,
-  Platform,
-  RefreshControl,
-  StyleSheet,
-  Text,
-  View,
-  type ListRenderItem,
-} from 'react-native';
-import { AppIcon } from '@/components/AppIcon';
+import { StyleSheet, Text, View } from 'react-native';
+import { ProductGrid } from '@/components/ProductGrid';
+import { PanelHeading, ThemedPanel } from '@/components/ThemedPanel';
 import { useCatalog } from '@/lib/catalog-store';
-import { activeOffers, offerTimeLabel } from '@/lib/api';
+import { activeOffers, offerTimeLabel, type Product } from '@/lib/api';
 import { useAfterFirstFrame } from '@/lib/useAfterFirstFrame';
-import { useResponsiveLayout } from '@/lib/useResponsiveLayout';
-import { colors, spacing, typography } from '@/lib/theme';
-import { ProductCard } from '@/components/ProductCard';
+import { useAppTheme } from '@/lib/theme-provider';
+import { spacing, typography } from '@/lib/theme';
 
 export default function OfertasScreen() {
-  const { config, products, refreshing, refresh } = useCatalog();
-  const { columns } = useResponsiveLayout();
+  const { products, refreshing, refresh } = useCatalog();
+  const { tokens, copy } = useAppTheme();
   const ready = useAfterFirstFrame();
   const [now, setNow] = useState(Date.now());
 
@@ -28,83 +19,45 @@ export default function OfertasScreen() {
     return () => clearInterval(timer);
   }, []);
 
-  const offers = useMemo(() => (ready ? activeOffers(products) : []), [ready, products]);
-  const renderOffer = useCallback<ListRenderItem<(typeof offers)[number]>>(
-    ({ item }) => (
-      <View style={styles.gridItem}>
-        <ProductCard product={item} style={styles.cardFill} />
-        <View style={styles.timer}>
-          <AppIcon name="time" size={12} color={colors.accent} />
-          <Text style={styles.timerText}>
-            {offerTimeLabel(item.details!.offer!.endsAt, now)}
-          </Text>
-        </View>
+  const offers = useMemo(() => ready ? activeOffers(products) : [], [ready, products]);
+  const styles = useMemo(() => StyleSheet.create({
+    timer: {
+      padding: spacing.sm,
+      backgroundColor: tokens.soft,
+      borderBottomLeftRadius: 8,
+      borderBottomRightRadius: 8,
+    },
+    timerText: { ...typography.small, color: tokens.link, fontWeight: '700' },
+  }), [tokens]);
+
+  const renderFooter = useCallback((product: Product) => {
+    const offer = product.details?.offer;
+    if (!offer) return null;
+    return (
+      <View style={styles.timer}>
+        <Text style={styles.timerText}>{offerTimeLabel(offer.endsAt, now)}</Text>
       </View>
-    ),
-    [now],
-  );
-  const renderBatchSize = Math.max(4, columns * 2);
+    );
+  }, [now, styles]);
 
   return (
-    <View style={styles.screen}>
-      <View style={styles.header}>
-        <Text style={styles.title}>{config?.offers.title ?? 'Ofertas'}</Text>
-        <Text style={styles.subtitle}>
-          {ready
-            ? `${offers.length} ${offers.length === 1 ? 'oferta ativa' : 'ofertas ativas'}`
-            : 'Carregando…'}
-        </Text>
-      </View>
-      <FlatList
-        key={`ofertas-grid-${columns}`}
-        data={offers}
-        keyExtractor={(item) => String(item.id)}
-        numColumns={columns}
-        columnWrapperStyle={columns > 1 ? styles.row : undefined}
-        initialNumToRender={renderBatchSize}
-        maxToRenderPerBatch={renderBatchSize}
-        updateCellsBatchingPeriod={80}
-        windowSize={5}
-        removeClippedSubviews={Platform.OS === 'android'}
-        contentContainerStyle={styles.grid}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={colors.primary} />
-        }
-        renderItem={renderOffer}
-        ListEmptyComponent={
-          ready ? (
-            <View style={styles.empty}>
-              <AppIcon name="pricetag" size={32} color={colors.textMuted} />
-              <Text style={styles.emptyText}>Nenhuma oferta ativa no momento.</Text>
-            </View>
-          ) : (
-            <View style={styles.empty}>
-              <ActivityIndicator color={colors.primary} />
-            </View>
-          )
-        }
-      />
-    </View>
+    <ProductGrid
+      products={offers}
+      ready={ready}
+      refreshing={refreshing}
+      onRefresh={refresh}
+      renderFooter={renderFooter}
+      emptyMessage="Nenhuma oferta ativa no momento."
+      header={
+        <ThemedPanel variant="ofertas">
+          <PanelHeading
+            title={copy.offers}
+            subtitle={ready
+              ? `${offers.length} ${offers.length === 1 ? 'oferta ativa' : 'ofertas ativas'}`
+              : 'Carregando…'}
+          />
+        </ThemedPanel>
+      }
+    />
   );
 }
-
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.background },
-  header: { padding: spacing.lg, paddingBottom: spacing.sm },
-  title: { ...typography.title, color: colors.text },
-  subtitle: { ...typography.small, color: colors.textMuted, marginTop: 2 },
-  grid: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxl },
-  row: { gap: spacing.md, marginBottom: spacing.md },
-  gridItem: { flex: 1 },
-  cardFill: { width: '100%' },
-  timer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginTop: spacing.xs,
-    paddingHorizontal: spacing.xs,
-  },
-  timerText: { ...typography.small, color: colors.accent, fontWeight: '600' },
-  empty: { alignItems: 'center', paddingVertical: spacing.xxl, gap: spacing.sm },
-  emptyText: { ...typography.body, color: colors.textMuted },
-});

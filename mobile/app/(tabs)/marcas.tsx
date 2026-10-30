@@ -11,116 +11,130 @@ import {
   View,
   type ListRenderItem,
 } from 'react-native';
-import { AppIcon } from '@/components/AppIcon';
 import { CachedImage } from '@/components/CachedImage';
+import { ThemedBackground } from '@/components/ThemedBackground';
+import { PanelHeading, ThemedPanel } from '@/components/ThemedPanel';
 import { useCatalog } from '@/lib/catalog-store';
 import { publishedBrands } from '@/lib/api';
 import { useAfterFirstFrame } from '@/lib/useAfterFirstFrame';
 import { useResponsiveLayout } from '@/lib/useResponsiveLayout';
-import { colors, radius, spacing, typography } from '@/lib/theme';
+import { useAppTheme } from '@/lib/theme-provider';
+import { radius, spacing, typography } from '@/lib/theme';
 
 export default function MarcasScreen() {
   const router = useRouter();
   const { config, products, refreshing, refresh } = useCatalog();
-  const { columns } = useResponsiveLayout();
+  const { columns, width } = useResponsiveLayout();
+  const { tokens } = useAppTheme();
   const ready = useAfterFirstFrame();
+  const cardWidth = Math.max(1, (width - 32 - (columns - 1) * 12) / columns);
 
   const brands = useMemo(() => {
     if (!ready) return [];
-    const list = publishedBrands(config?.brands ?? []);
     const counts = new Map<string, number>();
-    for (const p of products) {
-      if (p.published === false) continue;
-      counts.set(p.brand, (counts.get(p.brand) ?? 0) + 1);
+    for (const product of products) {
+      if (product.published === false) continue;
+      counts.set(product.brand, (counts.get(product.brand) ?? 0) + 1);
     }
-    return list
-      .map((b) => ({ ...b, count: counts.get(b.name) ?? 0 }))
-      .sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0) || a.name.localeCompare(b.name));
+    return publishedBrands(config?.brands ?? [])
+      .map((brand) => ({ ...brand, count: counts.get(brand.name) ?? 0 }))
+      .sort((a, b) =>
+        (b.featured ? 1 : 0) - (a.featured ? 1 : 0) || a.name.localeCompare(b.name),
+      );
   }, [ready, config?.brands, products]);
+
+  const styles = useMemo(() => StyleSheet.create({
+    list: { flex: 1 },
+    grid: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxl },
+    row: { gap: spacing.md },
+    header: { marginHorizontal: -spacing.lg, marginBottom: spacing.lg },
+    card: {
+      marginBottom: spacing.md,
+      minHeight: 140,
+      borderRadius: radius.md,
+      borderWidth: 1,
+      borderColor: tokens.border,
+      backgroundColor: tokens.soft,
+      padding: spacing.md,
+      alignItems: 'center',
+      gap: spacing.sm,
+    },
+    logo: { width: '100%', height: 64, backgroundColor: '#ffffff' },
+    name: { ...typography.body, color: tokens.ink, textAlign: 'center', fontWeight: '700' },
+    count: { ...typography.small, color: tokens.muted, textAlign: 'center' },
+    empty: {
+      padding: spacing.xl,
+      backgroundColor: tokens.soft,
+      borderRadius: radius.md,
+      alignItems: 'center',
+    },
+    emptyText: { ...typography.body, color: tokens.muted },
+  }), [tokens]);
+
   const renderBrand = useCallback<ListRenderItem<(typeof brands)[number]>>(
     ({ item }) => (
       <Pressable
-        style={styles.card}
-        onPress={() =>
-          router.navigate({ pathname: '/(tabs)/catalogo', params: { brand: item.name } })
-        }
+        accessibilityRole="button"
+        accessibilityLabel={`Ver produtos de ${item.name}`}
+        style={[styles.card, { width: cardWidth }]}
+        onPress={() => router.navigate({
+          pathname: '/(tabs)/catalogo',
+          params: { brand: item.name },
+        })}
       >
         {item.logo ? <CachedImage uri={item.logo} style={styles.logo} /> : null}
-        <Text style={styles.name} numberOfLines={2}>{item.name}</Text>
+        <Text style={styles.name}>{item.name}</Text>
         <Text style={styles.count}>
           {item.count} {item.count === 1 ? 'produto' : 'produtos'}
         </Text>
       </Pressable>
     ),
-    [router],
+    [router, styles, cardWidth],
   );
-  const renderBatchSize = Math.max(4, columns * 2);
 
+  const batch = Math.max(4, columns * 2);
   return (
-    <View style={styles.screen}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Marcas</Text>
-        <Text style={styles.subtitle}>
-          {ready
-            ? `${brands.length} ${brands.length === 1 ? 'marca parceira' : 'marcas parceiras'}`
-            : 'Carregando…'}
-        </Text>
-      </View>
+    <ThemedBackground>
       <FlatList
-        key={`marcas-grid-${columns}`}
+        key={`marcas-${columns}`}
+        style={styles.list}
         data={brands}
         keyExtractor={(item) => item.name}
         numColumns={columns}
         columnWrapperStyle={columns > 1 ? styles.row : undefined}
-        initialNumToRender={renderBatchSize}
-        maxToRenderPerBatch={renderBatchSize}
+        contentContainerStyle={styles.grid}
+        initialNumToRender={batch}
+        maxToRenderPerBatch={batch}
         updateCellsBatchingPeriod={80}
         windowSize={5}
         removeClippedSubviews={Platform.OS === 'android'}
-        contentContainerStyle={styles.grid}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={colors.primary} />
-        }
         renderItem={renderBrand}
+        ListHeaderComponent={
+          <ThemedPanel variant="marcas" style={styles.header}>
+            <PanelHeading
+              title="Marcas"
+              subtitle={ready
+                ? `${brands.length} ${brands.length === 1 ? 'marca parceira' : 'marcas parceiras'}`
+                : 'Carregando…'}
+            />
+          </ThemedPanel>
+        }
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={refresh}
+            tintColor={tokens.link}
+            colors={[tokens.link]}
+          />
+        }
         ListEmptyComponent={
-          ready ? (
-            <View style={styles.empty}>
-              <AppIcon name="pricetags" size={32} color={colors.textMuted} />
-              <Text style={styles.emptyText}>Nenhuma marca cadastrada.</Text>
-            </View>
-          ) : (
-            <View style={styles.empty}>
-              <ActivityIndicator color={colors.primary} />
-            </View>
-          )
+          <View style={styles.empty}>
+            {ready
+              ? <Text style={styles.emptyText}>Nenhuma marca cadastrada.</Text>
+              : <ActivityIndicator color={tokens.link} />}
+          </View>
         }
       />
-    </View>
+    </ThemedBackground>
   );
 }
-
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.background },
-  header: { padding: spacing.lg, paddingBottom: spacing.sm },
-  title: { ...typography.title, color: colors.text },
-  subtitle: { ...typography.small, color: colors.textMuted, marginTop: 2 },
-  grid: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxl },
-  row: { gap: spacing.md, marginBottom: spacing.md },
-  card: {
-    flex: 1,
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.xs,
-    height: 118,
-  },
-  logo: { width: '100%', height: 42 },
-  name: { ...typography.body, color: colors.text, textAlign: 'center', fontWeight: '600' },
-  count: { ...typography.small, color: colors.textMuted },
-  empty: { alignItems: 'center', paddingVertical: spacing.xxl, gap: spacing.sm },
-  emptyText: { ...typography.body, color: colors.textMuted },
-});

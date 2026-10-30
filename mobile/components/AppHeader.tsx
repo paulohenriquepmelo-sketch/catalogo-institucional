@@ -1,15 +1,17 @@
 import { useMemo } from 'react';
 import { Image, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import { AppIcon } from '@/components/AppIcon';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { AppIcon } from '@/components/AppIcon';
 import { useCatalog, useCatalogSearch } from '@/lib/catalog-store';
 import {
   buildNotifications,
   countUnread,
   useNotificationsSeenAt,
 } from '@/lib/notifications';
-import { colors, radius, spacing } from '@/lib/theme';
+import { useAppTheme } from '@/lib/theme-provider';
+import { readableColor } from '@/lib/theme-contrast';
+import { radius, spacing } from '@/lib/theme';
 
 export function AppHeader({
   canGoBack = false,
@@ -20,9 +22,9 @@ export function AppHeader({
 }) {
   const { config, products } = useCatalog();
   const { searchQuery, setSearchQuery } = useCatalogSearch();
+  const { id, tokens, copy } = useAppTheme();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-
   const seenAt = useNotificationsSeenAt();
   const notifications = useMemo(
     () => buildNotifications(products, config),
@@ -30,44 +32,121 @@ export function AppHeader({
   );
   const unread = countUnread(notifications, seenAt);
 
+  const styles = useMemo(() => StyleSheet.create({
+    container: {
+      backgroundColor: tokens.dark,
+      paddingHorizontal: spacing.md,
+      paddingBottom: spacing.sm,
+      borderBottomWidth: 3,
+      borderBottomColor: tokens.accent,
+    },
+    topbar: {
+      color: '#ffffff',
+      fontSize: 12,
+      textAlign: 'center',
+      paddingVertical: spacing.xs,
+      borderBottomWidth: 1,
+      borderBottomColor: '#ffffff55',
+    },
+    topRow: {
+      minHeight: 72,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+      paddingVertical: spacing.sm,
+    },
+    sideButton: {
+      width: 44,
+      minHeight: 48,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    logoCircle: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      backgroundColor: '#ffffff',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    logoMark: { width: 38, height: 38 },
+    brandText: { flex: 1, minWidth: 0 },
+    title: { color: '#ffffff', fontSize: 15, fontWeight: '800' },
+    tagline: { color: '#ffffff', fontSize: 12, marginTop: 2 },
+    notificationBadge: {
+      position: 'absolute',
+      top: 0,
+      right: 0,
+      minWidth: 20,
+      minHeight: 20,
+      borderRadius: 10,
+      paddingHorizontal: 4,
+      backgroundColor: tokens.accent,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    notificationText: {
+      color: readableColor(tokens.onAccent, tokens.accent),
+      fontSize: 11,
+      fontWeight: '800',
+    },
+    searchBar: {
+      minHeight: 48,
+      borderRadius: radius.md,
+      backgroundColor: tokens.soft,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+      paddingHorizontal: spacing.md,
+      borderWidth: 1,
+      borderColor: tokens.border,
+    },
+    searchInput: {
+      flex: 1,
+      minHeight: 48,
+      paddingVertical: spacing.sm,
+      color: tokens.ink,
+      fontSize: 14,
+    },
+  }), [tokens]);
+
   return (
-    <View style={[styles.container, { paddingTop: insets.top + 6 }]}> 
+    <View style={[styles.container, { paddingTop: insets.top + 4 }]}>
+      {id !== 'padrao' ? <Text style={styles.topbar}>{copy.topbar}</Text> : null}
       <View style={styles.topRow}>
         {canGoBack ? (
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Voltar"
-            hitSlop={8}
-            onPress={onBack}
+            onPress={onBack ?? (() => router.back())}
             style={styles.sideButton}
           >
-            <AppIcon name="arrow-back" size={30} color="#fff" />
+            <AppIcon name="arrow-back" size={28} color="#ffffff" />
           </Pressable>
         ) : null}
 
         <View style={styles.logoCircle}>
-          <Image source={require('../assets/brand-mark.png')} style={styles.logoMark} resizeMode="contain" />
+          <Image
+            source={require('@/assets/brand-mark.png')}
+            style={styles.logoMark}
+            resizeMode="contain"
+          />
         </View>
-
         <View style={styles.brandText}>
-          <Text style={styles.title} numberOfLines={1}>
+          <Text style={styles.title}>
             {config?.name ?? 'DISTRIBUIDORA LAURENCINI'}
           </Text>
-          <Text style={styles.tagline} numberOfLines={1}>
+          <Text style={styles.tagline}>
             {config?.tagline ?? 'Seu mix completo de atacado e distribuição.'}
           </Text>
         </View>
-
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={
-            unread > 0 ? `Notificações, ${unread} não lidas` : 'Notificações'
-          }
-          hitSlop={8}
+          accessibilityLabel={unread > 0 ? `Notificações, ${unread} não lidas` : 'Notificações'}
           onPress={() => router.navigate('/notificacoes')}
-          style={styles.notificationButton}
+          style={styles.sideButton}
         >
-          <AppIcon name="notifications" size={27} color="#fff" />
+          <AppIcon name="notifications" size={26} color="#ffffff" />
           {unread > 0 ? (
             <View style={styles.notificationBadge}>
               <Text style={styles.notificationText}>{unread > 99 ? '99+' : unread}</Text>
@@ -75,13 +154,12 @@ export function AppHeader({
           ) : null}
         </Pressable>
       </View>
-
       <View style={styles.searchBar}>
-        <AppIcon name="search" size={23} color={colors.primaryDark} />
+        <AppIcon name="search" size={22} color={tokens.ink} />
         <TextInput
           accessibilityLabel="Buscar produtos, marcas ou categorias"
           placeholder="Buscar produtos, marcas ou categorias..."
-          placeholderTextColor="#60708d"
+          placeholderTextColor={tokens.muted}
           value={searchQuery}
           onFocus={() => router.navigate('/(tabs)/catalogo')}
           onChangeText={setSearchQuery}
@@ -94,64 +172,3 @@ export function AppHeader({
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: '#034598',
-    paddingHorizontal: spacing.md,
-    paddingBottom: spacing.sm,
-    borderBottomWidth: 3,
-    borderBottomColor: colors.accent,
-  },
-  topRow: {
-    minHeight: 66,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  sideButton: { width: 36, height: 50, alignItems: 'center', justifyContent: 'center' },
-  logoCircle: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  logoMark: { width: 42, height: 42 },
-  brandText: { flex: 1, minWidth: 0 },
-  title: { color: '#fff', fontSize: 16, fontWeight: '800', letterSpacing: 0.2 },
-  tagline: { color: 'rgba(255,255,255,0.88)', fontSize: 10, marginTop: 2 },
-  notificationButton: { width: 38, height: 48, alignItems: 'center', justifyContent: 'center' },
-  notificationBadge: {
-    position: 'absolute',
-    top: 2,
-    right: 0,
-    minWidth: 20,
-    height: 20,
-    borderRadius: 10,
-    paddingHorizontal: 5,
-    backgroundColor: colors.accent,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  notificationText: { color: '#fff', fontSize: 11, fontWeight: '800' },
-  searchBar: {
-    height: 44,
-    borderRadius: radius.md,
-    backgroundColor: '#fff',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    paddingHorizontal: spacing.md,
-    borderWidth: 1,
-    borderColor: '#dce5f2',
-  },
-  searchInput: {
-    flex: 1,
-    height: '100%',
-    paddingVertical: 0,
-    color: colors.text,
-    fontSize: 13,
-  },
-});

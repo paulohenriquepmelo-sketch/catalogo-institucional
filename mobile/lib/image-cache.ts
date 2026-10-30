@@ -1,215 +1,346 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { File } from 'expo-file-system';
 import * as FileSystem from 'expo-file-system/legacy';
 import { isOnline, isUnmetered, onNetworkChange } from '@/lib/network';
 
-/**
- * Armazenamento PERMANENTE de imagens no aparelho.
- *
- * As imagens são gravadas como arquivos na pasta do app e um "manifesto"
- * guarda a relação URL → arquivo local, para o catálogo continuar visível
- * sem internet.
- *
- * Desempenho: imagens que entram na janela visível são enfileiradas primeiro,
- * com no máximo dois downloads simultâneos. No Wi-Fi, o restante do catálogo
- * é baixado em segundo plano (fila "completa"), para tudo aparecer offline.
- * O card atual não redesenha ao terminar de salvar; o arquivo local passa a
- * ser usado na próxima montagem.
- */
-
 const MANIFEST_KEY = '@catalogo/images-manifest';
 const IMAGE_DIR = `${FileSystem.documentDirectory ?? ''}catalogo-imagens/`;
+const IMAGE_DOWNLOAD_CONCURRENCY = 2;
+const MAX_QUEUED_IMAGE_DOWNLOADS = 24;
 
 let manifest: Record<string, string> = {};
 let manifestLoadPromise: Promise<void> | null = null;
 let manifestDirty = false;
-
 let manifestSaveTimer: ReturnType<typeof setTimeout> | null = null;
+let savePromise: Promise<void> = Promise.resolve();
 
-// Uma fila única impede que dezenas de cards iniciem downloads ao mesmo
-// tempo quando entram na janela da FlatList.
-const IMAGE_DOWNLOAD_CONCURRENCY = 2;
-const MAX_QUEUED_IMAGE_DOWNLOADS = 24;
+const priorityQueue: string[] = [];
 const downloadQueue: string[] = [];
+let bulkQueue: string[] = [];
 const queuedUrls = new Set<string>();
+const downloadingUrls = new Set<string>();
+const protectedUrls = new Set<string>();
+const waiters = new Map<string, Set<(uri: string | undefined) => void>>();
 let activeDownloads = 0;
 
-// Fila do catálogo inteiro, usada só em Wi-Fi e sempre depois da fila acima
-// (o que está na tela tem prioridade). São ~2.400 fotos, ~120 MB no total.
-let bulkQueue: string[] = [];
-
-// Nome de arquivo estável e curto derivado da URL (FNV-1a).
-function fileNameFor(url: string) {
+function fileNameFor(url: string): string {
   let hash = 0x811c9dc5;
-  for (let i = 0; i < url.length; i += 1) {
-    hash ^= url.charCodeAt(i);
+  for (let index = 0; index < url.length; index += 1) {
+    hash ^= url.charCodeAt(index);
     hash = Math.imul(hash, 0x01000193) >>> 0;
   }
   const match = /\.(jpg|jpeg|png|webp|gif|avif|bmp)(\?|#|$)/i.exec(url);
-  const ext = match ? match[1].toLowerCase() : 'img';
-  return `${hash.toString(16)}-${url.length.toString(16)}.${ext}`;
+  const extension = match ? match[1].toLowerCase() : 'img';
+  return `${hash.toString(16)}-${url.length.toString(16)}.${extension}`;
 }
 
-async function ensureDir() {
+async function ensureDir(): Promise<void> {
   try {
     const info = await FileSystem.getInfoAsync(IMAGE_DIR);
     if (!info.exists) {
       await FileSystem.makeDirectoryAsync(IMAGE_DIR, { intermediates: true });
     }
   } catch {
-    // Sem permissão/espaço: seguimos usando as URLs remotas.
+    // As URLs remotas continuam disponíveis quando o disco falha.
   }
 }
 
 export async function loadImageManifest(): Promise<void> {
   if (manifestLoadPromise) return manifestLoadPromise;
+
   manifestLoadPromise = (async () => {
     try {
       const raw = await AsyncStorage.getItem(MANIFEST_KEY);
-      const parsed = raw ? (JSON.parse(raw) as Record<string, string>) : {};
-      manifest = parsed && typeof parsed === 'object' ? parsed : {};
+      const parsed: unknown = raw ? JSON.parse(raw) : {};
+      const next: Record<string, string> = {};
+      if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
+        for (const [url, file] of Object.entries(parsed)) {
+          if (
+            typeof file === 'string' &&
+            /^[a-z0-9.-]+$/i.test(file)
+          ) {
+            next[url] = file;
+          }
+        }
+      }
+      manifest = next;
     } catch {
       manifest = {};
     }
     await ensureDir();
   })();
+
   return manifestLoadPromise;
 }
 
-async function saveManifest() {
-  if (!manifestDirty) return;
-  manifestDirty = false;
-  try {
-    await AsyncStorage.setItem(MANIFEST_KEY, JSON.stringify(manifest));
-  } catch {
-    // Manifesto é otimização: sem ele as imagens são rebaixadas depois.
-  }
+function saveManifest(): Promise<void> {
+  savePromise = savePromise.then(async () => {
+    if (!manifestDirty) return;
+    manifestDirty = false;
+    try {
+      await AsyncStorage.setItem(MANIFEST_KEY, JSON.stringify(manifest));
+    } catch {
+      manifestDirty = true;
+    }
+  });
+  return savePromise;
 }
 
-function scheduleManifestSave() {
+function scheduleManifestSave(): void {
   if (manifestSaveTimer) return;
-  // 3 s: durante o download completo, o manifesto não é regravado a cada foto.
   manifestSaveTimer = setTimeout(() => {
     manifestSaveTimer = null;
     void saveManifest();
   }, 3_000);
 }
 
-function nextDownload(): string | undefined {
-  if (downloadQueue.length) return downloadQueue.shift();
-  if (!isUnmetered()) return undefined;
-  while (bulkQueue.length) {
-    const url = bulkQueue.shift()!;
-    if (!manifest[url] && !queuedUrls.has(url)) {
-      queuedUrls.add(url);
-      return url;
+/** Confere a existência real; um manifesto antigo não prova que o arquivo existe. */
+export function localUriFor(url?: string): string | undefined {
+  if (!url) return undefined;
+  const file = manifest[url];
+  if (!file) return undefined;
+
+  const uri = `${IMAGE_DIR}${file}`;
+  try {
+    if (new File(uri).exists) return uri;
+  } catch {
+    // Arquivo removido ou inacessível: permite um novo download.
+  }
+
+  delete manifest[url];
+  manifestDirty = true;
+  scheduleManifestSave();
+  return undefined;
+}
+
+function finishWaiters(url: string, uri: string | undefined): void {
+  const callbacks = waiters.get(url);
+  waiters.delete(url);
+  for (const callback of callbacks ?? []) callback(uri);
+}
+
+function takeQueued(queue: string[]): string | undefined {
+  while (queue.length > 0) {
+    const url = queue.shift();
+    if (!url || downloadingUrls.has(url)) continue;
+    const local = localUriFor(url);
+    if (local) {
+      queuedUrls.delete(url);
+      finishWaiters(url, local);
+      continue;
     }
+    return url;
   }
   return undefined;
 }
 
-function pumpDownloadQueue() {
+function nextDownload(): string | undefined {
+  const priority = takeQueued(priorityQueue);
+  if (priority) return priority;
+
+  const ordinary = takeQueued(downloadQueue);
+  if (ordinary) return ordinary;
+
+  if (!isUnmetered()) return undefined;
+  while (bulkQueue.length > 0) {
+    const url = bulkQueue.shift();
+    if (!url || queuedUrls.has(url) || localUriFor(url)) continue;
+    queuedUrls.add(url);
+    return url;
+  }
+  return undefined;
+}
+
+function pumpDownloadQueue(): void {
   if (!isOnline()) return;
+
   while (activeDownloads < IMAGE_DOWNLOAD_CONCURRENCY) {
     const url = nextDownload();
     if (!url) return;
+
     activeDownloads += 1;
+    downloadingUrls.add(url);
 
     void (async () => {
       const fileName = fileNameFor(url);
+      const destination = `${IMAGE_DIR}${fileName}`;
+      const temporary = `${destination}.download`;
+      let saved: string | undefined;
+
       try {
-        const result = await FileSystem.downloadAsync(url, `${IMAGE_DIR}${fileName}`);
+        const result = await FileSystem.downloadAsync(url, temporary);
         if (result.status !== 200) return;
+
+        await FileSystem.deleteAsync(destination, { idempotent: true });
+        await FileSystem.moveAsync({ from: temporary, to: destination });
         manifest[url] = fileName;
         manifestDirty = true;
-        scheduleManifestSave();
+        saved = localUriFor(url);
+
+        // Artes precisam persistir antes de liberar a abertura offline futura.
+        if (protectedUrls.has(url)) await saveManifest();
+        else scheduleManifestSave();
       } catch {
-        // Sem rede ou espaço: a imagem remota continua sendo usada.
+        // Sem rede ou espaço, o consumidor pode continuar com a URL remota.
       } finally {
+        try {
+          await FileSystem.deleteAsync(temporary, { idempotent: true });
+        } catch {
+          // Um temporário remanescente não impede a fila.
+        }
         activeDownloads -= 1;
+        downloadingUrls.delete(url);
         queuedUrls.delete(url);
+        finishWaiters(url, saved);
         pumpDownloadQueue();
       }
     })();
   }
 }
 
-// Retoma os downloads quando a internet (ou o Wi-Fi) volta.
-onNetworkChange(pumpDownloadQueue);
+onNetworkChange(() => {
+  if (!isOnline()) {
+    // Não deixa consumidores aguardando uma fila pausada indefinidamente.
+    for (const url of waiters.keys()) {
+      if (!downloadingUrls.has(url)) finishWaiters(url, undefined);
+    }
+    return;
+  }
+  pumpDownloadQueue();
+});
 
-/**
- * Agenda o download de todas as imagens do catálogo que ainda não estão no
- * aparelho. Só baixa em Wi-Fi; no 4G/5G a lista fica guardada e o download
- * começa sozinho quando o Wi-Fi voltar.
- */
-export function prefetchAllImages(urls: (string | undefined)[]) {
-  void loadImageManifest().then(() => {
-    bulkQueue = Array.from(
-      new Set(urls.filter((url): url is string => Boolean(url && /^https?:/i.test(url)))),
-    ).filter((url) => !manifest[url]);
+function enqueue(url: string, priority: boolean): boolean {
+  if (queuedUrls.has(url)) {
+    if (priority && !downloadingUrls.has(url) && !priorityQueue.includes(url)) {
+      const index = downloadQueue.indexOf(url);
+      if (index >= 0) downloadQueue.splice(index, 1);
+      priorityQueue.push(url);
+    }
+    return true;
+  }
+
+  if (!priority && downloadQueue.length >= MAX_QUEUED_IMAGE_DOWNLOADS) return false;
+  queuedUrls.add(url);
+  (priority ? priorityQueue : downloadQueue).push(url);
+  return true;
+}
+
+/** Downloads prioritários podem usar rede móvel, assim como imagens visíveis. */
+export async function ensureCachedImage(
+  url: string,
+  priority = false,
+): Promise<string | undefined> {
+  await loadImageManifest();
+  const local = localUriFor(url);
+  if (local) return local;
+  if (!/^https?:/i.test(url)) return url || undefined;
+  if (!isOnline()) return undefined;
+
+  return new Promise((resolve) => {
+    if (!enqueue(url, priority)) {
+      resolve(undefined);
+      return;
+    }
+    let callbacks = waiters.get(url);
+    if (!callbacks) {
+      callbacks = new Set();
+      waiters.set(url, callbacks);
+    }
+    callbacks.add(resolve);
     pumpDownloadQueue();
   });
 }
 
-function cacheImageOnDemand(url: string) {
-  if (!/^https?:/i.test(url) || !isOnline()) return;
+/** Proteção atual, consultada novamente a cada remoção. */
+export function protectThemeImages(urls: readonly string[]): void {
+  protectedUrls.clear();
+  for (const url of urls) {
+    if (url) protectedUrls.add(url);
+  }
+}
+
+/** Hero, fundo e painel precedem os extras e a fila comum do catálogo. */
+export async function prefetchThemeImages(
+  primary: readonly string[],
+  extras: readonly string[],
+): Promise<void> {
+  await Promise.all(primary.map((url) => ensureCachedImage(url, true)));
+  // Ignora extras de um tema que deixou de estar ativo durante o download.
+  await Promise.all(
+    extras
+      .filter((url) => protectedUrls.has(url))
+      .map((url) => ensureCachedImage(url, true)),
+  );
+}
+
+export function prefetchAllImages(urls: (string | undefined)[]): void {
   void loadImageManifest().then(() => {
-    if (manifest[url] || queuedUrls.has(url)) return;
-    if (downloadQueue.length >= MAX_QUEUED_IMAGE_DOWNLOADS) return;
-    queuedUrls.add(url);
-    downloadQueue.push(url);
+    bulkQueue = Array.from(new Set(
+      urls.filter((url): url is string => Boolean(url && /^https?:/i.test(url))),
+    )).filter((url) => !localUriFor(url));
     pumpDownloadQueue();
   });
 }
 
-/** Caminho local da imagem, se ela já estiver salva no aparelho. */
-export function localUriFor(url?: string): string | undefined {
-  if (!url) return undefined;
-  const file = manifest[url];
-  return file ? `${IMAGE_DIR}${file}` : undefined;
-}
-
-/**
- * Devolve o caminho local quando a imagem já está salva; senão a URL remota.
- * Sem internet e sem arquivo salvo, devolve `undefined` em vez de tentar a
- * URL remota (que só falharia e redesenharia a tela à toa).
- * O salvamento ocorre em segundo plano sem redesenhar o card atual.
- */
 export function useLocalImageUri(url?: string): string | undefined {
+  const [saved, setSaved] = useState<{ url: string; uri: string } | null>(null);
+
   useEffect(() => {
-    if (url) cacheImageOnDemand(url);
+    let cancelled = false;
+    if (url) {
+      void ensureCachedImage(url).then((uri) => {
+        if (!cancelled && uri) setSaved({ url, uri });
+      });
+    }
+    return () => {
+      cancelled = true;
+    };
   }, [url]);
 
   if (!url) return undefined;
-  // A conexão é lida na hora de desenhar, sem "escutar" mudanças: se cada
-  // card reagisse à troca de conexão, centenas redesenhariam juntos e as
-  // fotos já na tela sumiriam/voltariam. Uma foto que já apareceu continua.
-  return localUriFor(url) ?? (isOnline() || !/^https?:/i.test(url) ? url : undefined);
-}
 
-/** Apaga arquivos de imagens que não fazem mais parte do catálogo. */
-export async function pruneImages(validUrls: (string | undefined)[]): Promise<void> {
-  await loadImageManifest();
-  const valid = new Set(validUrls.filter(Boolean) as string[]);
-  let changed = false;
-
-  for (const url of Object.keys(manifest)) {
-    if (valid.has(url)) continue;
-    const file = manifest[url];
-    try {
-      await FileSystem.deleteAsync(`${IMAGE_DIR}${file}`, { idempotent: true });
-    } catch {
-      // Ignora falha de remoção — no pior caso ocupa espaço.
-    }
-    delete manifest[url];
-    manifestDirty = true;
-    changed = true;
+  // Confere o arquivo inclusive quando um download acabou de provocar o render.
+  if (saved?.url === url) {
+    const local = localUriFor(url);
+    if (local) return local;
   }
 
-  if (changed) await saveManifest();
+  return localUriFor(url) ??
+    (isOnline() || !/^https?:/i.test(url) ? url : undefined);
 }
 
-/** Quantas imagens já estão salvas no aparelho. */
+export async function pruneImages(
+  validUrls: (string | undefined)[],
+): Promise<void> {
+  await loadImageManifest();
+  const valid = new Set(
+    validUrls.filter((url): url is string => typeof url === 'string' && url.length > 0),
+  );
+
+  for (const url of Object.keys(manifest)) {
+    if (
+      valid.has(url) ||
+      protectedUrls.has(url) ||
+      queuedUrls.has(url) ||
+      downloadingUrls.has(url)
+    ) continue;
+
+    const file = manifest[url];
+    if (!file) continue;
+
+    try {
+      await FileSystem.deleteAsync(`${IMAGE_DIR}${file}`, { idempotent: true });
+      delete manifest[url];
+      manifestDirty = true;
+    } catch {
+      // Mantém a entrada quando a remoção não foi concluída.
+    }
+  }
+
+  await saveManifest();
+}
+
 export function savedImageCount(): number {
-  return Object.keys(manifest).length;
+  return Object.keys(manifest).filter((url) => localUriFor(url) !== undefined).length;
 }
