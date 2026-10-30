@@ -74,6 +74,8 @@ const themeCopy = {
   'ano-novo': {
     topbar: 'Ano Novo, mais oportunidades para o seu negócio!',
     offers: 'Seleção de Ano Novo',
+    // Ano desenhado sobre a arte do banner. Trocar aqui a cada campanha.
+    year: '2026',
   },
   'dia-das-maes': {
     topbar: 'Dia das Mães: carinho em cada escolha',
@@ -111,11 +113,15 @@ function activeSeasonalTheme(config?: CatalogConfig) {
   return { campaign, copy: themeCopy[campaign.theme] };
 }
 
-/** Divide o título do banner: a segunda parte sai na cor de destaque do tema.
- * Quebra de linha ou " | " escolhem o ponto; sem eles, o primeiro ". " ou ", ".
- * Sem separador, o título fica inteiro. */
-export function splitThemeTitle(title: string): [string, string?] {
-  for (const sep of [/\r?\n/, / \| /, /\. /, /, /]) {
+/** Divide o título do banner em [antes, destaque, depois]: o destaque sai na
+ * cor do tema. Com " | ", o destaque vai do primeiro " | " ao segundo (ou ao
+ * fim). Sem ele, uma quebra de linha, o primeiro ". " ou ", " separam; sem
+ * separador, o título fica inteiro. */
+export function splitThemeTitle(title: string): [string, string?, string?] {
+  const bars = title.split(' | ').map((part) => part.trim());
+  if (bars.length > 1 && bars[0] && bars[1])
+    return [bars[0], bars[1], bars.slice(2).join(' ') || undefined];
+  for (const sep of [/\r?\n/, /\. /, /, /]) {
     const m = sep.exec(title);
     if (!m) continue;
     const keep = m[0].startsWith('.') || m[0].startsWith(',') ? m[0][0] : '';
@@ -521,11 +527,13 @@ export function HomeHero({ config }: { config: CatalogConfig }) {
     ? campaignSlides(config.campaign).find((s) => s.image)?.image
     : '';
   // Tema de data ativo: a arte do tema cobre o banner e os textos vêm do editor.
-  const theme = activeSeasonalTheme(config)?.campaign;
+  const seasonal = activeSeasonalTheme(config);
+  const theme = seasonal?.campaign;
+  const year = seasonal && 'year' in seasonal.copy ? seasonal.copy.year : '';
   const eyebrow = theme?.eyebrow.trim();
   const title = theme?.title.trim();
   const description = theme?.description.trim();
-  const [titleFirst, titleSecond] = splitThemeTitle(title || '');
+  const [titleFirst, titleSecond, titleRest] = splitThemeTitle(title || '');
   // A animação do tema não para sozinha: o botão deixa pausar.
   const [paused, setPaused] = useState(false);
   return (
@@ -541,6 +549,7 @@ export function HomeHero({ config }: { config: CatalogConfig }) {
               <span className="td-particle" key={i} />
             ))}
             <span className="td-ornament" />
+            {year && <span className="td-hero-year">{year}</span>}
           </span>
         )}
       </div>
@@ -559,6 +568,7 @@ export function HomeHero({ config }: { config: CatalogConfig }) {
                   <span className="v2-hero-title-accent">{titleSecond}</span>
                 </>
               )}
+              {titleRest && <> {titleRest}</>}
             </h2>
           ) : (
             <h2 id="v2-hero-title">

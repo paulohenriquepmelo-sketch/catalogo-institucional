@@ -1,0 +1,892 @@
+/* app/themes/ano-novo.css
+ * Carregar depois de theme-v4.css.
+ * Decoração estática; controles e carrosséis mantêm o comportamento atual.
+ */
+
+.site-v2.v2-theme.theme-ano-novo {
+  --t-dark: #06264c;
+  --t-rgb: 6, 38, 76;
+  --t-footer: #031b37;
+  --t-accent: #c99222;
+  --t-on-accent: #031b37;
+  --t-link: #785414;
+  --t-title-accent: #f7d273;
+  --t-support: #f7d273;
+  --t-paper: #ffffff;
+  --t-soft: #faf8f1;
+  --t-tint: #eef3f8;
+  --t-border: #e3e8ee;
+  --t-ink: #06264c;
+  --t-muted: #536071;
+
+  /*
+   * Fonte visual única do ano da campanha.
+   * Substituir esta arte pela versão 2026 descrita em C.
+   * O CSS não gera ano pelo relógio.
+   */
+  --t-hero: url("/themes/ano-novo.webp");
+  --t-panel: url("/themes/ano-novo-painel.webp");
+
+  --an-offers-art: var(--t-panel);
+  --an-contact-art: var(--t-panel);
+
+  /* Habilitar somente quando os arquivos estiverem disponíveis:
+  --an-offers-art: url("/themes/ano-novo-ofertas.webp");
+  --an-contact-art: url("/themes/ano-novo-fogos.webp");
+  */
+
+  --v2-radius: 8px;
+
+  background: #ffffff;
+  color: var(--t-ink);
+}
+
+/* Dimensionamento previsível sem alterar larguras dos slides. */
+.site-v2.v2-theme.theme-ano-novo *,
+.site-v2.v2-theme.theme-ano-novo *::before,
+.site-v2.v2-theme.theme-ano-novo *::after {
+  box-sizing: border-box;
+}
+
+.site-v2.v2-theme.theme-ano-novo :is(
+  .v2-header-inner,
+  .v2-search,
+  .v2-benefit > span,
+  .v2-segments-grid,
+  .v2-contact-main,
+  .v2-contact-list,
+  .v2-footer-cta
+) {
+  min-width: 0;
+}
+
+.site-v2.v2-theme.theme-ano-novo :is(
+  .v2-button,
+  .v2-topbar-rca
+) {
+  max-width: 100%;
+  white-space: normal;
+}
+
+.site-v2.v2-theme.theme-ano-novo :is(
+  .v2-button-red,
+  .v2-topbar .v2-topbar-rca
+) {
+  background: linear-gradient(110deg, #f7d273, #d8a637 60%, #c99222);
+  color: #031b37;
+  border: 1px solid #c99222;
+  box-shadow: 0 3px 10px rgb(6 38 76 / 12%);
+}
+
+.site-v2.v2-theme.theme-ano-novo :is(
+  .v2-button-red,
+  .v2-topbar .v2-topbar-rca
+):hover {
+  background: #f7d273;
+  color: #031b37;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-button-outline {
+  background: #ffffff;
+  color: #06264c;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-eyebrow {
+  color: #785414;
+}
+
+/* Barra superior e cabeçalho. */
+.site-v2.v2-theme.theme-ano-novo .v2-topbar {
+  background: linear-gradient(90deg, #031b37, #06264c);
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-topbar-inner {
+  min-height: 34px;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-topbar-message {
+  padding-block: 6px;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-topbar .v2-topbar-rca {
+  min-height: 34px;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-header {
+  background: #ffffff;
+  border-bottom: 2px solid #c99222;
+  box-shadow: 0 2px 10px rgb(6 38 76 / 6%);
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-header-inner {
+  min-height: 76px;
+  gap: clamp(12px, 1.5vw, 28px);
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-logo,
+.site-v2.v2-theme.theme-ano-novo .v2-footer-logo {
+  background: #ffffff;
+}
+
+/* Preserva o dimensionamento original da logo do rodapé. */
+.site-v2.v2-theme.theme-ano-novo .v2-footer-logo {
+  box-sizing: content-box;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-nav {
+  gap: clamp(12px, 1.5vw, 26px);
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-nav a {
+  color: #06264c;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-nav a.is-active,
+.site-v2.v2-theme.theme-ano-novo .v2-nav a:hover {
+  color: #785414;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-nav a::after {
+  background: #c99222;
+  pointer-events: none;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-search {
+  min-width: 0;
+  border-color: #dce3eb;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-search input::placeholder {
+  color: #536071;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-search-icon {
+  color: #06264c;
+}
+
+/*
+ * Hero:
+ * arte preservada inteira no quadro à direita;
+ * diagonal independente, sem invadir a área reservada ao texto.
+ */
+.site-v2.v2-theme.theme-ano-novo .v2-hero {
+  display: block;
+  background: #031b37;
+  isolation: isolate;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-hero-media {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  overflow: hidden;
+  clip-path: none;
+  background-color: #031b37;
+  background-image: var(--t-hero);
+  background-repeat: no-repeat;
+  background-position: right center;
+  /* Larga o bastante para a arte começar atrás da diagonal. */
+  background-size: max(62%, 150vh) auto;
+  pointer-events: none;
+}
+
+/* Lado azul: 41% no topo, 31% na base. */
+.site-v2.v2-theme.theme-ano-novo .v2-hero-media::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, #06264c, #031b37);
+  clip-path: polygon(0 0, 50% 0, 42% 100%, 0 100%);
+  pointer-events: none;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-hero::after {
+  content: "";
+  display: block;
+  position: absolute;
+  inset: 0;
+  width: auto;
+  z-index: -1;
+  background: linear-gradient(180deg, #ffe6a0, #c99222 65%, #f7d273);
+  clip-path: polygon(49.4% 0, 50% 0, 42% 100%, 41.4% 100%);
+  pointer-events: none;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-hero-inner {
+  min-height: clamp(320px, 24vw, 440px);
+  padding-block: 24px;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-hero-copy {
+  width: 36%;
+  max-width: 560px;
+  gap: 12px;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-hero h2 {
+  color: #ffffff;
+  font-size: clamp(30px, 3.15vw, 52px);
+  line-height: 1.02;
+  text-wrap: initial;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-hero-title-accent {
+  color: #f7d273;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-hero p {
+  max-width: 86%;
+  color: #ffffff;
+  font-size: clamp(14px, 1.15vw, 17px);
+  line-height: 1.45;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-hero .v2-button {
+  min-height: 44px;
+  margin-top: 2px;
+  padding-inline: 22px;
+  font-size: 14px;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-hero-eyebrow {
+  color: #ffffff;
+  font-size: 12px;
+}
+
+/* Benefícios no fluxo, imediatamente abaixo do hero. */
+.site-v2.v2-theme.theme-ano-novo .v2-benefits {
+  position: relative;
+  margin-top: 0;
+  padding-block: 16px;
+  background: #ffffff;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-benefits-grid {
+  gap: 14px;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-benefit {
+  min-height: 76px;
+  gap: 12px;
+  padding: 12px 16px;
+  border: 1px solid #e3e8ee;
+  border-radius: 7px;
+  box-shadow: 0 3px 12px rgb(6 38 76 / 6%);
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-benefit-icon {
+  width: 48px;
+  height: 48px;
+  background: #eef3f8;
+  color: #06264c;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-benefit-icon svg {
+  width: 25px;
+  height: 25px;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-benefit strong {
+  font-size: 14px;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-benefit small {
+  color: #536071;
+  font-size: 12.5px;
+}
+
+/* Segmentos: introdução à esquerda, quatro cartões à direita. */
+.site-v2.v2-theme.theme-ano-novo .v2-segments {
+  padding-block: 20px;
+  background: #faf8f1;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-segments-inner {
+  grid-template-columns: minmax(0, 26%) minmax(0, 1fr);
+  gap: 24px;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-segments-intro {
+  gap: 10px;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-segments-grid {
+  gap: 14px;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-segment-card {
+  border-radius: 7px;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-segment-media {
+  aspect-ratio: 2.2 / 1;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-segment-body {
+  gap: 3px;
+  padding: 10px 12px 12px;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-segment-badge {
+  width: 29px;
+  height: 29px;
+  margin-bottom: 3px;
+  background: #124d86;
+  color: #ffffff;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-segment-body strong {
+  font-size: 14px;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-segment-body small {
+  font-size: 12.5px;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-segment-more {
+  margin-top: 6px;
+  color: #785414;
+}
+
+/* Marcas: azul mais limpo, decoração concentrada nas extremidades. */
+.site-v2.v2-theme.theme-ano-novo .v2-brands-wrap {
+  padding-block: 20px;
+  background: #ffffff;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-brands-wrap:not(.v2-new-wrap) .v2-brands,
+.site-v2.v2-theme.theme-ano-novo .v2-new-wrap .v2-brands:not(.v2-offers) {
+  padding-block: 18px 14px;
+  border: 1px solid #244568;
+  border-radius: 10px;
+  background-color: #06264c;
+  background-image:
+    linear-gradient(
+      90deg,
+      rgb(3 27 55 / 40%),
+      rgb(6 38 76 / 96%) 18%,
+      rgb(6 38 76 / 96%) 76%,
+      rgb(3 27 55 / 30%)
+    ),
+    var(--t-panel);
+  background-size: cover;
+  background-position: center;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-brands-head {
+  margin-bottom: 14px;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-brands-head h2 {
+  margin-top: 4px;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-brands-head p {
+  margin-top: 5px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+/* Fond opaque pour garantir la lisibilité sur les décors. */
+.site-v2.v2-theme.theme-ano-novo .v2-brands-head > div {
+  border-radius: 4px;
+  background: #06264c;
+  box-shadow: 0 0 0 5px #06264c;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-link-light {
+  background: #06264c;
+  color: #ffffff;
+  border-bottom-color: #f7d273;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-brands .v2-eyebrow-light {
+  color: #f7d273;
+}
+
+/*
+ * Aucun changement aux logos, flèches, pistes ou dimensions des slides.
+ * Les six marques restent gérées par les règles desktop existantes.
+ */
+
+/* Catálogo: cartões mais compactos, sem reduzir a legibilidade. */
+.site-v2.v2-theme.theme-ano-novo .v2-featured {
+  padding-block: 16px 24px;
+  background: #ffffff;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-section-head {
+  margin-bottom: 14px;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-product-grid {
+  gap: 12px;
+}
+
+.site-v2.v2-theme.theme-ano-novo .product-card {
+  border-color: #e3e8ee;
+  border-radius: 7px;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgb(6 38 76 / 5%);
+}
+
+.site-v2.v2-theme.theme-ano-novo .product-card .product-image-wrap,
+.site-v2.v2-theme.theme-ano-novo .product-card:not(.without-photo) .product-image-wrap {
+  height: auto;
+  aspect-ratio: 1 / 0.67;
+  padding: 12px;
+  background: #ffffff;
+}
+
+.site-v2.v2-theme.theme-ano-novo .product-card .product-card-body {
+  gap: 3px;
+  padding: 8px 10px 12px;
+  background: #ffffff;
+}
+
+.site-v2.v2-theme.theme-ano-novo .product-card .product-brand {
+  color: #785414 !important;
+}
+
+.site-v2.v2-theme.theme-ano-novo .product-card .product-name {
+  color: #06264c !important;
+}
+
+.site-v2.v2-theme.theme-ano-novo .product-card .product-card-meta,
+.site-v2.v2-theme.theme-ano-novo .product-card .product-card-meta span {
+  color: #536071 !important;
+}
+
+.site-v2.v2-theme.theme-ano-novo .product-card .td-card-charm {
+  color: #c99222;
+  pointer-events: none;
+}
+
+/*
+ * Ofertas: fundo na seção inteira, mantendo o container do carrossel.
+ * Os dois níveis usam a mesma origem para não duplicar a decoração.
+ */
+.site-v2.v2-theme.theme-ano-novo #ofertas.v2-new-wrap {
+  padding-block: 18px 12px;
+  background-color: #bc861b;
+  background-image:
+    linear-gradient(
+      90deg,
+      rgb(94 56 5 / 15%),
+      rgb(247 210 115 / 48%) 35%,
+      rgb(247 210 115 / 30%) 65%,
+      rgb(94 56 5 / 10%)
+    ),
+    var(--an-offers-art);
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-new-wrap .v2-brands.v2-offers {
+  padding-block: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-offers .v2-brands-head > div {
+  padding: 6px 10px;
+  background: #06264c;
+  box-shadow: none;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-offers .v2-brands-head h2 {
+  color: #ffffff;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-offers .v2-eyebrow-light {
+  color: #f7d273;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-new-wrap .v2-offers .v2-new-badge {
+  background: #06264c;
+  color: #ffffff;
+  letter-spacing: 0;
+}
+
+/* Conserva a reserva de 48px: selos reais podem quebrar em duas linhas. */
+.site-v2.v2-theme.theme-ano-novo .v2-new-card .product-card .product-image-wrap {
+  margin-top: 48px;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-offers .v2-panel-note {
+  width: fit-content;
+  max-width: 100%;
+  margin-top: 12px;
+  padding: 6px 10px;
+  border-radius: 4px;
+  background: #06264c;
+  color: #ffffff;
+  line-height: 1.45;
+}
+
+/* Contato: compacto, com decoração à direita. */
+.site-v2.v2-theme.theme-ano-novo .v2-contact-wrap {
+  padding-block: 12px;
+  background: #ffffff;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-contact {
+  min-height: 124px;
+  gap: 20px;
+  padding-block: 18px;
+  border: 1px solid #244568;
+  border-radius: 10px;
+  background-color: #06264c;
+  background-image:
+    linear-gradient(
+      90deg,
+      #06264c 0%,
+      #06264c 62%,
+      rgb(6 38 76 / 85%) 82%,
+      rgb(6 38 76 / 20%) 100%
+    ),
+    var(--an-contact-art);
+  background-position: center, right center;
+  background-size: cover, auto 100%;
+  background-repeat: no-repeat;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-contact-main {
+  gap: 16px;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-contact-main > div {
+  background: #06264c;
+  border-radius: 4px;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-contact-icon {
+  width: 62px;
+  height: 62px;
+  background: linear-gradient(135deg, #f7d273, #c99222);
+  color: #031b37;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-contact p {
+  margin-block: 5px 8px;
+  font-size: 13.5px;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-contact-list {
+  min-width: 0;
+  background: #06264c;
+  border-radius: 4px;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-contact-list strong {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+/* Rodapé: azul profundo, menor distância entre as faixas. */
+.site-v2.v2-theme.theme-ano-novo .v2-footer {
+  padding-top: 24px;
+  border-top: 2px solid #c99222;
+  border-bottom: 0;
+  background: #031b37;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-footer-grid {
+  gap: 22px;
+  padding-bottom: 20px;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-footer-col {
+  gap: 8px;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-footer-cta {
+  gap: 10px;
+  padding: 14px;
+  background: #0b2d50;
+  border-color: #35516f;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-footer-notice {
+  padding-top: 12px;
+  border-top: 0;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-footer-bottom {
+  padding-block: 12px;
+}
+
+.site-v2.v2-theme.theme-ano-novo :is(
+  .v2-footer-brand p,
+  .v2-footer-col a,
+  .v2-footer-link,
+  .v2-footer-cta small,
+  .v2-footer-bottom,
+  .v2-footer-notice,
+  .v2-footer-notice strong,
+  .v2-footer-privacy
+) {
+  color: #e5edf7;
+  opacity: 1;
+}
+
+/* Desktop: seis produtos, duas linhas quando houver doze itens reais. */
+@media (min-width: 1181px) {
+  .site-v2.v2-theme.theme-ano-novo .v2-product-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+
+  .site-v2.v2-theme.theme-ano-novo .v2-footer-grid {
+    grid-template-columns:
+      minmax(0, 1.2fr)
+      minmax(0, 0.8fr)
+      minmax(0, 1.4fr)
+      minmax(0, 0.7fr)
+      minmax(0, 1.1fr);
+  }
+
+  .site-v2.v2-theme.theme-ano-novo .v2-footer-logo {
+    width: min(190px, calc(100% - 28px));
+  }
+}
+
+@media (min-width: 1361px) {
+  .site-v2.v2-theme.theme-ano-novo .v2-contact {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.55fr) 5%;
+  }
+}
+
+/* Tablet: mantém mensagem protegida e arte inteira à direita. */
+@media (min-width: 761px) and (max-width: 1180px) {
+  .site-v2.v2-theme.theme-ano-novo .v2-hero-inner {
+    min-height: 340px;
+    padding-block: 28px;
+  }
+
+  .site-v2.v2-theme.theme-ano-novo .v2-hero-copy {
+    width: 43%;
+    max-width: none;
+  }
+
+  .site-v2.v2-theme.theme-ano-novo .v2-hero h2 {
+    font-size: clamp(28px, 3.1vw, 36px);
+  }
+
+  .site-v2.v2-theme.theme-ano-novo .v2-hero-media {
+    background-size: 64% auto;
+  }
+
+  .site-v2.v2-theme.theme-ano-novo .v2-hero-media::before {
+    clip-path: polygon(0 0, 48% 0, 40% 100%, 0 100%);
+  }
+
+  .site-v2.v2-theme.theme-ano-novo .v2-hero::after {
+    clip-path: polygon(47.4% 0, 48% 0, 40% 100%, 39.4% 100%);
+  }
+
+  .site-v2.v2-theme.theme-ano-novo .v2-hero p {
+    max-width: 94%;
+  }
+}
+
+@media (max-width: 1024px) {
+  .site-v2.v2-theme.theme-ano-novo .v2-segments-inner {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .site-v2.v2-theme.theme-ano-novo .v2-nav {
+    gap: 0;
+  }
+
+  .site-v2.v2-theme.theme-ano-novo .v2-nav a.is-active {
+    border-bottom-color: #c99222;
+  }
+}
+
+/*
+ * Mobile:
+ * texto no fluxo e quadro 3:2 separado abaixo.
+ * Não depende da altura do título e não corta o ano da arte.
+ */
+@media (max-width: 760px) {
+  .site-v2.v2-theme.theme-ano-novo .v2-hero {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .site-v2.v2-theme.theme-ano-novo .v2-hero-inner {
+    order: 0;
+    min-height: 0;
+    padding-block: 28px 22px;
+  }
+
+  .site-v2.v2-theme.theme-ano-novo .v2-hero-copy {
+    width: 100%;
+    max-width: 560px;
+    gap: 14px;
+  }
+
+  .site-v2.v2-theme.theme-ano-novo .v2-hero h2 {
+    font-size: clamp(30px, 7vw, 40px);
+    line-height: 1.08;
+  }
+
+  .site-v2.v2-theme.theme-ano-novo .v2-hero p {
+    max-width: 100%;
+    font-size: 15px;
+  }
+
+  .site-v2.v2-theme.theme-ano-novo .v2-hero-media {
+    position: relative;
+    inset: auto;
+    order: 1;
+    z-index: 0;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 3 / 2;
+    background-size: contain;
+    background-position: center;
+    border-top: 3px solid #f7d273;
+  }
+
+  .site-v2.v2-theme.theme-ano-novo .v2-hero-media::before,
+  .site-v2.v2-theme.theme-ano-novo .v2-hero::after {
+    display: none;
+  }
+
+  .site-v2.v2-theme.theme-ano-novo .v2-header-inner {
+    min-height: 72px;
+  }
+
+  .site-v2.v2-theme.theme-ano-novo .v2-topbar .v2-topbar-rca {
+    min-height: 44px;
+  }
+
+  .site-v2.v2-theme.theme-ano-novo .v2-benefits {
+    padding-block: 14px;
+  }
+
+  .site-v2.v2-theme.theme-ano-novo .v2-benefits-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .site-v2.v2-theme.theme-ano-novo .v2-benefit {
+    min-height: 0;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .site-v2.v2-theme.theme-ano-novo .v2-segments {
+    padding-block: 20px;
+  }
+
+  .site-v2.v2-theme.theme-ano-novo .v2-segments-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .site-v2.v2-theme.theme-ano-novo .v2-brands-wrap {
+    padding-block: 16px;
+  }
+
+  .site-v2.v2-theme.theme-ano-novo .v2-product-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .site-v2.v2-theme.theme-ano-novo .v2-section-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .site-v2.v2-theme.theme-ano-novo .v2-contact {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 20px 18px;
+  }
+
+  .site-v2.v2-theme.theme-ano-novo .v2-contact-main {
+    align-items: flex-start;
+  }
+
+  .site-v2.v2-theme.theme-ano-novo .v2-contact-list {
+    flex-wrap: wrap;
+  }
+
+  .site-v2.v2-theme.theme-ano-novo .v2-contact-list a,
+  .site-v2.v2-theme.theme-ano-novo .v2-contact-list strong {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .site-v2.v2-theme.theme-ano-novo .v2-footer-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .site-v2.v2-theme.theme-ano-novo .v2-footer-logo {
+    max-width: calc(100% - 28px);
+  }
+}
+
+@media (max-width: 380px) {
+  .site-v2.v2-theme.theme-ano-novo .v2-footer-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Nenhuma animação nova; pausa cobre também os pseudo-elementos do hero. */
+.site-v2.v2-theme.theme-ano-novo .v2-hero.is-paused::before,
+.site-v2.v2-theme.theme-ano-novo .v2-hero.is-paused::after {
+  animation-play-state: paused !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-v2.v2-theme.theme-ano-novo *,
+  .site-v2.v2-theme.theme-ano-novo *::before,
+  .site-v2.v2-theme.theme-ano-novo *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Ano em números dourados sobre a arte (texto de themeCopy, fácil de trocar). */
+.site-v2.v2-theme.theme-ano-novo .td-hero-decor {
+  display: block;
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.site-v2.v2-theme.theme-ano-novo .td-hero-year {
+  position: absolute;
+  right: 6%;
+  top: 50%;
+  transform: translateY(-38%);
+  font: 900 clamp(84px, 13vw, 200px) / 1 var(--v2-display, Montserrat, sans-serif);
+  letter-spacing: -0.02em;
+  background: linear-gradient(180deg, #fff4c9 0%, #f7d273 32%, #c99222 62%, #8a5d12 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 6px 0 #6b470c) drop-shadow(0 18px 24px rgba(0, 0, 0, 0.55));
+  pointer-events: none;
+  user-select: none;
+}
+
+@media (max-width: 760px) {
+  .site-v2.v2-theme.theme-ano-novo .td-hero-year {
+    top: auto;
+    bottom: 14vw;
+    right: 50%;
+    transform: translateX(50%);
+    font-size: 22vw;
+  }
+}

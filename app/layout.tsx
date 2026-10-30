@@ -11,6 +11,14 @@ import './marketing-polish.css';
 import './carousel-color-fix.css';
 import './site-v2.css';
 import './theme-v4.css';
+// Ajustes de cada tema de data, feitos a partir dos esboços do cliente.
+import './themes/natal.css';
+import './themes/ano-novo.css';
+import './themes/dia-das-maes.css';
+import './themes/aniversario.css';
+import './themes/carnaval.css';
+import './themes/dia-das-criancas.css';
+import './themes/black-friday.css';
 import './promo-popup.css';
 
 const dmSans = DM_Sans({ variable: '--font-dm-sans', subsets: ['latin'] });
