@@ -27,6 +27,7 @@ import './themes/carnaval.css';
 import './themes/dia-das-criancas.css';
 import './themes/black-friday.css';
 import './promo-popup.css';
+import './theme-popups.css';
 
 const dmSans = DM_Sans({ variable: '--font-dm-sans', subsets: ['latin'] });
 const manrope = Manrope({ variable: '--font-manrope', subsets: ['latin'] });

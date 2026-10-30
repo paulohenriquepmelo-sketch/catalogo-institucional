@@ -106,7 +106,7 @@ function isSeasonalThemeId(value: unknown): value is SeasonalThemeId {
 }
 
 /** Tema de data ativo (fora o Padrão) e os textos dele. */
-function activeSeasonalTheme(config?: CatalogConfig) {
+export function activeSeasonalTheme(config?: CatalogConfig) {
   const campaign = config?.campaign;
   if (!campaign?.enabled || campaign.mode !== 'theme' || !isSeasonalThemeId(campaign.theme))
     return undefined;

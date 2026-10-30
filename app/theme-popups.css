@@ -1,0 +1,328 @@
+/* Popups com o fundo do tema de data ativo (código do GPT-6 Astra).
+   Os popups abrem num portal, fora de .site-v2; por isso o tema chega
+   pelo atributo data-tema-sazonal do <html>, ligado em catalog-app.tsx.
+   Carregado por último, depois de promo-popup.css e dos temas. */
+
+html[data-tema-sazonal="natal"] {
+  --popup-arte: url("/themes/natal-painel.webp");
+  --popup-escura: #003a25;
+  --popup-destaque: #e60012;
+  --popup-apoio: #d9a441;
+  --popup-clara: #faf6ee;
+  --popup-cta-texto: #fff;
+}
+
+html[data-tema-sazonal="ano-novo"] {
+  --popup-arte: url("/themes/ano-novo-painel.webp");
+  --popup-escura: #06264c;
+  --popup-destaque: #c99222;
+  --popup-apoio: #f7d273;
+  --popup-clara: #faf8f1;
+  --popup-cta-texto: #111;
+}
+
+html[data-tema-sazonal="dia-das-maes"] {
+  --popup-arte: url("/themes/dia-das-maes-painel.webp");
+  --popup-escura: #741334;
+  --popup-destaque: #d90858;
+  --popup-apoio: #fce8ec;
+  --popup-clara: #fff3f6;
+  --popup-cta-texto: #fff;
+}
+
+html[data-tema-sazonal="aniversario"] {
+  --popup-arte: url("/themes/aniversario-painel.webp");
+  --popup-escura: #042650;
+  --popup-destaque: #c79528;
+  --popup-apoio: #c79528;
+  --popup-clara: #f0f7fc;
+  --popup-cta-texto: #111;
+}
+
+html[data-tema-sazonal="carnaval"] {
+  --popup-arte: url("/themes/carnaval-painel.webp");
+  --popup-escura: #300849;
+  --popup-destaque: #c90076;
+  --popup-apoio: #ffd044;
+  --popup-clara: #fff3fa;
+  --popup-cta-texto: #fff;
+}
+
+html[data-tema-sazonal="dia-das-criancas"] {
+  --popup-arte: url("/themes/dia-das-criancas-painel.webp");
+  --popup-escura: #06346b;
+  --popup-destaque: #c83b0d;
+  --popup-apoio: #ffd43b;
+  --popup-clara: #fff8e5;
+  --popup-cta-texto: #fff;
+}
+
+html[data-tema-sazonal="black-friday"] {
+  --popup-arte: url("/themes/black-friday-painel.webp");
+  --popup-escura: #030303;
+  --popup-destaque: #d90020;
+  --popup-apoio: #ff001a;
+  --popup-clara: #101010;
+  --popup-cta-texto: #fff;
+}
+
+/* A lista explícita mantém Padrão e valores desconhecidos intactos. */
+html:is(
+  [data-tema-sazonal="natal"],
+  [data-tema-sazonal="ano-novo"],
+  [data-tema-sazonal="dia-das-maes"],
+  [data-tema-sazonal="aniversario"],
+  [data-tema-sazonal="carnaval"],
+  [data-tema-sazonal="dia-das-criancas"],
+  [data-tema-sazonal="black-friday"]
+) {
+  & :is(
+    .promo-popup,
+    [data-slot="dialog-content"]:is(
+      .v2-rca-dialog,
+      .v2-all-segments,
+      .all-brands-dialog,
+      .brand-products-dialog,
+      .product-dialog
+    )
+  ):not(.logo-picker-dialog) {
+    --popup-texto: #172033;
+    --popup-titulo: var(--popup-escura);
+    --popup-veu: rgb(255 255 255 / 0.8);
+    --popup-base: #fff;
+
+    color: var(--popup-texto);
+
+    /* A especificidade vence bg-popover sem precisar de !important. */
+    background-color: var(--popup-base);
+    background-image:
+      linear-gradient(var(--popup-veu), var(--popup-veu)),
+      var(--popup-arte);
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+
+    border: 1px solid var(--popup-destaque);
+    box-shadow:
+      0 0 0 2px var(--popup-destaque),
+      0 30px 80px rgb(0 0 0 / 0.35);
+  }
+
+  & [data-slot="dialog-content"]:is(
+    .v2-rca-dialog,
+    .v2-all-segments,
+    .all-brands-dialog,
+    .brand-products-dialog,
+    .product-dialog
+  ):not(.logo-picker-dialog) {
+    & [data-slot="dialog-title"] {
+      color: var(--popup-titulo);
+    }
+
+    /* Campos mantêm uma superfície própria, inclusive no tema escuro. */
+    & :is(input, textarea, select) {
+      background-color: #fff;
+      color: #172033;
+      caret-color: #172033;
+      border-color: #64748b;
+      color-scheme: light;
+    }
+
+    & :is(input, textarea)::placeholder {
+      color: #526071;
+      opacity: 1;
+    }
+
+    & :is(input, textarea, select, button, a[href]):focus-visible {
+      outline: 3px solid var(--popup-titulo);
+      outline-offset: 3px;
+    }
+  }
+
+  /* O fundo pertence ao diálogo; cards e placas preservam seus estilos. */
+  & [data-slot="dialog-content"].product-dialog:not(.logo-picker-dialog)
+    .product-dialog-scroll {
+    background-color: transparent;
+  }
+
+  & .promo-popup {
+    --popup-veu: rgb(255 255 255 / 0.36);
+    --popup-base: var(--popup-clara);
+  }
+
+  /* Nenhuma camada é posicionada sobre o encarte. */
+  & .promo-popup .promo-popup-stage {
+    background: #fff;
+  }
+
+  & .promo-popup .promo-popup-stage img {
+    object-fit: contain;
+  }
+
+  & .promo-popup .promo-popup-footer {
+    padding: 8px;
+    border-radius: 12px;
+    background: rgb(255 255 255 / 0.96);
+    color: #172033;
+  }
+
+  /* Branco ou quase preto conforme a cor de destaque: contraste AA. */
+  & .promo-popup .promo-popup-cta {
+    background: var(--popup-destaque);
+    color: var(--popup-cta-texto);
+  }
+
+  & .promo-popup .promo-popup-cta:hover {
+    background: var(--popup-destaque);
+    color: var(--popup-cta-texto);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  & .promo-popup .promo-popup-dots button {
+    background: #fff;
+    box-shadow: 0 0 0 1px #526071;
+  }
+
+  /* O contorno mantém os pontos claros perceptíveis sobre o rodapé. */
+  & .promo-popup .promo-popup-dots button[aria-current="true"] {
+    background: var(--popup-apoio);
+    box-shadow: 0 0 0 2px var(--popup-escura);
+  }
+
+  & .promo-popup button:focus-visible,
+  & .promo-popup a[href]:focus-visible {
+    outline: 3px solid var(--popup-escura);
+    outline-offset: 3px;
+  }
+
+  & .promo-popup-backdrop {
+    background: color-mix(in srgb, var(--popup-escura) 65%, transparent);
+  }
+
+  /* Overlay irmão ou ancestral do conteúdo público no portal.
+     Não seleciona overlays exclusivos do editor. */
+  & [data-slot="dialog-overlay"]:is(
+    :has(
+      ~ [data-slot="dialog-content"]:is(
+        .v2-rca-dialog,
+        .v2-all-segments,
+        .all-brands-dialog,
+        .brand-products-dialog,
+        .product-dialog
+      ):not(.logo-picker-dialog)
+    ),
+    :has(
+      [data-slot="dialog-content"]:is(
+        .v2-rca-dialog,
+        .v2-all-segments,
+        .all-brands-dialog,
+        .brand-products-dialog,
+        .product-dialog
+      ):not(.logo-picker-dialog)
+    )
+  ) {
+    background: color-mix(in srgb, var(--popup-escura) 65%, transparent);
+  }
+
+  /* Desativa também as transições existentes do encarte. */
+  @media (prefers-reduced-motion: reduce) {
+    & .promo-popup,
+    & .promo-popup-backdrop,
+    & .promo-popup *,
+    & [data-slot="dialog-content"]:is(
+      .v2-rca-dialog,
+      .v2-all-segments,
+      .all-brands-dialog,
+      .brand-products-dialog,
+      .product-dialog
+    ):not(.logo-picker-dialog),
+    & [data-slot="dialog-content"]:is(
+      .v2-rca-dialog,
+      .v2-all-segments,
+      .all-brands-dialog,
+      .brand-products-dialog,
+      .product-dialog
+    ):not(.logo-picker-dialog) * {
+      animation: none;
+      transition: none;
+    }
+
+    & .promo-popup[data-starting-style],
+    & .promo-popup[data-ending-style] {
+      transform: translate(-50%, -50%);
+    }
+  }
+}
+
+/* Black Friday: diálogos de texto usam superfície escura. */
+html[data-tema-sazonal="black-friday"]
+  [data-slot="dialog-content"]:is(
+    .v2-rca-dialog,
+    .v2-all-segments
+  ):not(.logo-picker-dialog) {
+  --popup-texto: #f8fafc;
+  --popup-titulo: #fff;
+  --popup-veu: rgb(3 3 3 / 0.82);
+  --popup-base: #101010;
+
+  color-scheme: dark;
+
+  /* Textos acompanham a superfície do ancestral mais próximo. */
+  & :where(h1, h2, h3, h4, p, label, span, ul, ol, li) {
+    color: inherit;
+  }
+
+  & [data-slot="dialog-title"] {
+    color: var(--popup-titulo);
+  }
+
+  /* Botões e cards mantêm as cores próprias (ex.: WhatsApp verde). */
+  & :is(input, textarea, select, button, a[href]):focus-visible {
+    outline-color: #fff;
+  }
+}
+
+/* Os três diálogos com cards conservam o véu claro e o texto escuro. */
+html[data-tema-sazonal="black-friday"] .promo-popup {
+  --popup-veu: rgb(3 3 3 / 0.58);
+}
+
+/* marketing-polish.css e globals.css fixam o fundo destes três diálogos
+   com `background: #f8fafe !important`; só outro !important, com seletor
+   mais específico, deixa o tema aparecer. */
+html[data-tema-sazonal] [data-slot="dialog-content"]:is(
+  .all-brands-dialog,
+  .brand-products-dialog,
+  .product-dialog
+):not(.logo-picker-dialog) {
+  background-color: var(--popup-base, #fff) !important;
+  background-image:
+    linear-gradient(var(--popup-veu), var(--popup-veu)),
+    var(--popup-arte) !important;
+  background-position: center !important;
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
+}
+
+/* Detalhe do produto: a coluna de informações e os similares ficam
+   translúcidos para a arte do tema aparecer; a foto segue em fundo branco. */
+html[data-tema-sazonal] .product-dialog :is(.dialog-product-info, .similar-block) {
+  background: transparent !important;
+}
+
+/* Encartes: a arte do tema aparece em volta do encarte (o encarte segue
+   inteiro, sem nada por cima). */
+html[data-tema-sazonal] .promo-popup .promo-popup-stage {
+  background: transparent;
+}
+
+/* A regra geral (lista :is acima) tem especificidade maior que o ajuste
+   de véu do encarte; estes seletores empatam e, por virem depois, vencem. */
+html[data-tema-sazonal] .promo-popup:not(.logo-picker-dialog):not([data-x]) {
+  --popup-veu: rgb(255 255 255 / 0.3);
+}
+
+html[data-tema-sazonal="black-friday"] .promo-popup:not(.logo-picker-dialog):not([data-x]) {
+  --popup-veu: rgb(3 3 3 / 0.45);
+}
