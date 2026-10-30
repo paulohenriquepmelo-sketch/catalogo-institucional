@@ -19,7 +19,7 @@
   --t-ink: #2d1424;
   --t-muted: #65505c;
   --t-icon: "♥";
-  --t-hero: url("/themes/dia-das-maes.webp");
+  --t-hero: url("/themes/dia-das-maes-etiqueta.webp");
   --t-panel: url("/themes/dia-das-maes-painel.webp");
 
   --v2-width: min(1840px, calc(100% - 2 * clamp(16px, 5vw, 96px)));

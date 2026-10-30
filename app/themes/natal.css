@@ -423,14 +423,15 @@
 .site-v2.v2-theme.theme-natal .v2-footer {
   position: relative;
   isolation: isolate;
-  padding-top: 60px;
+  /* Guirlanda como faixa no topo; o conteúdo começa abaixo dela. */
+  padding-top: 124px;
   border-top: 0;
   border-bottom: 3px solid #a87527;
   background-color: #001c13;
   background-image: var(--natal-garland);
   background-position: center top;
-  background-size: 100% auto;
-  background-repeat: no-repeat;
+  background-size: auto 100px;
+  background-repeat: repeat-x;
   color: #ffffff;
 }
 
@@ -718,8 +719,8 @@
   }
 
   .site-v2.v2-theme.theme-natal .v2-footer {
-    padding-top: 42px;
-    background-size: auto 30px;
+    padding-top: 84px;
+    background-size: auto 64px;
   }
 
   .site-v2.v2-theme.theme-natal .v2-footer-grid {
