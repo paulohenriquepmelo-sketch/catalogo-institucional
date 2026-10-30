@@ -1,4 +1,4 @@
-import { memo, useState } from 'react';
+import { memo, useEffect, useState } from 'react';
 import {
   Image,
   Pressable,
@@ -8,16 +8,14 @@ import {
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
-import { AppIcon } from '@/components/AppIcon';
 import { router } from 'expo-router';
+import { AppIcon } from '@/components/AppIcon';
 import { useLocalImageUri } from '@/lib/image-cache';
 import { isOnline } from '@/lib/network';
 import { colors, radius, spacing, typography } from '@/lib/theme';
-import type { Product } from '@/lib/api';
+import { isOfferEligible, type Product } from '@/lib/api';
 import { isDiscontinued } from '@/lib/catalog-store';
 
-// memo: numa lista longa, sem isto todo card visível redesenha sempre que
-// a tela pai re-renderiza.
 export const ProductCard = memo(function ProductCard({
   product,
   style,
@@ -28,11 +26,14 @@ export const ProductCard = memo(function ProductCard({
   width?: number;
 }) {
   const [broken, setBroken] = useState(false);
-  // Arquivo salvo no aparelho quando já baixado; senão a URL remota.
   const imageUri = useLocalImageUri(product.image);
   const offer = product.details?.offer;
   const discontinued = isDiscontinued(product);
-  const showOffer = !discontinued && offer?.enabled === true;
+  const showOffer = isOfferEligible(product);
+
+  useEffect(() => {
+    setBroken(false);
+  }, [imageUri]);
 
   return (
     <Pressable
@@ -60,7 +61,6 @@ export const ProductCard = memo(function ProductCard({
           <View style={styles.placeholder}>
             <AppIcon name={product.image ? 'cloud-offline' : 'cube'} size={32} color="#8b9ab3" />
             <Text style={styles.placeholderText}>
-              {/* Tem foto no catálogo, mas ela ainda não foi salva e estamos offline. */}
               {product.image && (!broken || !isOnline())
                 ? 'Foto disponível com internet'
                 : 'Imagem não cadastrada'}
@@ -68,9 +68,9 @@ export const ProductCard = memo(function ProductCard({
           </View>
         )}
 
-        {showOffer ? (
+        {showOffer && offer ? (
           <View style={styles.badge}>
-            <Text style={styles.badgeText}>{offer!.discount}% OFF</Text>
+            <Text style={styles.badgeText}>{offer.discount}% OFF</Text>
           </View>
         ) : null}
 
@@ -79,7 +79,6 @@ export const ProductCard = memo(function ProductCard({
             <Text style={styles.discontinuedText}>ITEM DESCONTINUADO</Text>
           </View>
         ) : null}
-
       </View>
 
       <View style={styles.details}>
@@ -143,11 +142,25 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
     alignItems: 'center',
   },
-  discontinuedText: { color: '#fff', fontSize: 10, fontWeight: '900', letterSpacing: 0.5 },
-  // Marca + nome em até 2 linhas + código: altura fixa mantém os cards da grade alinhados.
+  discontinuedText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 0.5,
+  },
   details: { minHeight: 72, paddingHorizontal: 2, paddingTop: spacing.sm },
-  brand: { ...typography.small, color: '#56709a', fontSize: 10, textTransform: 'uppercase' },
-  name: { ...typography.body, color: colors.primaryDark, fontWeight: '800', marginTop: 2 },
+  brand: {
+    ...typography.small,
+    color: '#56709a',
+    fontSize: 10,
+    textTransform: 'uppercase',
+  },
+  name: {
+    ...typography.body,
+    color: colors.primaryDark,
+    fontWeight: '800',
+    marginTop: 2,
+  },
   code: {
     ...typography.small,
     color: colors.textMuted,

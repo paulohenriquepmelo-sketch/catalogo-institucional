@@ -77,8 +77,9 @@ export default function HomeScreen() {
     [products, config?.offers.limit],
   );
   const news = useMemo(
-    () => newProducts(products, config?.newProducts.days ?? 30, config?.newProducts.limit ?? 12),
-    [products, config?.newProducts.days, config?.newProducts.limit],
+    // Mesma regra da aba Novidades: a partir do código do ERP (fromCode).
+    () => newProducts(products, config?.newProducts.fromCode, config?.newProducts.limit ?? 12),
+    [products, config?.newProducts.fromCode, config?.newProducts.limit],
   );
   const brands = useMemo(
     () => publishedBrands(config?.brands ?? []).slice(0, 10),

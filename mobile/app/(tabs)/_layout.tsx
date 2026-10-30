@@ -1,25 +1,34 @@
+import { useMemo } from 'react';
+import { StyleSheet } from 'react-native';
 import { Tabs } from 'expo-router';
 import { AppIcon } from '@/components/AppIcon';
-import { colors } from '@/lib/theme';
+import { useAppTheme } from '@/lib/theme-provider';
 
 export default function TabsLayout() {
+  const { tokens } = useAppTheme();
+  const styles = useMemo(() => StyleSheet.create({
+    bar: {
+      backgroundColor: tokens.paper,
+      borderTopColor: tokens.border,
+      borderTopWidth: 1,
+      height: 64,
+      paddingTop: 2,
+    },
+    icon: { marginTop: 4 },
+    label: { fontSize: 11, marginBottom: 4, fontWeight: '600' },
+  }), [tokens]);
+
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        // Troca de aba com um esmaecer curto, em vez de um corte seco.
         animation: 'fade',
-        tabBarActiveTintColor: colors.accent,
-        tabBarInactiveTintColor: colors.textMuted,
+        tabBarActiveTintColor: tokens.link,
+        tabBarInactiveTintColor: tokens.muted,
         tabBarShowLabel: true,
-        tabBarIconStyle: { marginTop: 4 },
-        tabBarLabelStyle: { fontSize: 11, marginBottom: 4, fontWeight: '600' },
-        tabBarStyle: {
-          borderTopColor: colors.border,
-          borderTopWidth: 1,
-          height: 64,
-          paddingTop: 2,
-        },
+        tabBarIconStyle: styles.icon,
+        tabBarLabelStyle: styles.label,
+        tabBarStyle: styles.bar,
       }}
     >
       <Tabs.Screen
@@ -35,7 +44,7 @@ export default function TabsLayout() {
         name="catalogo"
         options={{
           title: 'Catálogo',
-          tabBarIcon: ({ color, size, focused }) => (
+          tabBarIcon: ({ color, size }) => (
             <AppIcon name="grid" color={color} size={size} />
           ),
         }}
@@ -44,14 +53,16 @@ export default function TabsLayout() {
         name="segmentos"
         options={{
           title: 'Segmentos',
-          tabBarIcon: ({ color, size }) => <AppIcon name="store" color={color} size={size} />,
+          tabBarIcon: ({ color, size }) => (
+            <AppIcon name="store" color={color} size={size} />
+          ),
         }}
       />
       <Tabs.Screen
         name="ofertas"
         options={{
           title: 'Ofertas',
-          tabBarIcon: ({ color, size, focused }) => (
+          tabBarIcon: ({ color, size }) => (
             <AppIcon name="percent" color={color} size={size} />
           ),
         }}
@@ -60,7 +71,7 @@ export default function TabsLayout() {
         name="novidades"
         options={{
           title: 'Novidades',
-          tabBarIcon: ({ color, size, focused }) => (
+          tabBarIcon: ({ color, size }) => (
             <AppIcon name="cube" color={color} size={size} />
           ),
         }}
@@ -69,7 +80,7 @@ export default function TabsLayout() {
         name="marcas"
         options={{
           title: 'Marcas',
-          tabBarIcon: ({ color, size, focused }) => (
+          tabBarIcon: ({ color, size }) => (
             <AppIcon name="pricetag" color={color} size={size} />
           ),
         }}

@@ -1,10 +1,15 @@
-import { useEffect, useRef } from 'react';
-import { Animated, Easing, Image, StyleSheet, Text, View } from 'react-native';
-import { colors, spacing, typography } from '@/lib/theme';
+import { useEffect, useMemo, useRef } from 'react';
+import {
+  AccessibilityInfo,
+  Animated,
+  Easing,
+  Image,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import { defaultTokens, spacing, typography } from '@/lib/theme';
 
-// Tela de carregamento do app: logo pulsando + o que está sendo baixado no
-// momento. Quando o progresso é conhecido (download das imagens), a barra
-// mostra a porcentagem real; nas etapas sem medida ela pulsa sozinha.
 export function LoadingScreen({
   label = 'Carregando catálogo…',
   progress = null,
@@ -12,27 +17,99 @@ export function LoadingScreen({
   label?: string;
   progress?: number | null;
 }) {
-  const pulse = useRef(new Animated.Value(0.85)).current;
+  // Começa estático até conhecer a preferência de acessibilidade.
+  const pulse = useRef(new Animated.Value(1)).current;
+  const styles = useMemo(() => StyleSheet.create({
+    container: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: '#ffffff',
+      gap: spacing.md,
+      padding: spacing.xl,
+    },
+    logo: { width: 140, height: 140, marginBottom: spacing.md },
+    label: {
+      ...typography.subtitle,
+      color: defaultTokens.dark,
+      opacity: 0.85,
+      textAlign: 'center',
+    },
+    progressBar: {
+      width: 220,
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: defaultTokens.border,
+      overflow: 'hidden',
+      marginTop: spacing.xs,
+    },
+    progressFill: {
+      height: '100%',
+      backgroundColor: defaultTokens.link,
+      borderRadius: 2,
+    },
+    percent: {
+      ...typography.small,
+      color: defaultTokens.muted,
+      fontVariant: ['tabular-nums'],
+    },
+  }), []);
 
   useEffect(() => {
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulse, {
-          toValue: 1.08,
-          duration: 700,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulse, {
-          toValue: 0.85,
-          duration: 700,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-      ]),
+    let cancelled = false;
+    let changedByEvent = false;
+    let animation: Animated.CompositeAnimation | null = null;
+
+    const applyPreference = (reduceMotion: boolean) => {
+      if (cancelled) return;
+      animation?.stop();
+      pulse.stopAnimation();
+      pulse.setValue(1);
+
+      if (reduceMotion) return;
+
+      pulse.setValue(0.85);
+      animation = Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulse, {
+            toValue: 1.08,
+            duration: 700,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulse, {
+            toValue: 0.85,
+            duration: 700,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
+          }),
+        ]),
+      );
+      animation.start();
+    };
+
+    const subscription = AccessibilityInfo.addEventListener(
+      'reduceMotionChanged',
+      (enabled) => {
+        changedByEvent = true;
+        applyPreference(enabled);
+      },
     );
-    loop.start();
-    return () => loop.stop();
+
+    void AccessibilityInfo.isReduceMotionEnabled()
+      .then((enabled) => {
+        if (!changedByEvent) applyPreference(enabled);
+      })
+      .catch(() => {
+        // Se a preferência não puder ser lida, mantém a apresentação estática.
+      });
+
+    return () => {
+      cancelled = true;
+      subscription.remove();
+      animation?.stop();
+      pulse.stopAnimation();
+    };
   }, [pulse]);
 
   const percent =
@@ -44,15 +121,22 @@ export function LoadingScreen({
     <View style={styles.container}>
       <Animated.View style={{ transform: [{ scale: pulse }] }}>
         <Image
-          source={require('../assets/logo.png')}
+          source={require('@/assets/logo.png')}
           style={styles.logo}
           resizeMode="contain"
+          accessibilityLabel="Distribuidora Laurencini"
         />
       </Animated.View>
 
       <Text style={styles.label}>{label}</Text>
 
-      <View style={styles.progressBar}>
+      <View
+        style={styles.progressBar}
+        accessibilityRole="progressbar"
+        accessibilityValue={
+          percent === null ? { text: label } : { min: 0, max: 100, now: percent }
+        }
+      >
         {percent !== null ? (
           <View style={[styles.progressFill, { width: `${percent}%` }]} />
         ) : (
@@ -61,14 +145,12 @@ export function LoadingScreen({
               styles.progressFill,
               {
                 width: '100%',
-                transform: [
-                  {
-                    scaleX: pulse.interpolate({
-                      inputRange: [0.85, 1.08],
-                      outputRange: [0.35, 0.85],
-                    }),
-                  },
-                ],
+                transform: [{
+                  scaleX: pulse.interpolate({
+                    inputRange: [0.85, 1.08],
+                    outputRange: [0.35, 0.85],
+                  }),
+                }],
               },
             ]}
           />
@@ -79,39 +161,3 @@ export function LoadingScreen({
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#ffffff',
-    gap: spacing.md,
-    padding: spacing.xl,
-  },
-  logo: { width: 140, height: 140, marginBottom: spacing.md },
-  label: {
-    ...typography.subtitle,
-    color: colors.primaryDark,
-    opacity: 0.85,
-    textAlign: 'center',
-  },
-  progressBar: {
-    width: 220,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: '#e2e6f0',
-    overflow: 'hidden',
-    marginTop: spacing.xs,
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: colors.primary,
-    borderRadius: 2,
-  },
-  percent: {
-    ...typography.small,
-    color: colors.textMuted,
-    fontVariant: ['tabular-nums'],
-  },
-});
