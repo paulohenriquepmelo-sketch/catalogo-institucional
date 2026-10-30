@@ -597,6 +597,9 @@
 .v2-all-segments .v2-all-segments-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  /* Cada linha na altura do cartão: com uma coluna só (celular) e altura
+     máxima, as linhas encolhiam e cortavam a foto e o texto. */
+  grid-auto-rows: max-content;
   gap: 16px;
   max-height: 70vh;
   overflow: auto;
@@ -656,6 +659,29 @@
 .v2-all-segments .v2-segment-more svg {
   width: 15px;
   height: 15px;
+}
+/* Celular: duas colunas compactas, como os segmentos da página. */
+@media (max-width: 560px) {
+  .v2-all-segments .v2-all-segments-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    padding: 2px;
+  }
+  .v2-all-segments .v2-segment-body {
+    gap: 3px;
+    padding: 9px 10px 11px;
+  }
+  .v2-all-segments .v2-segment-body strong {
+    font-size: 13px;
+    line-height: 1.25;
+  }
+  .v2-all-segments .v2-segment-body small {
+    font-size: 11.5px;
+    line-height: 1.35;
+  }
+  .v2-all-segments .v2-segment-more {
+    font-size: 12px;
+  }
 }
 
 /* 6. Marcas */
