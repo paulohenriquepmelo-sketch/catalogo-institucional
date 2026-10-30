@@ -101,10 +101,8 @@ export const campaignThemes = [
 export type CampaignThemeId = (typeof campaignThemes)[number]['id'];
 // Temas ainda em ajuste com o cliente: aparecem no editor, mas não podem
 // ser ativados. Remover o id daqui quando o tema for aprovado.
-export const themesInAdjustment: ReadonlySet<CampaignThemeId> = new Set([
-  'natal',
-  'ano-novo',
-]);
+export const themesInAdjustment: ReadonlySet<CampaignThemeId> =
+  new Set<CampaignThemeId>([]);
 
 export type CampaignSlide = {
   id: string;
@@ -132,6 +130,9 @@ export type CatalogCampaign = {
   overlay: number;
   position: 'center' | 'top' | 'bottom';
   slides: CampaignSlide[];
+  // Ano em destaque no banner do tema Ano Novo (4 dígitos). Vazio usa o
+  // ano padrão definido em themeCopy (components/site-sections.tsx).
+  year: string;
 };
 export const defaultCampaign: CatalogCampaign = {
   enabled: true,
@@ -150,6 +151,7 @@ export const defaultCampaign: CatalogCampaign = {
   overlay: 15,
   position: 'center',
   slides: [],
+  year: '',
 };
 export function campaignPreset(
   theme: CampaignThemeId,

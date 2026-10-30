@@ -1,5 +1,12 @@
 import type { Metadata } from 'next';
-import { DM_Sans, Manrope, Montserrat } from 'next/font/google';
+import {
+  Baloo_2,
+  Cinzel,
+  DM_Sans,
+  Dancing_Script,
+  Manrope,
+  Montserrat,
+} from 'next/font/google';
 import { env } from 'cloudflare:workers';
 import {
   getConfig,
@@ -30,6 +37,28 @@ const bfDisplay = Montserrat({
   subsets: ['latin'],
   weight: ['700', '800', '900'],
   style: ['normal', 'italic'],
+  preload: false,
+});
+// Letra ornamental do "NATAL" no banner (app/themes/natal.css), como no
+// esboço do cliente. Sem preload: só baixa quando o tema Natal está ativo.
+const natalDisplay = Cinzel({
+  variable: '--font-natal',
+  subsets: ['latin'],
+  weight: ['700', '900'],
+  preload: false,
+});
+// Frase cursiva do painel de ofertas do Natal (app/themes/natal.css).
+const natalScript = Dancing_Script({
+  variable: '--font-natal-script',
+  subsets: ['latin'],
+  weight: ['700'],
+  preload: false,
+});
+// Algarismos arredondados do ano no banner de Ano Novo (app/themes/ano-novo.css).
+const anoNovoDisplay = Baloo_2({
+  variable: '--font-ano-novo',
+  subsets: ['latin'],
+  weight: ['800'],
   preload: false,
 });
 export async function generateMetadata(): Promise<Metadata> {
@@ -86,7 +115,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body
-        className={`${dmSans.variable} ${manrope.variable} ${bfDisplay.variable}`}
+        className={`${dmSans.variable} ${manrope.variable} ${bfDisplay.variable} ${natalDisplay.variable} ${anoNovoDisplay.variable} ${natalScript.variable}`}
       >
         {children}
       </body>

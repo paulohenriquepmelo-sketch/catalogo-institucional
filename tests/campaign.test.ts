@@ -411,3 +411,12 @@ void test('legacy settings receive campaign defaults without overwriting saved i
   setIdentity('admin@example.test');
   assert.equal((await postConfig(req('https://other.test'))).status, 403);
 });
+
+void test('ano do banner de Ano Novo: 4 dígitos ou vazio, e configs antigas continuam válidas', () => {
+  assert.equal(validateCampaign({ ...defaultCampaign, year: '2027' }).year, '2027');
+  assert.equal(validateCampaign({ ...defaultCampaign, year: '' }).year, '');
+  const { year: _ignored, ...antiga } = defaultCampaign;
+  assert.equal(validateCampaign(antiga).year, '');
+  for (const year of ['27', '20277', 'abcd', '<b>', 2027])
+    assert.throws(() => validateCampaign({ ...defaultCampaign, year }));
+});

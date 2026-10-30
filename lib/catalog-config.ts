@@ -701,6 +701,10 @@ export function validateCampaign(value: unknown): CatalogCampaign {
   });
   if (new Set(slides.map((slide) => slide.id)).size !== slides.length)
     throw new Error('Existem banners de campanha duplicados.');
+  // Configurações salvas antes deste campo não têm o ano: ficam vazias.
+  const year = v.year == null ? '' : v.year;
+  if (typeof year !== 'string' || (year !== '' && !/^\d{4}$/.test(year)))
+    throw new Error('O ano do banner deve ter 4 dígitos, como 2027.');
   const result: CatalogCampaign = {
     enabled: v.enabled === true,
     theme: v.theme,
@@ -718,6 +722,7 @@ export function validateCampaign(value: unknown): CatalogCampaign {
     overlay: v.overlay,
     position: v.position,
     slides,
+    year,
   };
   if (result.enabled && result.mode === 'image' && !result.image)
     throw new Error('Envie uma imagem para o fundo da campanha.');
