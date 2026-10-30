@@ -1,0 +1,101 @@
+/* Fundo do site com a temática do tema de data ativo (pedido do cliente).
+   Uma textura clara e discreta, gerada pelo GPT-6 Sol e repetida sem
+   emenda, fica no fundo da página; as seções que antes tinham fundo liso
+   ficam transparentes para ela aparecer. Faixas com arte própria (banner,
+   marcas, ofertas, contato e, no Natal, segmentos e benefícios) não mudam.
+   Carregado depois dos temas, com a mesma especificidade: estas regras
+   vencem por virem por último. */
+
+.site-v2.v2-theme.theme-natal {
+  background-image: url("/themes/natal-fundo.webp");
+  background-repeat: repeat;
+  background-size: 480px auto;
+}
+
+.site-v2.v2-theme.theme-natal .v2-featured {
+  background: transparent;
+}
+
+.site-v2.v2-theme.theme-ano-novo {
+  background-image: url("/themes/ano-novo-fundo.webp");
+  background-repeat: repeat;
+  background-size: 480px auto;
+}
+
+.site-v2.v2-theme.theme-ano-novo .v2-benefits,
+.site-v2.v2-theme.theme-ano-novo .v2-segments,
+.site-v2.v2-theme.theme-ano-novo .v2-featured {
+  background: transparent;
+}
+
+.site-v2.v2-theme.theme-dia-das-maes {
+  background-image: url("/themes/dia-das-maes-fundo.webp");
+  background-repeat: repeat;
+  background-size: 480px auto;
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-benefits,
+.site-v2.v2-theme.theme-dia-das-maes .v2-segments,
+.site-v2.v2-theme.theme-dia-das-maes .v2-featured {
+  background: transparent;
+}
+
+.site-v2.v2-theme.theme-aniversario {
+  background-image: url("/themes/aniversario-fundo.webp");
+  background-repeat: repeat;
+  background-size: 480px auto;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-benefits,
+.site-v2.v2-theme.theme-aniversario .v2-segments {
+  background: transparent;
+}
+
+.site-v2.v2-theme.theme-carnaval {
+  background-image: url("/themes/carnaval-fundo.webp");
+  background-repeat: repeat;
+  background-size: 480px auto;
+}
+
+.site-v2.v2-theme.theme-carnaval .v2-benefits,
+.site-v2.v2-theme.theme-carnaval .v2-segments,
+.site-v2.v2-theme.theme-carnaval .v2-featured {
+  background: transparent;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas {
+  background-image: url("/themes/dia-das-criancas-fundo.webp");
+  background-repeat: repeat;
+  background-size: 480px auto;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-benefits,
+.site-v2.v2-theme.theme-dia-das-criancas .v2-segments,
+.site-v2.v2-theme.theme-dia-das-criancas .v2-featured {
+  background: transparent;
+}
+
+.site-v2.v2-theme.theme-black-friday {
+  background-image: url("/themes/black-friday-fundo.webp");
+  background-repeat: repeat;
+  background-size: 480px auto;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-segments,
+.site-v2.v2-theme.theme-black-friday .v2-featured {
+  background: transparent;
+}
+
+/* Margens em volta dos painéis (marcas, ofertas, novidades e contato):
+   a textura continua por trás em vez de uma faixa lisa. O Natal fica de
+   fora porque nele essas faixas inteiras têm arte própria. */
+.site-v2.v2-theme:is(
+  .theme-ano-novo,
+  .theme-dia-das-maes,
+  .theme-aniversario,
+  .theme-carnaval,
+  .theme-dia-das-criancas,
+  .theme-black-friday
+) :is(.v2-brands-wrap, .v2-contact-wrap) {
+  background-color: transparent;
+}
