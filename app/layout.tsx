@@ -26,6 +26,8 @@ import './themes/aniversario.css';
 import './themes/carnaval.css';
 import './themes/dia-das-criancas.css';
 import './themes/black-friday.css';
+// Fundo da página com a textura de cada tema (depois dos temas).
+import './theme-fundos.css';
 import './promo-popup.css';
 import './theme-popups.css';
 
