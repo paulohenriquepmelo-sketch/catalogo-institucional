@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { DM_Sans, Inter, Manrope, Montserrat } from 'next/font/google';
+import { DM_Sans, Manrope, Montserrat } from 'next/font/google';
 import { env } from 'cloudflare:workers';
 import {
   getConfig,
@@ -9,14 +9,22 @@ import { defaultConfig } from '@/lib/catalog-config';
 import './globals.css';
 import './marketing-polish.css';
 import './carousel-color-fix.css';
-import './theme-black-friday.css';
 import './site-v2.css';
+import './theme-v4.css';
+// Ajustes de cada tema de data, feitos a partir dos esboços do cliente.
+import './themes/natal.css';
+import './themes/ano-novo.css';
+import './themes/dia-das-maes.css';
+import './themes/aniversario.css';
+import './themes/carnaval.css';
+import './themes/dia-das-criancas.css';
+import './themes/black-friday.css';
 import './promo-popup.css';
 
 const dmSans = DM_Sans({ variable: '--font-dm-sans', subsets: ['latin'] });
 const manrope = Manrope({ variable: '--font-manrope', subsets: ['latin'] });
-// Fontes do tema Black Friday (app/theme-black-friday.css). Sem preload: o
-// navegador só baixa quando o tema está ativo e o texto usa a fonte.
+// Fonte dos títulos do layout (--v2-display em app/site-v2.css). Sem
+// preload: o navegador só baixa quando o texto usa a fonte.
 const bfDisplay = Montserrat({
   variable: '--font-bf-display',
   subsets: ['latin'],
@@ -24,13 +32,6 @@ const bfDisplay = Montserrat({
   style: ['normal', 'italic'],
   preload: false,
 });
-const bfSans = Inter({
-  variable: '--font-bf-sans',
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700', '800'],
-  preload: false,
-});
-
 export async function generateMetadata(): Promise<Metadata> {
   const configResult =
     env.WORKER_ROLE === 'public' ? getPublishedCatalogSnapshot() : getConfig();
@@ -85,7 +86,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body
-        className={`${dmSans.variable} ${manrope.variable} ${bfDisplay.variable} ${bfSans.variable}`}
+        className={`${dmSans.variable} ${manrope.variable} ${bfDisplay.variable}`}
       >
         {children}
       </body>

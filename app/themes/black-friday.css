@@ -1,0 +1,1088 @@
+/* Black Friday — ajustes sobre site-v2.css e theme-v4.css.
+   Decoração estática; nenhuma animação nova.
+   Logos de marcas, controles e dimensões dos slides preservados. */
+
+.site-v2.v2-theme.theme-black-friday {
+  --t-dark: #030303;
+  --t-rgb: 3, 3, 3;
+  --t-footer: #030303;
+  --t-accent: #d90020;
+  --t-on-accent: #ffffff;
+  --t-link: #ff6977;
+  --t-title-accent: #ff3048;
+  --t-support: #ff001a;
+  --t-paper: #030303;
+  --t-soft: #101010;
+  --t-tint: #310009;
+  --t-border: #343434;
+  --t-ink: #ffffff;
+  --t-muted: #bfbfbf;
+
+  --bf-neon: #ff001a;
+  --bf-glow: rgba(255, 0, 26, 0.32);
+  --v2-red-line: #ff001a;
+  --v2-radius: 8px;
+
+  background: #030303;
+  color: #ffffff;
+}
+
+/* Evita que conteúdos longos imponham larguras ao layout. */
+.site-v2.v2-theme.theme-black-friday :is(
+  .v2-header-inner,
+  .v2-benefit > span,
+  .v2-segments-grid,
+  .v2-segment-body,
+  .v2-contact-main,
+  .v2-contact-list,
+  .v2-footer-cta,
+  .product-card-body
+) {
+  min-width: 0;
+}
+
+.site-v2.v2-theme.theme-black-friday :is(
+  .v2-benefit strong,
+  .v2-segment-body strong,
+  .v2-footer-cta strong,
+  .product-brand
+) {
+  overflow-wrap: anywhere;
+}
+
+.site-v2.v2-theme.theme-black-friday :is(
+  a,
+  button,
+  input,
+  select,
+  textarea
+):focus-visible {
+  outline: 3px solid #ffffff;
+  outline-offset: 3px;
+  box-shadow: 0 0 0 6px #030303;
+}
+
+/* Botões e pequenos títulos */
+.site-v2.v2-theme.theme-black-friday .v2-button {
+  min-height: 44px;
+  padding-inline: 22px;
+  font-size: 14px;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-button-small {
+  min-height: 40px;
+  padding-inline: 18px;
+  font-size: 13px;
+}
+
+.site-v2.v2-theme.theme-black-friday :is(
+  .v2-button-red,
+  .v2-topbar .v2-topbar-rca
+) {
+  background: #d90020;
+  color: #ffffff;
+  border: 1px solid #ff3048;
+  box-shadow: 0 0 14px rgba(255, 0, 26, 0.18);
+}
+
+.site-v2.v2-theme.theme-black-friday :is(
+  .v2-button-red,
+  .v2-topbar .v2-topbar-rca
+):hover {
+  background: #ba001b;
+  color: #ffffff;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-button-outline {
+  background: #080808;
+  color: #ffffff;
+  border-color: #686868;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-button-outline:hover {
+  color: #ffffff;
+  border-color: #ff6977;
+}
+
+.site-v2.v2-theme.theme-black-friday :is(
+  .v2-eyebrow,
+  .v2-brands .v2-eyebrow-light,
+  .v2-hero-eyebrow
+) {
+  color: #ff6977;
+  opacity: 1;
+  letter-spacing: 0.065em;
+}
+
+.site-v2.v2-theme.theme-black-friday .td-theme-mark {
+  color: #ff001a;
+}
+
+.site-v2.v2-theme.theme-black-friday .td-theme-mark::before {
+  content: "";
+  display: inline-block;
+  width: 0.65em;
+  height: 0.65em;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 8px rgba(255, 0, 26, 0.65);
+  pointer-events: none;
+}
+
+/* Barra superior e cabeçalho */
+.site-v2.v2-theme.theme-black-friday .v2-topbar {
+  background: #030303;
+  border-bottom: 1px solid #8f0012;
+  font-size: 12px;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-topbar-inner {
+  min-height: 32px;
+  gap: 4px 16px;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-topbar-message {
+  padding-block: 5px;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-topbar .v2-topbar-rca {
+  min-height: 34px;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-header {
+  background: #050505;
+  border-bottom: 1px solid #ff001a;
+  box-shadow:
+    0 1px 0 rgba(255, 170, 180, 0.4),
+    0 4px 16px rgba(255, 0, 26, 0.25);
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-header-inner {
+  min-height: 72px;
+  gap: clamp(14px, 1.5vw, 26px);
+  padding-block: 10px;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-nav {
+  background: #050505;
+  gap: clamp(12px, 1.35vw, 24px);
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-nav a {
+  color: #ffffff;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-nav a.is-active,
+.site-v2.v2-theme.theme-black-friday .v2-nav a:hover {
+  color: #ff6977;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-nav a::after {
+  pointer-events: none;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-search {
+  min-width: 0;
+  height: 44px;
+  background: #0c0c0c;
+  border-color: #686868;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-search input::placeholder {
+  color: #bfbfbf;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-search:focus-within {
+  border-color: #ff6977;
+  box-shadow: 0 0 0 2px rgba(255, 105, 119, 0.25);
+}
+
+.site-v2.v2-theme.theme-black-friday :is(
+  .v2-menu-button,
+  .v2-nav .v2-nav-download
+) {
+  border-color: #686868;
+}
+
+/* A moldura pertence ao link externo.
+   Mantém o enquadramento existente da logo, incluindo seu fundo branco.
+   Não aplica filtros, blend modes ou transformações na imagem. */
+.site-v2.v2-theme.theme-black-friday :is(.v2-logo, .v2-footer-logo) {
+  position: relative;
+  background: #ffffff;
+  border-radius: 4px;
+  outline: 1px solid #ff3048;
+  outline-offset: 3px;
+  box-shadow:
+    0 0 0 3px #190005,
+    0 0 0 5px rgba(255, 0, 26, 0.35),
+    0 0 18px rgba(255, 0, 26, 0.35);
+}
+
+.site-v2.v2-theme.theme-black-friday :is(
+  .v2-logo,
+  .v2-footer-logo
+)::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+/* Hero: arte à direita, diagonal e piso luminoso. */
+.site-v2.v2-theme.theme-black-friday .v2-hero {
+  background: #030303;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-hero-media {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #030303;
+  background-image: var(--t-hero);
+  background-position: right 54%;
+  background-size: cover;
+  pointer-events: none;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-hero-media::before {
+  background: linear-gradient(
+    90deg,
+    #030303 0%,
+    rgba(3, 3, 3, 0.96) 24%,
+    rgba(3, 3, 3, 0.85) 38%,
+    rgba(3, 3, 3, 0.25) 55%,
+    transparent 73%
+  );
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-hero::after {
+  content: "";
+  display: block;
+  position: absolute;
+  inset: 0;
+  width: auto;
+  z-index: -1;
+  clip-path: none;
+  background:
+    linear-gradient(
+      116deg,
+      transparent 37.5%,
+      rgba(255, 0, 26, 0.12) 38%,
+      rgba(255, 0, 26, 0.55) 38.7%,
+      #ffb6bd 38.9%,
+      #ff001a 39.05%,
+      rgba(255, 0, 26, 0.12) 39.6%,
+      transparent 40.5%
+    ),
+    linear-gradient(
+      0deg,
+      rgba(255, 0, 26, 0.24),
+      transparent 20%
+    );
+  pointer-events: none;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-hero-inner {
+  min-height: clamp(270px, 23vw, 350px);
+  padding-block: 28px 34px;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-hero-copy {
+  width: 45%;
+  max-width: 650px;
+  gap: 10px;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-hero h2 {
+  font-size: clamp(30px, 3vw, 48px);
+  line-height: 1.05;
+  text-wrap: initial;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-hero-title-accent {
+  color: #ff3048;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-hero p {
+  max-width: 420px;
+  font-size: clamp(15px, 1.2vw, 17px);
+  line-height: 1.4;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-hero .v2-button {
+  margin-top: 4px;
+}
+
+/* Benefícios permanecem no fluxo, encostados no piso do hero. */
+.site-v2.v2-theme.theme-black-friday .v2-benefits {
+  position: relative;
+  padding-block: 8px 14px;
+  background:
+    radial-gradient(
+      ellipse at 0 0,
+      rgba(255, 0, 26, 0.2),
+      transparent 40%
+    ),
+    radial-gradient(
+      ellipse at 100% 0,
+      rgba(255, 0, 26, 0.16),
+      transparent 40%
+    ),
+    #030303;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 0, 26, 0.45),
+    inset 0 -1px 0 rgba(255, 0, 26, 0.4);
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-benefits-grid {
+  gap: 12px;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-benefit {
+  min-height: 76px;
+  gap: 12px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #171717, #0c0c0c);
+  border-color: #343434;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-benefit-icon {
+  width: 46px;
+  height: 46px;
+  background: #bd001c;
+  color: #ffffff;
+  box-shadow: 0 0 16px rgba(255, 0, 26, 0.16);
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-benefit-icon svg {
+  width: 25px;
+  height: 25px;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-benefit strong {
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-benefit small {
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+/* Segmentos */
+.site-v2.v2-theme.theme-black-friday .v2-segments {
+  padding-block: 18px;
+  background: #030303;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-segments-inner {
+  grid-template-columns: minmax(210px, 26%) minmax(0, 1fr);
+  gap: 24px;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-segments-intro {
+  gap: 8px;
+}
+
+.site-v2.v2-theme.theme-black-friday :is(
+  .v2-segments-intro,
+  .v2-section-head
+) h2 {
+  color: #ffffff;
+  font-size: clamp(26px, 2.6vw, 36px);
+  line-height: 1.08;
+}
+
+.site-v2.v2-theme.theme-black-friday :is(
+  .v2-segments-intro,
+  .v2-section-head
+) p {
+  color: #bfbfbf;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-segments-grid {
+  gap: 12px;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-segment-card {
+  background: #101010;
+  border-color: #343434;
+  box-shadow: none;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-segment-card:hover {
+  border-color: #ff6977;
+  box-shadow: 0 4px 16px rgba(255, 0, 26, 0.12);
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-segment-media {
+  aspect-ratio: 2.5 / 1;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-segment-body {
+  gap: 4px;
+  padding: 10px 12px;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-segment-badge {
+  width: 28px;
+  height: 28px;
+  margin-bottom: 2px;
+  background: #d90020;
+  color: #ffffff;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-segment-body strong {
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-segment-body small {
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-segment-more {
+  margin-top: 5px;
+  color: #ff6977;
+}
+
+/* Faixas: iluminação nas bordas; centro protegido para leitura. */
+.site-v2.v2-theme.theme-black-friday .v2-brands-wrap {
+  padding-block: 12px;
+  background: #030303;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-brands-wrap .v2-brands {
+  isolation: isolate;
+  padding: 16px 22px 10px;
+  border: 1px solid #ff3048;
+  border-radius: 3px;
+  background-color: #030303;
+  background-image:
+    linear-gradient(
+      90deg,
+      rgba(3, 3, 3, 0.15),
+      rgba(3, 3, 3, 0.94) 14%,
+      rgba(3, 3, 3, 0.94) 86%,
+      rgba(3, 3, 3, 0.15)
+    ),
+    var(--t-panel);
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  box-shadow:
+    0 0 12px rgba(255, 0, 26, 0.3),
+    inset 0 0 16px rgba(255, 0, 26, 0.1);
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-brands::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(
+      135deg,
+      transparent 12px,
+      #ffb5bc 13px,
+      #ff001a 15px,
+      transparent 19px
+    ) left top / 70px 70px no-repeat,
+    linear-gradient(
+      225deg,
+      transparent 12px,
+      #ffb5bc 13px,
+      #ff001a 15px,
+      transparent 19px
+    ) right top / 70px 70px no-repeat,
+    linear-gradient(
+      45deg,
+      transparent 12px,
+      #ff001a 14px,
+      transparent 19px
+    ) left bottom / 70px 70px no-repeat,
+    linear-gradient(
+      315deg,
+      transparent 12px,
+      #ff001a 14px,
+      transparent 19px
+    ) right bottom / 70px 70px no-repeat;
+  pointer-events: none;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-brands-head {
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-brands-head h2 {
+  margin-top: 3px;
+  font-size: clamp(25px, 2.5vw, 35px);
+  line-height: 1.1;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-brands-head p {
+  margin-top: 5px;
+  color: #bfbfbf;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+/* Não altera placas/logos de marcas, setas, trilho ou slides. */
+.site-v2.v2-theme.theme-black-friday .v2-dots {
+  margin-top: 4px;
+}
+
+/* Destaques: seis colunas no desktop. */
+.site-v2.v2-theme.theme-black-friday .v2-featured {
+  padding-block: 16px 20px;
+  background: #030303;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-section-head {
+  margin-bottom: 12px;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-product-grid {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.site-v2.v2-theme.theme-black-friday .product-card,
+.site-v2.v2-theme.theme-black-friday .v2-new-card .product-card {
+  background: #101010;
+  border-color: #343434;
+  box-shadow: none;
+}
+
+.site-v2.v2-theme.theme-black-friday .product-card:hover {
+  border-color: #ff6977;
+  box-shadow: 0 4px 16px rgba(255, 0, 26, 0.16);
+}
+
+/* Placa neutra pequena e consistente para fotos reais.
+   O branco é preservado, sem filtros nem mistura de cores. */
+.site-v2.v2-theme.theme-black-friday .product-card .product-image-wrap,
+.site-v2.v2-theme.theme-black-friday .product-card:not(.without-photo) .product-image-wrap {
+  flex: none;
+  width: calc(100% - 24px);
+  max-width: 132px;
+  height: clamp(88px, 7.5vw, 116px);
+  aspect-ratio: auto;
+  margin: 12px auto 0;
+  padding: 7px;
+  border: 0;
+  border-radius: 3px;
+  background: #ffffff;
+}
+
+.site-v2.v2-theme.theme-black-friday .product-card .product-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: none;
+  mix-blend-mode: normal;
+}
+
+.site-v2.v2-theme.theme-black-friday .product-card.without-photo .product-image-wrap {
+  background: #181818;
+}
+
+.site-v2.v2-theme.theme-black-friday .product-card .product-card-body {
+  gap: 3px;
+  padding: 9px 10px 10px;
+  background: #101010;
+}
+
+.site-v2.v2-theme.theme-black-friday .product-card .product-brand {
+  color: #ff6977 !important;
+  font-size: 11px;
+}
+
+.site-v2.v2-theme.theme-black-friday .product-card .product-name {
+  color: #ffffff !important;
+  font-size: 12.5px;
+  line-height: 1.25;
+}
+
+.site-v2.v2-theme.theme-black-friday .product-card .product-card-meta,
+.site-v2.v2-theme.theme-black-friday .product-card .product-card-meta span {
+  color: #bfbfbf !important;
+}
+
+.site-v2.v2-theme.theme-black-friday .product-card .product-card-meta {
+  margin-top: 2px;
+  font-size: 11.5px;
+  line-height: 1.3;
+}
+
+.site-v2.v2-theme.theme-black-friday .product-card .td-card-charm {
+  color: #ff001a;
+  pointer-events: none;
+}
+
+/* Ofertas: selo no fluxo para acomodar datas sem sobrepor imagens.
+   Não altera texto, desconto, período nem seleção de produtos. */
+.site-v2.v2-theme.theme-black-friday #ofertas.v2-new-wrap {
+  padding-block: 0 14px;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-new-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #343434;
+  border-radius: 8px;
+  background: #101010;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-new-wrap .v2-new-badge {
+  position: static;
+  align-self: stretch;
+  flex: none;
+  width: auto;
+  max-width: none;
+  margin: 7px 7px 0;
+  padding: 5px 6px;
+  background: #d90020;
+  color: #ffffff;
+  font-size: 10.5px;
+  line-height: 1.35;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-new-card .product-card {
+  flex: 1;
+  width: 100%;
+  border: 0;
+  border-radius: 0;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-new-card .product-card:hover {
+  transform: none;
+  box-shadow: inset 0 0 0 1px #ff6977;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-new-card .product-card .product-image-wrap {
+  margin-top: 10px;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-new-card .td-card-charm {
+  top: 6px;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-panel-note {
+  margin-top: 8px;
+  color: #bfbfbf;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+/* Contato e rodapé */
+.site-v2.v2-theme.theme-black-friday .v2-contact-wrap {
+  padding-block: 0;
+  background: #030303;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-contact {
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.55fr);
+  min-height: 116px;
+  gap: 18px;
+  padding: 16px 20px;
+  border: 1px solid #ff3048;
+  border-bottom: 0;
+  border-radius: 3px 3px 0 0;
+  background-image:
+    linear-gradient(
+      90deg,
+      rgba(3, 3, 3, 0.75),
+      rgba(3, 3, 3, 0.96) 38%,
+      rgba(3, 3, 3, 0.94) 78%,
+      rgba(3, 3, 3, 0.3)
+    ),
+    var(--t-panel);
+  background-position: center, right center;
+  background-size: cover;
+  box-shadow: 0 -3px 16px rgba(255, 0, 26, 0.16);
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-contact-main {
+  gap: 14px;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-contact-icon {
+  width: 56px;
+  height: 56px;
+  background: #d90020;
+  color: #ffffff;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-contact-icon svg {
+  width: 28px;
+  height: 28px;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-contact h2 {
+  font-size: clamp(21px, 1.8vw, 26px);
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-contact p {
+  margin-block: 4px 8px;
+  color: #bfbfbf;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-contact-list {
+  flex-wrap: wrap;
+  gap: 12px 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-contact-list li {
+  padding-inline: 12px;
+  gap: 8px;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-contact-list strong {
+  font-size: 12px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-contact-list svg {
+  width: 21px;
+  height: 21px;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-contact-list small {
+  color: #bfbfbf;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-footer {
+  padding-top: 22px;
+  border-block: 1px solid #ff001a;
+  background:
+    radial-gradient(
+      ellipse at 0 0,
+      rgba(255, 0, 26, 0.12),
+      transparent 40%
+    ),
+    #030303;
+  box-shadow:
+    0 -2px 12px rgba(255, 0, 26, 0.3),
+    inset 0 1px 0 rgba(255, 160, 170, 0.2);
+  font-size: 12px;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-footer-grid {
+  grid-template-columns:
+    minmax(0, 1.15fr)
+    minmax(0, 0.8fr)
+    minmax(0, 1.3fr)
+    minmax(0, 0.75fr)
+    minmax(0, 1fr);
+  gap: 20px;
+  padding-bottom: 18px;
+  border-bottom: 0;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-footer-logo {
+  width: min(190px, 100%);
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 0;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-footer-brand p {
+  margin-top: 12px;
+  line-height: 1.4;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-footer-col {
+  gap: 7px;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-footer-col strong {
+  font-size: 13px;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-footer-cta {
+  padding: 12px;
+  gap: 10px;
+  background: #101010;
+  border-color: #343434;
+  border-radius: 8px;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-footer-cta-title {
+  gap: 8px;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-footer-cta strong {
+  font-size: 13px;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-footer-cta .v2-button {
+  max-width: 100%;
+  padding-inline: 12px;
+  white-space: normal;
+}
+
+.site-v2.v2-theme.theme-black-friday :is(
+  .v2-footer-brand p,
+  .v2-footer-col a,
+  .v2-footer-link,
+  .v2-footer-cta small,
+  .v2-footer-notice,
+  .v2-footer-bottom
+) {
+  color: #bfbfbf;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-footer-notice {
+  padding-top: 10px;
+  font-size: 12px;
+}
+
+.site-v2.v2-theme.theme-black-friday .v2-footer-bottom {
+  padding-block: 10px;
+  font-size: 12px;
+}
+
+/* Desktop: mantém os quatro benefícios e os segmentos em linha. */
+@media (min-width: 1025px) {
+  .site-v2.v2-theme.theme-black-friday .v2-benefits-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .site-v2.v2-theme.theme-black-friday .v2-segments-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* Cabeçalho intermediário: mantém a busca na segunda linha,
+   conforme a base, sem comprimir os controles existentes. */
+@media (min-width: 1025px) and (max-width: 1300px) {
+  .site-v2.v2-theme.theme-black-friday .v2-header-inner {
+    flex-wrap: wrap;
+    gap: 10px 18px;
+  }
+
+  .site-v2.v2-theme.theme-black-friday .v2-search {
+    flex-basis: 100%;
+  }
+
+  .site-v2.v2-theme.theme-black-friday section[id] {
+    scroll-margin-top: 150px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .site-v2.v2-theme.theme-black-friday .v2-product-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .site-v2.v2-theme.theme-black-friday .v2-segments-inner {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .site-v2.v2-theme.theme-black-friday .v2-contact {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .site-v2.v2-theme.theme-black-friday .v2-contact-list {
+    padding-top: 12px;
+    border-top: 1px solid #343434;
+  }
+
+  .site-v2.v2-theme.theme-black-friday .v2-footer-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 860px) {
+  .site-v2.v2-theme.theme-black-friday .v2-hero-inner {
+    min-height: 310px;
+  }
+
+  .site-v2.v2-theme.theme-black-friday .v2-hero-copy {
+    width: 52%;
+    max-width: none;
+  }
+
+  .site-v2.v2-theme.theme-black-friday .v2-hero::after {
+    opacity: 0.45;
+  }
+
+  .site-v2.v2-theme.theme-black-friday .v2-product-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .site-v2.v2-theme.theme-black-friday .v2-header-inner {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .site-v2.v2-theme.theme-black-friday .v2-logo {
+    width: 168px;
+  }
+
+  .site-v2.v2-theme.theme-black-friday .v2-menu-button {
+    order: 2;
+  }
+
+  .site-v2.v2-theme.theme-black-friday .v2-search {
+    order: 3;
+    flex: 1 1 100%;
+    width: 100%;
+  }
+
+  .site-v2.v2-theme.theme-black-friday .v2-suggest {
+    width: 100%;
+  }
+
+  .site-v2.v2-theme.theme-black-friday .v2-hero-inner {
+    min-height: 0;
+    padding-block: 26px 64vw;
+  }
+
+  .site-v2.v2-theme.theme-black-friday .v2-hero-copy {
+    width: 100%;
+    max-width: 560px;
+    gap: 12px;
+  }
+
+  .site-v2.v2-theme.theme-black-friday .v2-hero h2 {
+    font-size: clamp(29px, 6vw, 38px);
+    line-height: 1.08;
+  }
+
+  .site-v2.v2-theme.theme-black-friday .v2-hero-media {
+    background-position: center bottom;
+    background-size: 100% auto;
+  }
+
+  .site-v2.v2-theme.theme-black-friday .v2-hero-media::before {
+    background: linear-gradient(
+      180deg,
+      #030303 0%,
+      #030303 calc(100% - 66vw),
+      rgba(3, 3, 3, 0.12) calc(100% - 48vw),
+      transparent 100%
+    );
+  }
+
+  .site-v2.v2-theme.theme-black-friday .v2-hero::after {
+    display: none;
+  }
+
+  .site-v2.v2-theme.theme-black-friday .v2-benefits-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .site-v2.v2-theme.theme-black-friday .v2-benefit {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .site-v2.v2-theme.theme-black-friday .v2-segments-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .site-v2.v2-theme.theme-black-friday .v2-brands-wrap .v2-brands {
+    padding: 16px 14px 10px;
+  }
+
+  .site-v2.v2-theme.theme-black-friday .v2-product-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .site-v2.v2-theme.theme-black-friday .v2-button {
+    max-width: 100%;
+    white-space: normal;
+    padding-block: 10px;
+  }
+
+  .site-v2.v2-theme.theme-black-friday .v2-contact {
+    padding: 18px 14px;
+  }
+
+  .site-v2.v2-theme.theme-black-friday .v2-contact-list {
+    flex-direction: column;
+  }
+
+  .site-v2.v2-theme.theme-black-friday .v2-contact-list li {
+    padding-inline: 0;
+    border-left: 0;
+  }
+
+  .site-v2.v2-theme.theme-black-friday .v2-footer-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px 16px;
+  }
+
+  .site-v2.v2-theme.theme-black-friday :is(
+    .v2-footer-brand,
+    .v2-footer-contact,
+    .v2-footer-cta
+  ) {
+    grid-column: 1 / -1;
+  }
+
+  .site-v2.v2-theme.theme-black-friday section[id] {
+    scroll-margin-top: 150px;
+  }
+}
+
+@media (max-width: 380px) {
+  .site-v2.v2-theme.theme-black-friday .v2-footer-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .site-v2.v2-theme.theme-black-friday .v2-segment-body {
+    padding: 10px;
+  }
+
+  .site-v2.v2-theme.theme-black-friday .v2-benefit strong {
+    font-size: 13px;
+  }
+}
+
+/* Inclui os pseudoelementos do próprio hero no estado de pausa. */
+.site-v2.v2-theme.theme-black-friday .v2-hero.is-paused,
+.site-v2.v2-theme.theme-black-friday .v2-hero.is-paused::before,
+.site-v2.v2-theme.theme-black-friday .v2-hero.is-paused::after,
+.site-v2.v2-theme.theme-black-friday .v2-hero.is-paused *,
+.site-v2.v2-theme.theme-black-friday .v2-hero.is-paused *::before,
+.site-v2.v2-theme.theme-black-friday .v2-hero.is-paused *::after {
+  animation-play-state: paused !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-v2.v2-theme.theme-black-friday,
+  .site-v2.v2-theme.theme-black-friday *,
+  .site-v2.v2-theme.theme-black-friday *::before,
+  .site-v2.v2-theme.theme-black-friday *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

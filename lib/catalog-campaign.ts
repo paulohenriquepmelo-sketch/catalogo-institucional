@@ -1,6 +1,6 @@
 export const campaignThemes = [
-  // Visual tradicional do site: o banner institucional, sem roupagem de
-  // campanha (não tem entrada em campaignSkins).
+  // Visual tradicional do site: o banner institucional. Os outros temas
+  // usam a mesma página e só trocam a arte e os textos do banner.
   {
     id: 'padrao',
     name: 'Padrão',
@@ -16,7 +16,7 @@ export const campaignThemes = [
   {
     id: 'natal',
     name: 'Natal',
-    image: '/themes/natal.png',
+    image: '/themes/natal.webp',
     color: '#b32336',
     ink: '#172b50',
     background: '#eaf0f8',
@@ -28,7 +28,7 @@ export const campaignThemes = [
   {
     id: 'ano-novo',
     name: 'Ano Novo',
-    image: '/themes/ano-novo.png',
+    image: '/themes/ano-novo.webp',
     color: '#806019',
     ink: '#17243d',
     background: '#f5f1e7',
@@ -40,7 +40,7 @@ export const campaignThemes = [
   {
     id: 'black-friday',
     name: 'Black Friday',
-    image: '/themes/black-friday.png',
+    image: '/themes/black-friday.webp',
     color: '#e3141b',
     ink: '#ffffff',
     background: '#0b0b0e',
@@ -52,7 +52,7 @@ export const campaignThemes = [
   {
     id: 'dia-das-maes',
     name: 'Dia das Mães',
-    image: '/themes/dia-das-maes.png',
+    image: '/themes/dia-das-maes.webp',
     color: '#a2305c',
     ink: '#563345',
     background: '#fff0f3',
@@ -64,7 +64,7 @@ export const campaignThemes = [
   {
     id: 'aniversario',
     name: 'Aniversário da empresa',
-    image: '/themes/aniversario.png',
+    image: '/themes/aniversario.webp',
     color: '#c42e42',
     ink: '#193862',
     background: '#edf2fb',
@@ -76,7 +76,7 @@ export const campaignThemes = [
   {
     id: 'carnaval',
     name: 'Carnaval',
-    image: '/themes/carnaval.png',
+    image: '/themes/carnaval.webp',
     color: '#7540a4',
     ink: '#453060',
     background: '#f5eefa',
@@ -88,7 +88,7 @@ export const campaignThemes = [
   {
     id: 'dia-das-criancas',
     name: 'Dia das Crianças',
-    image: '/themes/dia-das-criancas.png',
+    image: '/themes/dia-das-criancas.webp',
     color: '#126d87',
     ink: '#21475a',
     background: '#edf9fb',
@@ -99,49 +99,14 @@ export const campaignThemes = [
   },
 ] as const;
 export type CampaignThemeId = (typeof campaignThemes)[number]['id'];
+// Temas ainda em ajuste com o cliente: aparecem no editor, mas não podem
+// ser ativados. Remover o id daqui quando o tema for aprovado.
+export const themesInAdjustment: ReadonlySet<CampaignThemeId> = new Set([
+  'natal',
+  'ano-novo',
+  'black-friday',
+]);
 
-// Temas que mudam o site inteiro (cores, cabeçalho, seções e rodapé), não
-// só o banner. Só valem com o tema pronto escolhido: "Minha imagem" e o
-// carrossel guardam o último tema, mas mantêm o visual comum do site.
-// `highlight` é a palavra do título que fica em vermelho.
-export type SkinTitle = { title: string; subtitle?: string; highlight?: string };
-export type CampaignSkin = {
-  announcement: string[];
-  offers: SkinTitle;
-  newProducts: SkinTitle;
-  brands: SkinTitle;
-  segments: SkinTitle;
-};
-export const campaignSkins: Partial<Record<CampaignThemeId, CampaignSkin>> = {
-  'black-friday': {
-    announcement: [
-      'Só na Distribuidora Laurencini',
-      'As melhores marcas',
-      'Condições especiais',
-    ],
-    offers: { title: 'Ofertas em destaque', highlight: 'destaque' },
-    newProducts: {
-      title: 'Acabaram de chegar',
-      subtitle: 'Novidades e lançamentos para o seu negócio.',
-    },
-    brands: {
-      title: 'As marcas do nosso catálogo',
-      subtitle: 'Qualidade e variedade das melhores marcas',
-    },
-    segments: {
-      title: 'Produtos por segmento',
-      subtitle: 'Tudo o que o seu negócio precisa, em um só lugar',
-      highlight: 'segmento',
-    },
-  },
-};
-export function campaignSkin(
-  campaign: Pick<CatalogCampaign, 'enabled' | 'mode' | 'theme'> | undefined,
-) {
-  if (!campaign?.enabled || campaign.mode !== 'theme') return null;
-  const skin = campaignSkins[campaign.theme];
-  return skin ? { id: campaign.theme, ...skin } : null;
-}
 export type CampaignSlide = {
   id: string;
   image: string;

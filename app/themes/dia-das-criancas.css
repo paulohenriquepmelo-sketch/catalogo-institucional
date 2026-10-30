@@ -1,0 +1,783 @@
+/* Ajustes exclusivos do Dia das Crianças.
+   As imagens novas possuem fallback para os assets existentes.
+   Decoração estática; nenhum texto ou dado é criado pelo CSS. */
+
+.site-v2.v2-theme.theme-dia-das-criancas {
+  --t-dark: #06346b;
+  --t-rgb: 6, 52, 107;
+  --t-footer: #052951;
+  --t-accent: #c83b0d;
+  --t-on-accent: #ffffff;
+  --t-link: #a8310c;
+  --t-title-accent: #c43b12;
+  --t-support: #ffd43b;
+  --t-paper: #ffffff;
+  --t-soft: #fff8e5;
+  --t-tint: #fff5db;
+  --t-border: #e8e8df;
+  --t-ink: #06346b;
+  --t-muted: #555b63;
+  --v2-radius: 9px;
+
+  background: #ffffff;
+}
+
+/* Laranja escurecido nos botões para permitir texto branco legível.
+   O laranja vivo fica nos detalhes decorativos. */
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-button {
+  max-width: 100%;
+  white-space: normal;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-topbar {
+  background: linear-gradient(100deg, #06346b, #075ba8);
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-topbar-inner {
+  min-height: 36px;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-topbar-message {
+  padding-block: 6px;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-topbar .v2-topbar-rca {
+  min-height: 36px;
+  white-space: normal;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-topbar-secondary {
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-header {
+  background: #ffffff;
+  border-bottom: 2px solid #ffd43b;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-header-inner {
+  min-height: 76px;
+  gap: clamp(12px, 1.5vw, 26px);
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-logo,
+.site-v2.v2-theme.theme-dia-das-criancas .v2-footer-logo {
+  background: #ffffff;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-nav {
+  gap: clamp(12px, 1.4vw, 24px);
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-nav a {
+  color: #06346b;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-nav a.is-active,
+.site-v2.v2-theme.theme-dia-das-criancas .v2-nav a:hover {
+  color: #a8310c;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-nav a::after {
+  background: #ff4b13;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-search {
+  min-width: 0;
+  border-color: #dce3eb;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-search input::placeholder {
+  color: #626c7a;
+}
+
+/* Hero: fundo claro sólido sob o texto; cena separada pela diagonal.
+   O primeiro background será usado quando a arte panorâmica existir.
+   Até lá, a arte original aparece inteira, alinhada à direita. */
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-hero {
+  display: block;
+  background: #fff1bc;
+  color: #06346b;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-hero-media {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #ffdf65;
+  background-image:
+    url("/themes/dia-das-criancas-hero-wide.webp"),
+    var(--t-hero);
+  background-position: center, right center;
+  background-size: cover, auto 100%;
+  background-repeat: no-repeat;
+  clip-path: none;
+  pointer-events: none;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-hero-media::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, #fff8df, #ffeaa0);
+  clip-path: polygon(0 0, 49% 0, 36% 100%, 0 100%);
+  pointer-events: none;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-hero::after {
+  content: "";
+  display: block;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  z-index: -1;
+  background: linear-gradient(180deg, #ffcf28, #df9d06);
+  clip-path: polygon(48.5% 0, 49.2% 0, 36.7% 100%, 36% 100%);
+  pointer-events: none;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-hero-inner {
+  min-height: clamp(310px, 24vw, 420px);
+  padding-block: 24px;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-hero-copy {
+  width: 37%;
+  max-width: 590px;
+  gap: 10px;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-hero h2 {
+  color: #06346b;
+  font-size: clamp(32px, 3.7vw, 56px);
+  line-height: 1.03;
+  letter-spacing: -0.035em;
+  text-wrap: initial;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-hero-title-accent {
+  color: #c43b12;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-hero p {
+  max-width: 390px;
+  color: #243d55;
+  line-height: 1.4;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-hero-eyebrow {
+  color: #a8310c;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-hero .v2-button {
+  margin-top: 4px;
+}
+
+/* Diferenciais: faixa independente, imediatamente abaixo do hero. */
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-benefits {
+  position: relative;
+  margin-top: 0;
+  padding-block: 18px;
+  background: #ffffff;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-benefits-grid {
+  gap: 14px;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-benefit {
+  min-width: 0;
+  min-height: 80px;
+  gap: 12px;
+  padding: 12px 16px;
+  border-color: #eceeea;
+  box-shadow: 0 5px 16px rgb(6 52 107 / 6%);
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-benefit > span:last-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-benefit-icon {
+  width: 48px;
+  height: 48px;
+  background: #fff5db;
+  color: #c43b12;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-benefit-icon svg {
+  width: 27px;
+  height: 27px;
+}
+
+/* Segmentos: mais próximos dos diferenciais e com ícones azuis. */
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-segments {
+  padding-block: 18px 22px;
+  background: linear-gradient(180deg, #fffdf7, #fff8e5);
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-segments-inner {
+  grid-template-columns: minmax(0, 0.4fr) minmax(0, 1fr);
+  gap: clamp(18px, 2.3vw, 36px);
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-segments-intro {
+  gap: 8px;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-segments-intro h2 {
+  max-width: 330px;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-segments-grid {
+  min-width: 0;
+  gap: 14px;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-segment-body {
+  gap: 4px;
+  padding: 10px 12px 12px;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-segment-badge {
+  width: 30px;
+  height: 30px;
+  margin-bottom: 2px;
+  background: #075ba8;
+  color: #ffffff;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-segment-more {
+  margin-top: 5px;
+  color: #a8310c;
+}
+
+/* Painéis: compactar apenas os espaços externos e o cabeçalho.
+   Placas de marca, imagens, trilhos, setas e itens permanecem intactos. */
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-brands-wrap {
+  padding-block: 16px;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-brands {
+  padding-block: 18px 12px;
+  border-radius: 12px;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-brands-head {
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-brands-head h2 {
+  margin-top: 4px;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-brands-head p {
+  margin-top: 5px;
+  line-height: 1.4;
+}
+
+/* A arte azul opaca substitui a mistura azul + amarelo da captura.
+   Sem a nova imagem, o degradê azul mantém a superfície correta. */
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-brands-wrap:not(.v2-new-wrap) .v2-brands,
+.site-v2.v2-theme.theme-dia-das-criancas .v2-new-wrap .v2-brands:not(.v2-offers) {
+  background-color: #06346b;
+  background-image:
+    url("/themes/dia-das-criancas-faixa-azul.webp"),
+    linear-gradient(105deg, #06346b, #075ba8);
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  border-color: #075ba8;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-brands:not(.v2-offers) .v2-eyebrow-light {
+  color: #ffe178;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-brands:not(.v2-offers) .v2-brands-head > div {
+  padding: 5px 8px;
+  border-radius: 6px;
+  background: #06346b;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-link-light {
+  max-width: 100%;
+  padding: 9px 15px;
+  border: 1px solid rgb(255 255 255 / 40%);
+  border-radius: 999px;
+  background: #06346b;
+  color: #ffffff;
+  white-space: normal;
+}
+
+/* Destaques: seis colunas no desktop, imagens menos altas,
+   sem reduzir a legibilidade dos dados. */
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-featured {
+  padding-block: 16px 22px;
+  background: #ffffff;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-section-head {
+  margin-bottom: 14px;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-product-grid {
+  gap: 14px;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .product-card {
+  background: #ffffff;
+  border-color: #e7ebed;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-featured .product-image-wrap {
+  aspect-ratio: 1 / 0.67;
+  padding: 12px;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .product-card-body {
+  background: #ffffff;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .product-card .product-brand {
+  color: #a8310c !important;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .product-card .product-name {
+  color: #06346b !important;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .product-card .product-card-meta,
+.site-v2.v2-theme.theme-dia-das-criancas .product-card .product-card-meta span {
+  color: #555b63 !important;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .product-card .td-card-charm {
+  color: #dfac16;
+  pointer-events: none;
+}
+
+/* Ofertas: arte amarela existente, menos apagada.
+   O cabeçalho e o aviso têm superfície própria para contraste estável. */
+
+.site-v2.v2-theme.theme-dia-das-criancas #ofertas.v2-new-wrap {
+  padding-block: 0 16px;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-new-wrap .v2-brands.v2-offers {
+  background-color: #ffd43b;
+  background-image:
+    linear-gradient(
+      90deg,
+      rgb(255 222 89 / 15%),
+      rgb(255 232 139 / 65%) 22%,
+      rgb(255 232 139 / 65%) 78%,
+      rgb(255 222 89 / 10%)
+    ),
+    var(--t-panel);
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  border-color: #f2d46a;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-offers .v2-brands-head > div {
+  padding: 5px 8px;
+  border-radius: 6px;
+  background: #ffe58d;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-offers .v2-brands-head h2 {
+  color: #06346b;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-offers .v2-eyebrow-light {
+  color: #a8310c;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-new-wrap .v2-new-badge {
+  background: #06346b;
+  color: #ffffff;
+  letter-spacing: 0;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-new-card .product-card .product-image-wrap {
+  /* Preserva a reserva de 48px para descontos e datas cadastrados. */
+  margin-top: 48px;
+  aspect-ratio: 1 / 0.65;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-offers .v2-panel-note {
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  margin-top: 10px;
+  padding: 5px 8px;
+  border-radius: 5px;
+  background: #fff1bc;
+  color: #243d55;
+  line-height: 1.5;
+}
+
+/* Contato: faixa azul contínua, sem bloco amarelo retangular.
+   O recorte transparente novo ocupa somente a coluna decorativa. */
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-contact-wrap {
+  padding-block: 0 16px;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-contact {
+  grid-template-columns: minmax(0, 1fr);
+  min-height: 130px;
+  gap: 16px;
+  padding: 20px clamp(18px, 2.3vw, 34px);
+  padding-right: clamp(110px, 14vw, 210px);
+  background-color: #06346b;
+  background-image: linear-gradient(110deg, #06346b, #075ba8);
+  border: 1px solid #075ba8;
+  border-radius: 12px;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-contact::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: clamp(100px, 13vw, 190px);
+  height: 100%;
+  z-index: -1;
+  background:
+    url("/themes/dia-das-criancas-urso-contato.webp")
+    right bottom / contain no-repeat;
+  pointer-events: none;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-contact-main {
+  min-width: 0;
+  gap: 16px;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-contact-icon {
+  width: 60px;
+  height: 60px;
+  background: #ffd43b;
+  color: #06346b;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-contact p {
+  margin-block: 4px 8px;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-contact .v2-button-red,
+.site-v2.v2-theme.theme-dia-das-criancas .v2-contact .v2-button-red:hover {
+  background: #ffd43b;
+  color: #06346b;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-contact-list {
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-contact-list strong {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+/* Rodapé: estrelas discretas em uma camada decorativa independente. */
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-footer {
+  position: relative;
+  isolation: isolate;
+  padding-top: 26px;
+  background: linear-gradient(180deg, #06346b, #052951);
+  border-top: 4px solid #ffd43b;
+  border-bottom-color: #052951;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-footer::before {
+  content: "";
+  display: block;
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0.18;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='150' viewBox='0 0 320 150'%3E%3Cpath fill='%23FFD43B' d='m28 18 3 8 9 1-7 6 2 9-7-5-8 5 3-9-7-6 9-1z'/%3E%3Cpath fill='%23075BA8' d='m205 70 4 10 11 1-9 7 3 11-9-6-10 6 3-11-9-7 12-1z'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  pointer-events: none;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-footer-grid {
+  gap: 22px;
+  padding-bottom: 20px;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-footer-brand p {
+  margin-top: 10px;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-footer-col {
+  gap: 8px;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-footer-cta {
+  padding: 14px;
+  background: #093b70;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-footer-notice {
+  padding-top: 12px;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-footer-bottom {
+  padding-block: 12px;
+}
+
+/* Desktop: mantém a grade de seis produtos na página inicial.
+   Não interfere na grade filtrada da página /produtos. */
+
+@media (min-width: 1181px) {
+  .site-v2.v2-theme.theme-dia-das-criancas .v2-product-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1361px) {
+  .site-v2.v2-theme.theme-dia-das-criancas .v2-contact {
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.5fr);
+  }
+
+  .site-v2.v2-theme.theme-dia-das-criancas .v2-contact-list {
+    padding-top: 0;
+    border-top: 0;
+  }
+}
+
+/* Menu completo: permite quebra para acomodar também PDF e editor. */
+
+@media (min-width: 1025px) {
+  .site-v2.v2-theme.theme-dia-das-criancas .v2-header-inner {
+    flex-wrap: wrap;
+    padding-block: 10px;
+  }
+
+  .site-v2.v2-theme.theme-dia-das-criancas .v2-nav {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .site-v2.v2-theme.theme-dia-das-criancas .v2-search {
+    flex: 1 1 230px;
+  }
+}
+
+@media (max-width: 1180px) {
+  .site-v2.v2-theme.theme-dia-das-criancas .v2-hero-copy {
+    width: 40%;
+    max-width: none;
+  }
+
+  .site-v2.v2-theme.theme-dia-das-criancas .v2-hero-media::before {
+    clip-path: polygon(0 0, 53% 0, 42% 100%, 0 100%);
+  }
+
+  .site-v2.v2-theme.theme-dia-das-criancas .v2-hero::after {
+    clip-path: polygon(52.3% 0, 53% 0, 42.7% 100%, 42% 100%);
+  }
+}
+
+@media (max-width: 1024px) {
+  .site-v2.v2-theme.theme-dia-das-criancas .v2-segments-inner {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .site-v2.v2-theme.theme-dia-das-criancas .v2-segments-intro h2 {
+    max-width: none;
+  }
+}
+
+@media (min-width: 761px) and (max-width: 860px) {
+  .site-v2.v2-theme.theme-dia-das-criancas .v2-hero-inner {
+    min-height: 360px;
+  }
+
+  .site-v2.v2-theme.theme-dia-das-criancas .v2-hero-copy {
+    width: 45%;
+  }
+
+  .site-v2.v2-theme.theme-dia-das-criancas .v2-hero-media::before {
+    clip-path: polygon(0 0, 58% 0, 47% 100%, 0 100%);
+  }
+
+  .site-v2.v2-theme.theme-dia-das-criancas .v2-hero::after {
+    clip-path: polygon(57.3% 0, 58% 0, 47.7% 100%, 47% 100%);
+  }
+}
+
+/* Mobile: texto acima e arte original 3:2 inteira abaixo.
+   A faixa decorativa fica fora da região de leitura. */
+
+@media (max-width: 760px) {
+  .site-v2.v2-theme.theme-dia-das-criancas .v2-header-inner {
+    flex-wrap: wrap;
+    min-height: 72px;
+    gap: 10px 12px;
+    padding-block: 10px 12px;
+  }
+
+  .site-v2.v2-theme.theme-dia-das-criancas .v2-menu-button {
+    order: 2;
+  }
+
+  .site-v2.v2-theme.theme-dia-das-criancas .v2-search {
+    order: 3;
+    flex: 1 1 100%;
+    width: 100%;
+  }
+
+  .site-v2.v2-theme.theme-dia-das-criancas .v2-suggest {
+    width: 100%;
+  }
+
+  .site-v2.v2-theme.theme-dia-das-criancas .v2-hero-inner {
+    min-height: 0;
+    padding-block: 26px calc(66.667vw + 16px);
+  }
+
+  .site-v2.v2-theme.theme-dia-das-criancas .v2-hero-copy {
+    width: 100%;
+    max-width: 560px;
+    gap: 12px;
+  }
+
+  .site-v2.v2-theme.theme-dia-das-criancas .v2-hero h2 {
+    font-size: clamp(30px, 7.5vw, 44px);
+    line-height: 1.08;
+  }
+
+  .site-v2.v2-theme.theme-dia-das-criancas .v2-hero-media {
+    background-color: #fff1bc;
+    background-image: var(--t-hero);
+    background-position: center bottom;
+    background-size: 100% auto;
+  }
+
+  .site-v2.v2-theme.theme-dia-das-criancas .v2-hero-media::before {
+    clip-path: none;
+    background: linear-gradient(
+      180deg,
+      #fff1bc 0,
+      #fff1bc calc(100% - 66.667vw),
+      transparent calc(100% - 57vw)
+    );
+  }
+
+  .site-v2.v2-theme.theme-dia-das-criancas .v2-hero::after {
+    display: none;
+  }
+
+  .site-v2.v2-theme.theme-dia-das-criancas .v2-benefits-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .site-v2.v2-theme.theme-dia-das-criancas .v2-benefit {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 9px;
+    min-height: 0;
+    padding: 12px;
+  }
+
+  .site-v2.v2-theme.theme-dia-das-criancas .v2-segments-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .site-v2.v2-theme.theme-dia-das-criancas .v2-segments,
+  .site-v2.v2-theme.theme-dia-das-criancas .v2-featured {
+    padding-block: 20px;
+  }
+
+  .site-v2.v2-theme.theme-dia-das-criancas .v2-product-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .site-v2.v2-theme.theme-dia-das-criancas .v2-brands-head,
+  .site-v2.v2-theme.theme-dia-das-criancas .v2-section-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .site-v2.v2-theme.theme-dia-das-criancas .v2-contact {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 20px 18px 130px;
+  }
+
+  .site-v2.v2-theme.theme-dia-das-criancas .v2-contact::after {
+    width: 120px;
+    height: 120px;
+  }
+
+  .site-v2.v2-theme.theme-dia-das-criancas .v2-contact-main {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .site-v2.v2-theme.theme-dia-das-criancas .v2-contact-list {
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .site-v2.v2-theme.theme-dia-das-criancas .v2-contact-list li {
+    max-width: 100%;
+    padding-inline: 0;
+    border-left: 0;
+  }
+
+  .site-v2.v2-theme.theme-dia-das-criancas .v2-footer-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px 16px;
+  }
+
+  .site-v2.v2-theme.theme-dia-das-criancas .v2-footer-cta .v2-button {
+    padding-inline: 14px;
+  }
+}
+
+@media (max-width: 380px) {
+  .site-v2.v2-theme.theme-dia-das-criancas .v2-footer-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Não há animação decorativa nova.
+   Mantém compatibilidade com a pausa e a preferência do sistema. */
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-hero.is-paused *,
+.site-v2.v2-theme.theme-dia-das-criancas .v2-hero.is-paused *::before,
+.site-v2.v2-theme.theme-dia-das-criancas .v2-hero.is-paused *::after {
+  animation-play-state: paused !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-v2.v2-theme.theme-dia-das-criancas *,
+  .site-v2.v2-theme.theme-dia-das-criancas *::before,
+  .site-v2.v2-theme.theme-dia-das-criancas *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

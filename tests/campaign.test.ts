@@ -9,7 +9,6 @@ import {
   defaultCampaign,
   campaignPreset,
   campaignSlides,
-  campaignSkin,
 } from '../lib/catalog-campaign';
 import {
   defaultConfig,
@@ -28,14 +27,8 @@ import {
 import type { Product } from '../lib/catalog-data';
 
 void test('public navigation downloads the Android app stored in R2', async () => {
-  const source = readFileSync('components/catalog-app.tsx', 'utf8');
   const routeSource = readFileSync('app/api/app-download/route.ts', 'utf8');
-  // Os dois layouts têm o link no menu do cabeçalho: o dos temas depois de
-  // Marcas; o novo (site-sections) depois de Contato, junto do PDF.
-  const brands = source.indexOf('>Marcas</a>');
-  const download = source.lastIndexOf('Baixe o app');
-  assert.ok(brands >= 0 && download > brands);
-  assert.match(source, /href="\/api\/app-download" download/);
+  // O link fica no menu do cabeçalho (site-sections), junto do PDF.
   const sections = readFileSync('components/site-sections.tsx', 'utf8');
   const nav = sections.slice(sections.indexOf('aria-label="Principal"'));
   assert.match(nav, /href="\/api\/app-download"\s+download/);
@@ -263,23 +256,14 @@ void test('campaign reading panels and closed filters are transparent while nati
   );
 });
 
-void test('public catalog keeps one header search and only hierarchy filters in one taxonomy row', () => {
+void test('public catalog keeps one header search and the hierarchy filters in the catalog column', () => {
+  const sections = readFileSync('components/site-sections.tsx', 'utf8');
+  assert.equal((sections.match(/id="v2-search-input"/g) ?? []).length, 1);
   const source = readFileSync('components/catalog-app.tsx', 'utf8');
-  assert.equal((source.match(/aria-label="Buscar produtos"/g) ?? []).length, 1);
-  assert.match(source, /className="header-search"/);
-  const taxonomy = source.slice(
-    source.indexOf('catalog-toolbar catalog-taxonomy-toolbar'),
-    source.indexOf(
-      '<section',
-      source.indexOf('catalog-toolbar catalog-taxonomy-toolbar'),
-    ),
-  );
-  assert.match(taxonomy, /aria-label="Departamento"/);
-  assert.match(taxonomy, /label="Seção"/);
-  assert.match(taxonomy, /label="Categoria"/);
-  // Marca entrou com o layout novo (pedido de 27/10/2026); segmento e
-  // "limpar filtros" continuam fora.
-  assert.doesNotMatch(taxonomy, /label="Segmento"|Limpar filtros|search-field/);
+  const filters = source.slice(source.indexOf('className="v2-filters"'));
+  for (const label of ["'Departamento'", "'Seção'", "'Categoria'", "'Marca'"])
+    assert.ok(filters.includes(label), label);
+  assert.doesNotMatch(filters, /'Segmento'/);
   const css = readFileSync('app/globals.css', 'utf8');
   assert.match(
     css,
@@ -426,21 +410,4 @@ void test('legacy settings receive campaign defaults without overwriting saved i
   assert.equal((await postConfig(req('https://catalog.test'))).status, 403);
   setIdentity('admin@example.test');
   assert.equal((await postConfig(req('https://other.test'))).status, 403);
-});
-
-void test('Black Friday theme changes the whole site only with the ready-made theme active', () => {
-  assert.equal(
-    campaignSkin({ enabled: true, mode: 'theme', theme: 'black-friday' })?.id,
-    'black-friday',
-  );
-  // "Minha imagem" e carrossel guardam o último tema, mas não mudam o site.
-  assert.equal(campaignSkin({ enabled: true, mode: 'image', theme: 'black-friday' }), null);
-  assert.equal(campaignSkin({ enabled: true, mode: 'carousel', theme: 'black-friday' }), null);
-  assert.equal(campaignSkin({ enabled: false, mode: 'theme', theme: 'black-friday' }), null);
-  assert.equal(campaignSkin({ enabled: true, mode: 'theme', theme: 'natal' }), null);
-  assert.equal(
-    campaignSkin({ enabled: true, mode: 'theme', theme: 'padrao' }),
-    null,
-  );
-  assert.equal(campaignSkin(undefined), null);
 });

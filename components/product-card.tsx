@@ -44,6 +44,9 @@ export function ProductCard({
           )}
         </span>
       </span>
+      {/* Enfeites do tema de data (só aparecem com .v2-theme). */}
+      <span className="td-card-charm" aria-hidden="true" />
+      <span className="td-card-decor" aria-hidden="true" />
     </button>
   );
 }

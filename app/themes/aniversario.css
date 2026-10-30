@@ -1,0 +1,903 @@
+/* Ajustes exclusivos do tema Aniversário.
+ * Usa as duas artes existentes.
+ * Decoração estática: não adiciona animações.
+ */
+
+.site-v2.v2-theme.theme-aniversario {
+  --t-dark: #042650;
+  --t-rgb: 4, 38, 80;
+  --t-footer: #042650;
+  --t-accent: #c79528;
+  --t-on-accent: #042650;
+  --t-link: #795710;
+  --t-title-accent: #00bcea;
+  --t-support: #c79528;
+  --t-paper: #fcfdff;
+  --t-soft: #f0f7fc;
+  --t-tint: #eaf3fb;
+  --t-border: #dde7ef;
+  --t-ink: #042650;
+  --t-muted: #526078;
+  --t-icon: "★";
+  --t-hero: url("/themes/aniversario.webp");
+  --t-panel: url("/themes/aniversario-painel.webp");
+
+  --v2-blue: #0755ac;
+  --v2-blue-dark: #042650;
+  --v2-navy: #042650;
+  --v2-radius: 8px;
+  --v2-width: min(1840px, calc(100% - 2 * clamp(16px, 5vw, 80px)));
+
+  background: var(--t-paper);
+  color: var(--t-ink);
+}
+
+/* Barra superior e cabeçalho */
+
+.site-v2.v2-theme.theme-aniversario .v2-topbar {
+  background: linear-gradient(100deg, #042650, #0755ac);
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-topbar-inner {
+  min-height: 36px;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-topbar-message {
+  padding-block: 7px;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-topbar .v2-topbar-rca {
+  min-height: 36px;
+  background: #c79528;
+  color: #042650;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-header {
+  background: #fff;
+  border-bottom: 2px solid #c79528;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-header-inner {
+  min-height: 76px;
+  gap: clamp(12px, 1.5vw, 28px);
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-nav {
+  gap: clamp(12px, 1.3vw, 24px);
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-nav a {
+  color: #042650;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-nav a.is-active {
+  color: #795710;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-nav a::after {
+  background: #c79528;
+  pointer-events: none;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-logo,
+.site-v2.v2-theme.theme-aniversario .v2-footer-logo {
+  background-color: #fff;
+}
+
+/* Preserva o asset, suas cores e o recorte original da logo. */
+.site-v2.v2-theme.theme-aniversario .v2-logo img,
+.site-v2.v2-theme.theme-aniversario .v2-footer-logo img {
+  filter: none;
+  mix-blend-mode: normal;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-search {
+  min-width: 0;
+  height: 44px;
+  border-color: #dde7ef;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-search input::placeholder {
+  color: #526078;
+  opacity: 1;
+}
+
+/* Botões: texto azul sobre dourado para contraste. */
+
+.site-v2.v2-theme.theme-aniversario .v2-button {
+  min-height: 44px;
+  padding-inline: 22px;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-button-small {
+  min-height: 36px;
+  padding-inline: 18px;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-button-red,
+.site-v2.v2-theme.theme-aniversario .v2-button-red:hover {
+  background: #c79528;
+  color: #042650;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-button-outline {
+  min-height: 38px;
+}
+
+/* Hero:
+ * a arte fica em um quadro menor, reduzindo o corte vertical do cover;
+ * a diagonal acompanha exatamente a borda desse quadro.
+ */
+
+.site-v2.v2-theme.theme-aniversario .v2-hero {
+  display: block;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 16% 14%, #0755ac 0%, transparent 65%),
+    #042650;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-hero-media {
+  position: absolute;
+  inset: 0 0 0 auto;
+  z-index: -2;
+  width: 61%;
+  height: 100%;
+  background-color: #042650;
+  background-image: var(--t-hero);
+  background-size: cover;
+  background-position: right center;
+  background-repeat: no-repeat;
+  clip-path: polygon(15% 0, 100% 0, 100% 100%, 0 100%);
+  pointer-events: none;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-hero-media::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    rgb(4 38 80 / 48%),
+    rgb(4 38 80 / 8%) 32%,
+    transparent 60%
+  );
+  pointer-events: none;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-hero::after {
+  content: "";
+  display: block;
+  position: absolute;
+  inset: 0 0 0 auto;
+  z-index: -1;
+  width: 61%;
+  height: 100%;
+  background: linear-gradient(
+    180deg,
+    #ffe9a0,
+    #c79528 42%,
+    #ffecad 75%,
+    #c79528
+  );
+  clip-path: polygon(14.2% 0, 15.5% 0, 1.3% 100%, 0 100%);
+  pointer-events: none;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-hero-inner {
+  min-height: clamp(310px, 23.8vw, 420px);
+  padding-block: 28px;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-hero-copy {
+  width: 43%;
+  max-width: 640px;
+  gap: 10px;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-hero h2 {
+  margin: 0;
+  color: #fff;
+  font-size: clamp(30px, 3vw, 48px);
+  line-height: 1.06;
+  text-wrap: initial;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-hero-title-accent {
+  display: block;
+  color: #00bcea;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-hero p {
+  max-width: 390px;
+  color: #fff;
+  font-size: clamp(15px, 1.35vw, 19px);
+  line-height: 1.4;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-hero-eyebrow {
+  color: #b9efff;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-hero-eyebrow .td-theme-mark {
+  color: #f1ce75;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-hero .v2-button {
+  margin-top: 4px;
+}
+
+/* Diferenciais imediatamente abaixo do banner. */
+
+.site-v2.v2-theme.theme-aniversario .v2-benefits {
+  position: relative;
+  margin-top: 0;
+  padding-block: 16px;
+  background: #fcfdff;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-benefits-grid {
+  gap: 16px;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-benefit {
+  min-height: 76px;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 3px 12px rgb(4 38 80 / 5%);
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-benefit-icon {
+  width: 48px;
+  height: 48px;
+  background: #eaf3fb;
+  color: #0755ac;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-benefit-icon svg {
+  width: 25px;
+  height: 25px;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-benefit strong {
+  font-size: 14px;
+  line-height: 1.3;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-benefit small {
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+/* Segmentos: decoração discreta, sem interceptar cliques. */
+
+.site-v2.v2-theme.theme-aniversario .v2-segments {
+  position: relative;
+  isolation: isolate;
+  padding-block: 20px 24px;
+  background: #f0f7fc;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-segments::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image: var(--t-panel);
+  background-position: center;
+  background-size: cover;
+  opacity: 0.045;
+  pointer-events: none;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-segments-inner {
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 2.3fr);
+  gap: clamp(20px, 3vw, 48px);
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-segments-intro {
+  gap: 9px;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-segments-intro h2,
+.site-v2.v2-theme.theme-aniversario .v2-section-head h2 {
+  color: #042650;
+  font-size: clamp(26px, 2.55vw, 38px);
+  line-height: 1.08;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-segments-intro p {
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-segments-intro .v2-button {
+  margin-top: 3px;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-segments-grid {
+  gap: 16px;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-segment-card {
+  border-radius: 7px;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-segment-body {
+  gap: 4px;
+  padding: 10px 12px 12px;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-segment-badge {
+  width: 28px;
+  height: 28px;
+  margin-bottom: 3px;
+  background: #0755ac;
+  color: #fff;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-segment-body strong {
+  font-size: 14px;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-segment-body small {
+  font-size: 12px;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-segment-more {
+  margin-top: 4px;
+  color: #795710;
+  font-size: 12px;
+}
+
+/* Painéis: ilumina as bordas sem clarear a região dos textos.
+ * Mantém a especificidade das regras compartilhadas.
+ */
+
+.site-v2.v2-theme.theme-aniversario .v2-brands-wrap {
+  padding-block: 20px;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-brands-wrap:not(.v2-new-wrap) .v2-brands,
+.site-v2.v2-theme.theme-aniversario .v2-new-wrap .v2-brands.v2-offers,
+.site-v2.v2-theme.theme-aniversario .v2-new-wrap .v2-brands:not(.v2-offers) {
+  padding: 18px clamp(18px, 2.4vw, 34px) 12px;
+  border: 1px solid rgb(4 38 80 / 12%);
+  border-radius: 10px;
+  background-color: #042650;
+  background-image:
+    linear-gradient(
+      90deg,
+      rgb(4 38 80 / 12%) 0%,
+      rgb(4 38 80 / 94%) 16%,
+      rgb(7 65 126 / 94%) 80%,
+      rgb(4 38 80 / 12%) 100%
+    ),
+    var(--t-panel);
+  background-position: center, center;
+  background-size: cover, cover;
+  background-repeat: no-repeat;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-brands-head {
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-brands-head h2 {
+  margin-top: 4px;
+  font-size: clamp(24px, 2.5vw, 36px);
+  line-height: 1.1;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-brands-head p {
+  margin-top: 5px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+/* Fundo sólido sob textos impede perda de contraste sobre confetes. */
+.site-v2.v2-theme.theme-aniversario .v2-brands-head > div,
+.site-v2.v2-theme.theme-aniversario .v2-brands .v2-link-light,
+.site-v2.v2-theme.theme-aniversario .v2-panel-note {
+  border-radius: 4px;
+  background-color: #042650;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-brands-head > div {
+  padding: 3px 7px;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-brands .v2-link-light {
+  padding-inline: 7px;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-brands .v2-eyebrow-light {
+  color: #f1ce75;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-panel-note {
+  margin-top: 10px;
+  padding: 4px 7px;
+  color: #fff;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+/* Logos, placas de marca, trilhos, slides, setas e dots
+ * mantêm suas regras e dimensões existentes.
+ */
+
+/* Destaques: reduz a altura das fotos, sem deformar as embalagens. */
+
+.site-v2.v2-theme.theme-aniversario .v2-featured {
+  padding-block: 12px 20px;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-section-head {
+  margin-bottom: 14px;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-section-head p {
+  font-size: 14px;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-featured .v2-product-grid {
+  gap: 12px;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-featured .product-card {
+  border-radius: 7px;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-featured .product-card .product-image-wrap,
+.site-v2.v2-theme.theme-aniversario .v2-featured .product-card:not(.without-photo) .product-image-wrap {
+  height: auto;
+  aspect-ratio: 1 / 0.62;
+  padding: 10px 14px;
+  background: #fff;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-featured .product-card .product-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-featured .product-card-body {
+  padding: 8px 10px 10px;
+}
+
+/* Necessário contra carousel-color-fix.css. */
+.site-v2.v2-theme.theme-aniversario .product-card .product-brand {
+  color: #795710 !important;
+}
+
+.site-v2.v2-theme.theme-aniversario .product-card .product-name {
+  color: #042650 !important;
+}
+
+.site-v2.v2-theme.theme-aniversario .product-card .product-card-meta,
+.site-v2.v2-theme.theme-aniversario .product-card .product-card-meta span {
+  color: #526078 !important;
+}
+
+.site-v2.v2-theme.theme-aniversario .product-card .td-card-charm {
+  color: #c79528;
+  pointer-events: none;
+}
+
+/* Ofertas: selo azul como no esboço.
+ * Mantém a reserva de 48px do tema-base para datas em duas linhas.
+ */
+
+.site-v2.v2-theme.theme-aniversario #ofertas.v2-new-wrap {
+  padding-block: 0 16px;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-new-wrap .v2-offers .v2-new-badge {
+  background: #042650;
+  color: #fff;
+  border: 1px solid #dce7f1;
+  letter-spacing: 0;
+}
+
+/* Contato */
+
+.site-v2.v2-theme.theme-aniversario .v2-contact-wrap {
+  padding-block: 0 20px;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-contact {
+  min-height: 118px;
+  gap: 20px;
+  padding: 18px 22px;
+  border-radius: 10px;
+  background-color: #042650;
+  background-image:
+    linear-gradient(
+      90deg,
+      #042650 0%,
+      #064483 68%,
+      rgb(4 38 80 / 12%) 100%
+    ),
+    var(--t-panel);
+  background-position: center, right center;
+  background-size: cover, auto 100%;
+  background-repeat: no-repeat;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-contact-main {
+  gap: 14px;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-contact-icon {
+  width: 58px;
+  height: 58px;
+  background: #c79528;
+  color: #042650;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-contact-icon svg {
+  width: 28px;
+  height: 28px;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-contact h2 {
+  font-size: clamp(21px, 1.8vw, 28px);
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-contact p {
+  margin-block: 5px 8px;
+  font-size: 13px;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-contact-list {
+  min-width: 0;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-contact-list li {
+  padding-inline: 12px;
+  gap: 9px;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-contact-list strong {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-contact-list svg {
+  width: 22px;
+  height: 22px;
+}
+
+/* Rodapé compacto, sem esconder avisos ou identificação. */
+
+.site-v2.v2-theme.theme-aniversario .v2-footer {
+  padding-top: 22px;
+  border-top: 3px solid #c79528;
+  border-bottom: 0;
+  background: linear-gradient(110deg, #06346b, #042650 75%);
+  font-size: 13px;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-footer-grid {
+  gap: 20px;
+  padding-bottom: 18px;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-footer-brand p {
+  margin-top: 10px;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-footer-col {
+  gap: 7px;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-footer-cta {
+  gap: 10px;
+  padding: 14px;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-footer-notice {
+  padding-top: 10px;
+  font-size: 12px;
+}
+
+.site-v2.v2-theme.theme-aniversario .v2-footer-bottom {
+  padding-block: 12px;
+  font-size: 12px;
+}
+
+/* Desktop: conserva seis produtos por linha. */
+
+@media (min-width: 1181px) {
+  .site-v2.v2-theme.theme-aniversario .v2-featured .v2-product-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+
+  .site-v2.v2-theme.theme-aniversario .v2-footer-grid {
+    grid-template-columns:
+      minmax(0, 1.25fr)
+      minmax(0, 0.85fr)
+      minmax(0, 1.45fr)
+      minmax(0, 0.8fr)
+      minmax(0, 1.15fr);
+  }
+}
+
+@media (min-width: 1361px) {
+  .site-v2.v2-theme.theme-aniversario .v2-contact {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.55fr);
+    padding-right: 12%;
+  }
+}
+
+/* Mantém a busca em outra linha onde o menu completo não cabe.
+ * Não esconde controles para imitar a captura.
+ */
+
+@media (min-width: 1025px) and (max-width: 1300px) {
+  .site-v2.v2-theme.theme-aniversario .v2-header-inner {
+    flex-wrap: wrap;
+    padding-block: 10px;
+  }
+
+  .site-v2.v2-theme.theme-aniversario .v2-nav {
+    flex-wrap: wrap;
+    gap: 10px 14px;
+  }
+
+  .site-v2.v2-theme.theme-aniversario .v2-search {
+    flex: 1 1 100%;
+  }
+}
+
+@media (max-width: 1360px) {
+  .site-v2.v2-theme.theme-aniversario .v2-contact {
+    grid-template-columns: minmax(0, 1fr);
+    padding-right: 20%;
+  }
+
+  .site-v2.v2-theme.theme-aniversario .v2-contact-list {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 1024px) {
+  .site-v2.v2-theme.theme-aniversario .v2-segments-inner {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .site-v2.v2-theme.theme-aniversario .v2-benefits-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .site-v2.v2-theme.theme-aniversario .v2-nav {
+    gap: 0;
+  }
+
+  .site-v2.v2-theme.theme-aniversario .v2-hero-copy {
+    width: 44%;
+    max-width: none;
+  }
+
+  .site-v2.v2-theme.theme-aniversario .v2-hero h2 {
+    font-size: clamp(28px, 3.3vw, 34px);
+  }
+}
+
+@media (max-width: 860px) {
+  .site-v2.v2-theme.theme-aniversario .v2-hero-inner {
+    min-height: 340px;
+    padding-block: 28px;
+  }
+
+  .site-v2.v2-theme.theme-aniversario .v2-segments-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Mobile: arte inteira em uma área própria abaixo do texto.
+ * A altura acompanha a proporção 3:2, sem deformar ou cortar o bolo.
+ */
+
+@media (max-width: 760px) {
+  .site-v2.v2-theme.theme-aniversario {
+    --v2-width: calc(100% - 32px);
+  }
+
+  .site-v2.v2-theme.theme-aniversario .v2-header-inner {
+    flex-wrap: wrap;
+    gap: 10px 12px;
+    padding-block: 10px 12px;
+  }
+
+  .site-v2.v2-theme.theme-aniversario .v2-menu-button {
+    order: 2;
+  }
+
+  .site-v2.v2-theme.theme-aniversario .v2-search {
+    order: 3;
+    flex-basis: 100%;
+    width: 100%;
+  }
+
+  .site-v2.v2-theme.theme-aniversario .v2-suggest {
+    width: 100%;
+  }
+
+  .site-v2.v2-theme.theme-aniversario .v2-hero {
+    background: #042650;
+  }
+
+  .site-v2.v2-theme.theme-aniversario .v2-hero-inner {
+    min-height: 0;
+    padding-block: 26px calc(66.6667vw + 20px);
+  }
+
+  .site-v2.v2-theme.theme-aniversario .v2-hero-copy {
+    width: 100%;
+    max-width: none;
+    gap: 12px;
+  }
+
+  .site-v2.v2-theme.theme-aniversario .v2-hero h2 {
+    font-size: clamp(28px, 6vw, 38px);
+    line-height: 1.1;
+  }
+
+  .site-v2.v2-theme.theme-aniversario .v2-hero p {
+    max-width: 42ch;
+    font-size: 15px;
+  }
+
+  .site-v2.v2-theme.theme-aniversario .v2-hero-media {
+    inset: auto 0 0;
+    width: 100%;
+    height: 66.6667vw;
+    background-size: contain;
+    background-position: center bottom;
+    clip-path: none;
+  }
+
+  .site-v2.v2-theme.theme-aniversario .v2-hero-media::before {
+    background: linear-gradient(
+      180deg,
+      #042650,
+      rgb(4 38 80 / 22%) 12%,
+      transparent 25%
+    );
+  }
+
+  .site-v2.v2-theme.theme-aniversario .v2-hero::after {
+    inset: auto 0 calc(66.6667vw - 12px);
+    width: 100%;
+    height: 18px;
+    clip-path: polygon(0 70%, 100% 0, 100% 20%, 0 90%);
+  }
+
+  .site-v2.v2-theme.theme-aniversario .v2-benefits-grid {
+    gap: 10px;
+  }
+
+  .site-v2.v2-theme.theme-aniversario .v2-benefit {
+    min-width: 0;
+    min-height: 0;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 12px;
+    gap: 8px;
+  }
+
+  .site-v2.v2-theme.theme-aniversario .v2-benefit strong {
+    font-size: 13px;
+    overflow-wrap: anywhere;
+  }
+
+  .site-v2.v2-theme.theme-aniversario .v2-segments {
+    padding-block: 22px;
+  }
+
+  .site-v2.v2-theme.theme-aniversario .v2-segments-grid {
+    gap: 12px;
+  }
+
+  .site-v2.v2-theme.theme-aniversario .v2-segment-body {
+    padding: 10px;
+  }
+
+  .site-v2.v2-theme.theme-aniversario .v2-brands-head,
+  .site-v2.v2-theme.theme-aniversario .v2-section-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .site-v2.v2-theme.theme-aniversario .v2-brands-wrap:not(.v2-new-wrap) .v2-brands,
+  .site-v2.v2-theme.theme-aniversario .v2-new-wrap .v2-brands.v2-offers,
+  .site-v2.v2-theme.theme-aniversario .v2-new-wrap .v2-brands:not(.v2-offers) {
+    padding: 16px 12px 12px;
+  }
+
+  .site-v2.v2-theme.theme-aniversario .v2-featured .v2-product-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .site-v2.v2-theme.theme-aniversario .v2-featured .product-card .product-image-wrap,
+  .site-v2.v2-theme.theme-aniversario .v2-featured .product-card:not(.without-photo) .product-image-wrap {
+    aspect-ratio: 1 / 0.82;
+    padding: 12px;
+  }
+
+  .site-v2.v2-theme.theme-aniversario .v2-contact {
+    padding: 20px 16px;
+    background-image:
+      linear-gradient(90deg, rgb(4 38 80 / 97%), rgb(4 38 80 / 92%)),
+      var(--t-panel);
+  }
+
+  .site-v2.v2-theme.theme-aniversario .v2-contact-main {
+    align-items: flex-start;
+  }
+
+  .site-v2.v2-theme.theme-aniversario .v2-contact-list {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .site-v2.v2-theme.theme-aniversario .v2-contact-list li {
+    padding-inline: 0;
+    border-left: 0;
+  }
+
+  .site-v2.v2-theme.theme-aniversario .v2-contact-list strong {
+    overflow-wrap: anywhere;
+  }
+
+  .site-v2.v2-theme.theme-aniversario .v2-footer-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px 16px;
+  }
+
+  .site-v2.v2-theme.theme-aniversario .v2-footer-cta .v2-button {
+    min-width: 0;
+    max-width: 100%;
+    white-space: normal;
+  }
+}
+
+@media (max-width: 380px) {
+  .site-v2.v2-theme.theme-aniversario .v2-footer-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* As decorações adicionadas são estáticas.
+ * Inclui o pseudo-elemento do próprio hero no estado de pausa.
+ */
+
+.site-v2.v2-theme.theme-aniversario .v2-hero.is-paused::after {
+  animation-play-state: paused !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-v2.v2-theme.theme-aniversario,
+  .site-v2.v2-theme.theme-aniversario *,
+  .site-v2.v2-theme.theme-aniversario *::before,
+  .site-v2.v2-theme.theme-aniversario *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

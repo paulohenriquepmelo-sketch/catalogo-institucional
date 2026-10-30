@@ -1,0 +1,930 @@
+/*
+ * Dia das Mães — ajustes sobre site-v2.css e theme-v4.css.
+ * Decoração estática. Não modifica dados, controles ou lógica.
+ */
+
+.site-v2.v2-theme.theme-dia-das-maes {
+  --t-dark: #741334;
+  --t-rgb: 116, 19, 52;
+  --t-footer: #491329;
+  --t-accent: #d90858;
+  --t-on-accent: #ffffff;
+  --t-link: #ad0845;
+  --t-title-accent: #c5074b;
+  --t-support: #fce8ec;
+  --t-paper: #fffdfd;
+  --t-soft: #fff3f6;
+  --t-tint: #fce8ec;
+  --t-border: #eddde3;
+  --t-ink: #2d1424;
+  --t-muted: #65505c;
+  --t-icon: "♥";
+  --t-hero: url("/themes/dia-das-maes-etiqueta.webp");
+  --t-panel: url("/themes/dia-das-maes-painel.webp");
+
+  --v2-width: min(1840px, calc(100% - 2 * clamp(16px, 5vw, 96px)));
+  --v2-radius: 8px;
+
+  background: var(--t-paper);
+  color: var(--t-ink);
+}
+
+/* Cabeçalho: mantém o recorte e as proporções originais da logo. */
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-topbar {
+  background: linear-gradient(100deg, #741334, #a31b47);
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-topbar-inner {
+  min-height: 34px;
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-topbar-message {
+  padding-block: 6px;
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-topbar .v2-topbar-rca {
+  min-height: 34px;
+  background: #ac1247;
+  box-shadow: none;
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-topbar .v2-topbar-rca:hover {
+  background: #900c39;
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-header {
+  background: #ffffff;
+  border-bottom: 1px solid #efd9e1;
+  box-shadow: 0 2px 12px rgb(116 19 52 / 5%);
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-header-inner {
+  min-height: 76px;
+  gap: clamp(12px, 1.6vw, 28px);
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-logo,
+.site-v2.v2-theme.theme-dia-das-maes .v2-footer-logo {
+  background-color: #ffffff;
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-nav {
+  gap: clamp(12px, 1.55vw, 28px);
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-nav a {
+  color: var(--t-dark);
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-nav a:hover,
+.site-v2.v2-theme.theme-dia-das-maes .v2-nav a.is-active {
+  color: var(--t-link);
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-nav .v2-editor-link,
+.site-v2.v2-theme.theme-dia-das-maes .v2-nav .v2-nav-download {
+  color: var(--t-dark);
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-nav .v2-nav-download {
+  border-color: var(--t-border);
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-nav .v2-nav-download:hover {
+  background: var(--t-soft);
+  border-color: var(--t-link);
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-search {
+  min-width: 0;
+  height: 44px;
+  border-color: var(--t-border);
+  background: #ffffff;
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-search:focus-within {
+  border-color: var(--t-link);
+  box-shadow: 0 0 0 3px rgb(217 8 88 / 12%);
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-search-icon,
+.site-v2.v2-theme.theme-dia-das-maes .v2-search button,
+.site-v2.v2-theme.theme-dia-das-maes .v2-menu-button,
+.site-v2.v2-theme.theme-dia-das-maes .v2-suggest-text strong {
+  color: var(--t-dark);
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-search input::placeholder {
+  color: var(--t-muted);
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-search .v2-suggest-all {
+  background: var(--t-soft);
+  color: var(--t-link);
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-search .v2-suggest-all:hover {
+  background: var(--t-tint);
+}
+
+/* Hero claro, com transição diagonal suave para a fotografia. */
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-hero {
+  display: block;
+  background:
+    radial-gradient(ellipse at 18% 12%, #fffafa 0%, transparent 58%),
+    #fce8ec;
+  color: var(--t-ink);
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-hero-media {
+  position: absolute;
+  inset: 0 0 0 auto;
+  width: 68%;
+  height: 100%;
+  background-color: #fce8ec;
+  background-image: var(--t-hero);
+  background-position: right center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  clip-path: polygon(12% 0, 100% 0, 100% 100%, 0 100%);
+  pointer-events: none;
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-hero-media::before {
+  background: linear-gradient(
+    105deg,
+    #fce8ec 0%,
+    rgb(252 232 236 / 98%) 10%,
+    rgb(252 232 236 / 76%) 24%,
+    rgb(252 232 236 / 18%) 43%,
+    transparent 60%
+  );
+  pointer-events: none;
+}
+
+/* Não restaura o filete vermelho do layout institucional. */
+.site-v2.v2-theme.theme-dia-das-maes .v2-hero::after {
+  display: none;
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-hero-inner {
+  min-height: clamp(330px, 26vw, 440px);
+  padding-block: 28px;
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-hero-copy {
+  width: 42%;
+  max-width: 570px;
+  gap: 10px;
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-hero h2 {
+  color: var(--t-ink);
+  font-size: clamp(32px, 3.15vw, 52px);
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+  text-wrap: initial;
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-hero-title-accent {
+  display: block;
+  color: var(--t-title-accent);
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-hero p {
+  max-width: 430px;
+  color: var(--t-ink);
+  font-size: clamp(15px, 1.2vw, 18px);
+  line-height: 1.4;
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-hero-eyebrow,
+.site-v2.v2-theme.theme-dia-das-maes .v2-hero-eyebrow .td-theme-mark {
+  color: var(--t-link);
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-hero .v2-button {
+  margin-top: 6px;
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-button-red {
+  background: var(--t-accent);
+  color: #ffffff;
+  box-shadow: 0 5px 14px rgb(173 8 69 / 17%);
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-button-red:hover {
+  background: #b90749;
+  color: #ffffff;
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-button-outline {
+  background: #ffffff;
+  color: var(--t-link);
+  border-color: var(--t-border);
+}
+
+/* Benefícios imediatamente abaixo do hero, sem sobreposição. */
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-benefits {
+  position: relative;
+  margin-top: 0;
+  padding-block: 14px 18px;
+  background: #ffffff;
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-benefits-grid {
+  gap: 16px;
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-benefit {
+  min-height: 84px;
+  gap: 14px;
+  padding: 14px 18px;
+  border-color: #eee4e8;
+  box-shadow: 0 3px 14px rgb(116 19 52 / 5%);
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-benefit-icon {
+  width: 48px;
+  height: 48px;
+  background: #fff0f5;
+  color: var(--t-accent);
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-benefit-icon svg {
+  width: 26px;
+  height: 26px;
+}
+
+/* Segmentos: faixa mais clara, com decoração restrita à margem. */
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-segments {
+  position: relative;
+  isolation: isolate;
+  padding-block: 18px 22px;
+  background: linear-gradient(105deg, #fff1f5, #fff9fb);
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-segments::before {
+  content: "";
+  position: absolute;
+  top: 16px;
+  bottom: 16px;
+  left: 6px;
+  width: clamp(8px, 2vw, 24px);
+  z-index: -1;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='104' viewBox='0 0 24 104'%3E%3Cpath fill='%23ec6b94' fill-opacity='.13' d='M12 23C9 20 3 16 3 11a5 5 0 0 1 9-3 5 5 0 0 1 9 3c0 5-6 9-9 12Z'/%3E%3C/svg%3E");
+  background-size: 100% auto;
+  background-repeat: repeat-y;
+  pointer-events: none;
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-segments-inner {
+  grid-template-columns: minmax(0, 0.38fr) minmax(0, 1fr);
+  gap: clamp(20px, 2.6vw, 40px);
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-segments-intro {
+  gap: 9px;
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-segments-intro h2 {
+  max-width: 11em;
+  line-height: 1.04;
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-segments-intro p {
+  line-height: 1.4;
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-segments-intro .v2-button {
+  margin-top: 3px;
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-segments-grid {
+  gap: 14px;
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-segment-card {
+  border-color: #eee0e6;
+  box-shadow: 0 3px 12px rgb(116 19 52 / 5%);
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-segment-body {
+  gap: 4px;
+  padding: 11px 13px 13px;
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-segment-badge {
+  width: 28px;
+  height: 28px;
+  margin-bottom: 2px;
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-segment-badge svg {
+  width: 16px;
+  height: 16px;
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-segment-more {
+  margin-top: 5px;
+}
+
+/* Painéis: mesma arte, com enquadramentos e tonalidades diferentes.
+ * A camada vinho protege a leitura dos textos sobre a fotografia.
+ */
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-brands-wrap {
+  padding-block: 14px;
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-brands-wrap:not(.v2-new-wrap) .v2-brands {
+  background-color: var(--t-dark);
+  background-image:
+    linear-gradient(
+      100deg,
+      rgb(116 19 52 / 90%) 0%,
+      rgb(116 19 52 / 86%) 45%,
+      rgb(116 19 52 / 82%) 86%,
+      rgb(116 19 52 / 35%) 100%
+    ),
+    var(--t-panel);
+  background-position: center, right center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-brands {
+  padding: 20px clamp(18px, 2.2vw, 32px) 14px;
+  border-radius: 12px;
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-brands-head {
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-brands-head h2 {
+  margin-top: 4px;
+  line-height: 1.08;
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-brands-head p {
+  margin-top: 5px;
+  line-height: 1.4;
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-new-wrap .v2-brands.v2-offers {
+  background-color: #a52650;
+  background-image:
+    linear-gradient(
+      100deg,
+      rgb(116 19 52 / 92%) 0%,
+      rgb(132 24 62 / 86%) 42%,
+      rgb(151 30 72 / 82%) 82%,
+      rgb(151 30 72 / 20%) 100%
+    ),
+    var(--t-panel);
+  background-position: center, right center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-new-wrap .v2-brands:not(.v2-offers) {
+  background-color: var(--t-dark);
+  background-image:
+    linear-gradient(
+      100deg,
+      rgb(116 19 52 / 92%) 0%,
+      rgb(116 19 52 / 86%) 84%,
+      rgb(116 19 52 / 35%) 100%
+    ),
+    var(--t-panel);
+}
+
+.site-v2.v2-theme.theme-dia-das-maes #ofertas.v2-new-wrap {
+  padding-block: 0 18px;
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-new-wrap .v2-new-badge {
+  background: #741334;
+  color: #ffffff;
+  line-height: 1.3;
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-panel-note {
+  margin-top: 10px;
+  color: #ffffff;
+  line-height: 1.45;
+}
+
+/* Produtos: mantém as seis colunas e reduz o vazio das fotografias.
+ * Não altera trilhos, setas, slides ou placas das marcas.
+ */
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-featured {
+  padding-block: 8px 18px;
+  background: #fffdfd;
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-section-head {
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-section-head h2 {
+  margin-top: 4px;
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-section-head p {
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-featured .v2-product-grid {
+  gap: 14px;
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .product-card {
+  min-width: 0;
+  border-color: #eadfe4;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgb(116 19 52 / 4%);
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-featured .product-card .product-image-wrap,
+.site-v2.v2-theme.theme-dia-das-maes .v2-new-wrap .product-card .product-image-wrap {
+  height: auto;
+  aspect-ratio: 1 / 0.62;
+  padding: 12px;
+  background: #ffffff;
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-featured .product-card .product-image,
+.site-v2.v2-theme.theme-dia-das-maes .v2-new-wrap .product-card .product-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-featured .product-card-body,
+.site-v2.v2-theme.theme-dia-das-maes .v2-new-wrap .product-card-body {
+  gap: 3px;
+  padding: 8px 12px 11px;
+  background: #ffffff;
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .product-card .product-brand {
+  color: var(--t-link) !important;
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .product-card .product-name {
+  color: var(--t-ink) !important;
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .product-card .product-card-meta,
+.site-v2.v2-theme.theme-dia-das-maes .product-card .product-card-meta span {
+  color: var(--t-muted) !important;
+}
+
+/* Mantém espaço para até duas linhas do selo real da oferta. */
+.site-v2.v2-theme.theme-dia-das-maes .v2-new-card .product-card .product-image-wrap {
+  margin-top: 48px;
+}
+
+/*
+ * Remove apenas o enfeite não interativo da base.
+ * Botões reais de favoritos, se existentes, não são selecionados.
+ */
+.site-v2.v2-theme.theme-dia-das-maes .product-card span.td-card-charm {
+  display: none;
+}
+
+/* Contato: faixa compacta e flores concentradas à direita. */
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-contact-wrap {
+  padding-block: 0 16px;
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-contact {
+  min-height: 128px;
+  gap: 20px;
+  padding: 18px clamp(18px, 2.2vw, 32px);
+  border-radius: 12px;
+  background-color: var(--t-dark);
+  background-image:
+    linear-gradient(
+      90deg,
+      #741334 0%,
+      rgb(116 19 52 / 98%) 55%,
+      rgb(116 19 52 / 88%) 88%,
+      rgb(116 19 52 / 28%) 100%
+    ),
+    var(--t-panel);
+  background-position: center, right center;
+  background-size: cover, auto 180%;
+  background-repeat: no-repeat;
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-contact-main {
+  gap: 16px;
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-contact-icon {
+  width: 60px;
+  height: 60px;
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-contact-icon svg {
+  width: 29px;
+  height: 29px;
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-contact p {
+  margin-block: 5px 8px;
+  line-height: 1.4;
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-contact-list {
+  min-width: 0;
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-contact-list li {
+  gap: 9px;
+  padding-inline: 12px;
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-contact-list strong {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+/* Rodapé mais profundo, com divisórias e textos legíveis. */
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-footer {
+  padding-top: 24px;
+  background: linear-gradient(180deg, #591530, #401024);
+  border-top: 3px solid #d90858;
+  border-bottom-color: #741334;
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-footer-grid {
+  gap: 24px;
+  padding-bottom: 20px;
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-footer-brand p {
+  margin-top: 10px;
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-footer-col {
+  gap: 8px;
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-footer-cta {
+  gap: 10px;
+  padding: 14px;
+  background: rgb(255 255 255 / 6%);
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-footer-notice {
+  padding-top: 12px;
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-footer-bottom {
+  padding-block: 14px;
+}
+
+/* Cores residuais do catálogo e da busca, sem mudar --v2-ink:
+ * as setas dos carrosséis continuam com as cores existentes.
+ */
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-catalog-intro {
+  background: linear-gradient(110deg, #741334, #941842);
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-catalog-intro .v2-eyebrow,
+.site-v2.v2-theme.theme-dia-das-maes .v2-catalog-intro p {
+  color: #ffffff;
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-filters h2,
+.site-v2.v2-theme.theme-dia-das-maes .v2-filter-field label,
+.site-v2.v2-theme.theme-dia-das-maes .v2-breadcrumb [aria-current],
+.site-v2.v2-theme.theme-dia-das-maes .v2-filters-toggle,
+.site-v2.v2-theme.theme-dia-das-maes .v2-filters-clear {
+  color: var(--t-ink);
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-filter-check input {
+  accent-color: var(--t-link);
+}
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-breadcrumb a:hover,
+.site-v2.v2-theme.theme-dia-das-maes .v2-filters-clear:hover:not(:disabled) {
+  color: var(--t-link);
+  border-color: var(--t-link);
+}
+
+/* Desktop: densidade do esboço, sem alterar os slides do carrossel. */
+
+@media (min-width: 1181px) {
+  .site-v2.v2-theme.theme-dia-das-maes .v2-featured .v2-product-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+
+  .site-v2.v2-theme.theme-dia-das-maes .v2-contact {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.55fr) 7%;
+  }
+
+  .site-v2.v2-theme.theme-dia-das-maes .v2-contact-list {
+    flex-wrap: wrap;
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  .site-v2.v2-theme.theme-dia-das-maes .v2-footer-grid {
+    grid-template-columns:
+      minmax(0, 1.2fr)
+      minmax(0, 0.8fr)
+      minmax(0, 1.25fr)
+      minmax(0, 0.8fr)
+      minmax(0, 1.15fr);
+  }
+}
+
+/* Preserva a quebra segura de cabeçalho da base entre 1025 e 1300px. */
+
+@media (max-width: 1180px) {
+  .site-v2.v2-theme.theme-dia-das-maes .v2-hero-copy {
+    width: 44%;
+    max-width: 500px;
+  }
+
+  .site-v2.v2-theme.theme-dia-das-maes .v2-hero h2 {
+    font-size: clamp(30px, 3.5vw, 41px);
+  }
+
+  .site-v2.v2-theme.theme-dia-das-maes .v2-segments-inner {
+    grid-template-columns: minmax(0, 0.36fr) minmax(0, 1fr);
+    gap: 22px;
+  }
+
+  .site-v2.v2-theme.theme-dia-das-maes .v2-contact {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .site-v2.v2-theme.theme-dia-das-maes .v2-contact-list {
+    flex-wrap: wrap;
+    padding-top: 14px;
+    border-top: 1px solid rgb(255 255 255 / 25%);
+  }
+}
+
+@media (max-width: 1024px) {
+  .site-v2.v2-theme.theme-dia-das-maes .v2-nav {
+    gap: 0;
+  }
+
+  .site-v2.v2-theme.theme-dia-das-maes .v2-segments-inner {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .site-v2.v2-theme.theme-dia-das-maes .v2-segments-intro h2 {
+    max-width: none;
+  }
+
+  .site-v2.v2-theme.theme-dia-das-maes .v2-segments-intro {
+    max-width: 560px;
+  }
+}
+
+@media (max-width: 860px) {
+  .site-v2.v2-theme.theme-dia-das-maes .v2-hero-inner {
+    min-height: 350px;
+    padding-block: 28px;
+  }
+
+  .site-v2.v2-theme.theme-dia-das-maes .v2-hero-copy {
+    width: 48%;
+    max-width: none;
+  }
+
+  .site-v2.v2-theme.theme-dia-das-maes .v2-hero-media {
+    width: 62%;
+  }
+
+  .site-v2.v2-theme.theme-dia-das-maes .v2-hero-media::before {
+    background: linear-gradient(
+      105deg,
+      #fce8ec 0%,
+      rgb(252 232 236 / 97%) 18%,
+      rgb(252 232 236 / 50%) 40%,
+      transparent 68%
+    );
+  }
+}
+
+/* Mobile: texto em superfície clara; arte completa abaixo.
+ * A altura cresce com o conteúdo, sem truncar o título.
+ */
+
+@media (max-width: 760px) {
+  .site-v2.v2-theme.theme-dia-das-maes .v2-topbar-inner {
+    gap: 0;
+  }
+
+  .site-v2.v2-theme.theme-dia-das-maes .v2-topbar-message {
+    padding-block: 8px;
+  }
+
+  .site-v2.v2-theme.theme-dia-das-maes .v2-topbar .v2-topbar-rca {
+    min-height: 44px;
+  }
+
+  .site-v2.v2-theme.theme-dia-das-maes .v2-hero-inner {
+    min-height: 0;
+    padding-block: 26px calc(66.6667vw + 20px);
+  }
+
+  .site-v2.v2-theme.theme-dia-das-maes .v2-hero-copy {
+    width: 100%;
+    max-width: 560px;
+    gap: 12px;
+  }
+
+  .site-v2.v2-theme.theme-dia-das-maes .v2-hero h2 {
+    font-size: clamp(30px, 6.8vw, 42px);
+    line-height: 1.06;
+  }
+
+  .site-v2.v2-theme.theme-dia-das-maes .v2-hero p {
+    max-width: 480px;
+    font-size: 16px;
+    line-height: 1.45;
+  }
+
+  .site-v2.v2-theme.theme-dia-das-maes .v2-hero-media {
+    inset: auto 0 0;
+    width: 100%;
+    height: 66.6667vw;
+    background-position: center bottom;
+    background-size: 100% 100%;
+    clip-path: none;
+  }
+
+  .site-v2.v2-theme.theme-dia-das-maes .v2-hero-media::before {
+    background: linear-gradient(
+      180deg,
+      #fce8ec 0%,
+      rgb(252 232 236 / 55%) 10%,
+      transparent 26%
+    );
+  }
+
+  .site-v2.v2-theme.theme-dia-das-maes .v2-benefits-grid {
+    gap: 10px;
+  }
+
+  .site-v2.v2-theme.theme-dia-das-maes .v2-benefit {
+    min-width: 0;
+    gap: 10px;
+    padding: 14px;
+  }
+
+  .site-v2.v2-theme.theme-dia-das-maes .v2-benefit > span:last-child {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .site-v2.v2-theme.theme-dia-das-maes .v2-segments {
+    padding-block: 22px;
+  }
+
+  .site-v2.v2-theme.theme-dia-das-maes .v2-segments-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .site-v2.v2-theme.theme-dia-das-maes .v2-segment-body {
+    padding: 12px;
+  }
+
+  .site-v2.v2-theme.theme-dia-das-maes .v2-brands {
+    padding: 20px 16px 16px;
+  }
+
+  .site-v2.v2-theme.theme-dia-das-maes .v2-brands-head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .site-v2.v2-theme.theme-dia-das-maes .v2-link-light {
+    max-width: 100%;
+    white-space: normal;
+  }
+
+  .site-v2.v2-theme.theme-dia-das-maes .v2-section-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .site-v2.v2-theme.theme-dia-das-maes .v2-contact {
+    padding: 22px 18px;
+    background-image:
+      linear-gradient(
+        90deg,
+        rgb(116 19 52 / 98%),
+        rgb(116 19 52 / 90%)
+      ),
+      var(--t-panel);
+    background-size: cover, auto 100%;
+  }
+
+  .site-v2.v2-theme.theme-dia-das-maes .v2-contact-list {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .site-v2.v2-theme.theme-dia-das-maes .v2-contact-list li {
+    max-width: 100%;
+    padding-inline: 0;
+    border-left: 0;
+  }
+
+  .site-v2.v2-theme.theme-dia-das-maes .v2-footer-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px 18px;
+  }
+
+  .site-v2.v2-theme.theme-dia-das-maes .v2-footer-cta .v2-button {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .site-v2.v2-theme.theme-dia-das-maes .v2-header-inner {
+    min-height: 72px;
+    gap: 10px 12px;
+  }
+
+  .site-v2.v2-theme.theme-dia-das-maes .v2-search {
+    height: 46px;
+  }
+
+  .site-v2.v2-theme.theme-dia-das-maes .v2-search input {
+    font-size: 16px;
+  }
+
+  .site-v2.v2-theme.theme-dia-das-maes .v2-featured .v2-product-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .site-v2.v2-theme.theme-dia-das-maes .v2-featured .product-card .product-image-wrap,
+  .site-v2.v2-theme.theme-dia-das-maes .v2-new-wrap .product-card .product-image-wrap {
+    aspect-ratio: 1 / 0.8;
+    padding: 12px;
+  }
+
+  .site-v2.v2-theme.theme-dia-das-maes .v2-featured .product-card-body,
+  .site-v2.v2-theme.theme-dia-das-maes .v2-new-wrap .product-card-body {
+    padding: 8px 10px 12px;
+  }
+
+  .site-v2.v2-theme.theme-dia-das-maes .v2-contact-main {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 380px) {
+  .site-v2.v2-theme.theme-dia-das-maes .v2-footer-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Sem animação decorativa adicionada.
+ * Mantém pausa e redução de movimento inclusive nos pseudoelementos.
+ */
+
+.site-v2.v2-theme.theme-dia-das-maes .v2-hero.is-paused *,
+.site-v2.v2-theme.theme-dia-das-maes .v2-hero.is-paused *::before,
+.site-v2.v2-theme.theme-dia-das-maes .v2-hero.is-paused *::after {
+  animation-play-state: paused !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-v2.v2-theme.theme-dia-das-maes,
+  .site-v2.v2-theme.theme-dia-das-maes *,
+  .site-v2.v2-theme.theme-dia-das-maes *::before,
+  .site-v2.v2-theme.theme-dia-das-maes *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -1,0 +1,759 @@
+/* Natal — carregar depois de theme-v4.css.
+   Sem alterações em dados, logos, setas ou mecânica dos carrosséis.
+   Decoração estática; nenhuma animação adicionada.
+*/
+
+.site-v2.v2-theme.theme-natal {
+  --t-dark: #003a25;
+  --t-rgb: 0, 58, 37;
+  --t-footer: #001c13;
+  --t-accent: #e60012;
+  --t-on-accent: #ffffff;
+  --t-link: #b00016;
+  --t-title-accent: #ffffff;
+  --t-support: #d9a441;
+  --t-paper: #ffffff;
+  --t-soft: #faf6ee;
+  --t-tint: #fcebed;
+  --t-border: #e5ded2;
+  --t-ink: #172c25;
+  --t-muted: #526057;
+
+  --natal-gutter: clamp(16px, 4.2vw, 80px);
+  --natal-edge: url("/themes/natal-borda-lateral.webp");
+  --natal-garland: url("/themes/natal-guirlanda.webp");
+
+  background: #ffffff;
+  overflow-x: clip;
+}
+
+/* Cabeçalho: mantém o recorte e as proporções originais da marca. */
+
+.site-v2.v2-theme.theme-natal .v2-topbar {
+  background: #003a25;
+  color: #ffffff;
+}
+
+.site-v2.v2-theme.theme-natal .v2-topbar-inner {
+  min-height: 36px;
+}
+
+.site-v2.v2-theme.theme-natal .v2-topbar-message {
+  padding-block: 7px;
+}
+
+.site-v2.v2-theme.theme-natal .v2-topbar .v2-topbar-rca {
+  min-height: 36px;
+}
+
+.site-v2.v2-theme.theme-natal .v2-header {
+  background: #ffffff;
+  border-bottom: 1px solid #e5ded2;
+  box-shadow: 0 3px 14px rgb(0 28 19 / 10%);
+}
+
+.site-v2.v2-theme.theme-natal .v2-header-inner {
+  min-height: 76px;
+}
+
+.site-v2.v2-theme.theme-natal .v2-logo,
+.site-v2.v2-theme.theme-natal .v2-footer-logo {
+  background-color: #ffffff;
+}
+
+.site-v2.v2-theme.theme-natal .v2-search {
+  border-color: #ccd8d1;
+}
+
+.site-v2.v2-theme.theme-natal .v2-search input::placeholder {
+  color: #59665f;
+}
+
+.site-v2.v2-theme.theme-natal .v2-nav a.is-active {
+  color: #b00016;
+}
+
+/* Hero: cenário integral com proteção escura diagonal à esquerda.
+   A diagonal pertence ao overlay; não corta o carrinho. */
+
+.site-v2.v2-theme.theme-natal .v2-hero {
+  background: #001c13;
+}
+
+.site-v2.v2-theme.theme-natal .v2-hero-media {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #001c13;
+  background-image: var(--t-hero);
+  background-position: right center;
+  background-size: cover;
+  clip-path: none;
+  pointer-events: none;
+}
+
+.site-v2.v2-theme.theme-natal .v2-hero-media::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    rgb(0 18 12 / 96%) 0%,
+    rgb(0 18 12 / 94%) 35%,
+    rgb(0 18 12 / 90%) 58%,
+    rgb(0 18 12 / 82%) 100%
+  );
+  clip-path: polygon(0 0, 59% 0, 47% 100%, 0 100%);
+  pointer-events: none;
+}
+
+.site-v2.v2-theme.theme-natal .v2-hero-media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    0deg,
+    rgb(0 18 12 / 68%),
+    transparent 32%
+  );
+  pointer-events: none;
+}
+
+.site-v2.v2-theme.theme-natal .v2-hero-inner {
+  min-height: clamp(390px, 33vw, 560px);
+  padding-block: 42px;
+}
+
+.site-v2.v2-theme.theme-natal .v2-hero-copy {
+  width: 44%;
+  max-width: 640px;
+  gap: 16px;
+}
+
+.site-v2.v2-theme.theme-natal .v2-hero-eyebrow {
+  color: #f5dfaa;
+  font-size: 12px;
+  letter-spacing: 0.09em;
+}
+
+.site-v2.v2-theme.theme-natal .v2-hero h2 {
+  color: #f3d38b;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(34px, 3.6vw, 62px);
+  font-weight: 700;
+  line-height: 1.06;
+  letter-spacing: -0.025em;
+  text-shadow:
+    0 2px 0 #49300c,
+    0 4px 16px rgb(0 0 0 / 45%);
+}
+
+.site-v2.v2-theme.theme-natal .v2-hero-title-accent {
+  display: block;
+  margin-top: 8px;
+  color: #ffffff;
+  font-family: var(--v2-display);
+  font-size: 0.78em;
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: -0.015em;
+  text-shadow: 0 2px 12px rgb(0 0 0 / 50%);
+}
+
+.site-v2.v2-theme.theme-natal .v2-hero p {
+  max-width: 440px;
+  color: #ffffff;
+  font-size: clamp(15px, 1.25vw, 18px);
+  line-height: 1.5;
+}
+
+.site-v2.v2-theme.theme-natal .v2-hero .v2-button {
+  margin-top: 4px;
+}
+
+/* Benefícios: faixa compacta e escura.
+   A integração visual ao hero é ativada apenas quando as seções
+   realmente são irmãs adjacentes. Sem essa estrutura, permanece
+   uma faixa normal no fluxo. */
+
+.site-v2.v2-theme.theme-natal .v2-benefits {
+  position: relative;
+  z-index: 1;
+  padding-block: 18px;
+  background: #00291b;
+}
+
+.site-v2.v2-theme.theme-natal .v2-benefits-grid {
+  gap: 12px;
+}
+
+.site-v2.v2-theme.theme-natal .v2-benefit {
+  min-width: 0;
+  min-height: 0;
+  gap: 10px;
+  padding: 10px 8px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.site-v2.v2-theme.theme-natal .v2-benefit > span:last-child {
+  min-width: 0;
+}
+
+.site-v2.v2-theme.theme-natal .v2-benefit-icon {
+  width: 28px;
+  height: 32px;
+  border-radius: 0;
+  background: transparent;
+  color: #f3d38b;
+}
+
+.site-v2.v2-theme.theme-natal .v2-benefit-icon svg {
+  width: 25px;
+  height: 25px;
+}
+
+.site-v2.v2-theme.theme-natal .v2-benefit strong {
+  color: #ffffff;
+  font-size: 13px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.site-v2.v2-theme.theme-natal .v2-benefit small {
+  color: #eee9dc;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+/* Segmentos e molduras: decoração limitada às margens livres. */
+
+.site-v2.v2-theme.theme-natal .v2-segments {
+  position: relative;
+  isolation: isolate;
+  padding-block: 30px 34px;
+  background: #faf6ee;
+}
+
+.site-v2.v2-theme.theme-natal .v2-segments-inner {
+  gap: clamp(20px, 2.6vw, 40px);
+}
+
+.site-v2.v2-theme.theme-natal .v2-segments-grid {
+  gap: 14px;
+}
+
+.site-v2.v2-theme.theme-natal .v2-segment-card {
+  border-color: #e5ded2;
+  border-radius: 9px;
+  background: #ffffff;
+  box-shadow: 0 4px 14px rgb(0 28 19 / 6%);
+}
+
+.site-v2.v2-theme.theme-natal .v2-segment-body {
+  padding: 12px 14px 14px;
+}
+
+.site-v2.v2-theme.theme-natal .v2-segment-badge {
+  background: #e60012;
+  color: #ffffff;
+}
+
+/* Faixas inteiras: fundo no wrapper, conteúdo na largura do site.
+   O painel interno deixa de parecer um cartão vermelho isolado. */
+
+.site-v2.v2-theme.theme-natal .v2-brands-wrap:not(.v2-new-wrap),
+.site-v2.v2-theme.theme-natal .v2-new-wrap,
+.site-v2.v2-theme.theme-natal .v2-contact-wrap {
+  position: relative;
+  isolation: isolate;
+  padding-block: 24px;
+  background: #003a25;
+  color: #ffffff;
+}
+
+.site-v2.v2-theme.theme-natal #ofertas.v2-new-wrap {
+  padding-block: 26px;
+  background-color: #940010;
+  background-image:
+    linear-gradient(
+      90deg,
+      rgb(91 0 9 / 28%),
+      rgb(91 0 9 / 78%) 22%,
+      rgb(91 0 9 / 78%) 78%,
+      rgb(91 0 9 / 28%)
+    ),
+    var(--t-panel);
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+.site-v2.v2-theme.theme-natal .v2-brands-wrap:not(.v2-new-wrap) .v2-brands,
+.site-v2.v2-theme.theme-natal .v2-new-wrap .v2-brands.v2-offers,
+.site-v2.v2-theme.theme-natal .v2-new-wrap .v2-brands:not(.v2-offers) {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #ffffff;
+  box-shadow: none;
+}
+
+.site-v2.v2-theme.theme-natal .v2-brands-head {
+  margin-bottom: 18px;
+}
+
+.site-v2.v2-theme.theme-natal .v2-brands-head p {
+  max-width: 740px;
+  line-height: 1.5;
+}
+
+.site-v2.v2-theme.theme-natal .v2-brands-head h2,
+.site-v2.v2-theme.theme-natal .v2-brands-head p,
+.site-v2.v2-theme.theme-natal .v2-brands .v2-eyebrow-light,
+.site-v2.v2-theme.theme-natal .v2-link-light,
+.site-v2.v2-theme.theme-natal .v2-panel-note {
+  color: #ffffff;
+  opacity: 1;
+}
+
+.site-v2.v2-theme.theme-natal .v2-offers .v2-brands-head h2 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(30px, 3vw, 44px);
+  font-weight: 700;
+}
+
+.site-v2.v2-theme.theme-natal .v2-panel-note {
+  width: fit-content;
+  max-width: 100%;
+  padding: 8px 10px;
+  border-radius: 4px;
+  background: #65000b;
+  line-height: 1.5;
+}
+
+/* Produtos: fundo branco, leitura preservada e detalhes vermelhos. */
+
+.site-v2.v2-theme.theme-natal .v2-featured {
+  padding-block: 26px 30px;
+  background: #ffffff;
+}
+
+.site-v2.v2-theme.theme-natal .v2-product-grid {
+  gap: 14px;
+}
+
+.site-v2.v2-theme.theme-natal .product-card {
+  min-width: 0;
+  background: #ffffff;
+  border-color: #e5ded2;
+  border-radius: 8px;
+  box-shadow: 0 2px 9px rgb(0 28 19 / 5%);
+}
+
+.site-v2.v2-theme.theme-natal .product-card .product-card-body {
+  background: #fffdfa;
+}
+
+.site-v2.v2-theme.theme-natal .product-card .product-brand {
+  color: #b00016 !important;
+}
+
+.site-v2.v2-theme.theme-natal .product-card .product-name {
+  color: #172c25 !important;
+}
+
+.site-v2.v2-theme.theme-natal .product-card .product-card-meta,
+.site-v2.v2-theme.theme-natal .product-card .product-card-meta span {
+  color: #526057 !important;
+}
+
+.site-v2.v2-theme.theme-natal .product-card .td-card-charm {
+  color: #c60016;
+}
+
+.site-v2.v2-theme.theme-natal .v2-new-wrap .v2-new-badge {
+  background: #c60016;
+  color: #ffffff;
+}
+
+/* Mantém a reserva de 48px da base para selos reais,
+   incluindo descontos e datas que ocupem duas linhas. */
+
+/* Contato e rodapé. */
+
+.site-v2.v2-theme.theme-natal .v2-contact-wrap {
+  padding-block: 24px;
+  border-top: 1px solid rgb(217 164 65 / 45%);
+}
+
+.site-v2.v2-theme.theme-natal .v2-contact {
+  min-height: 140px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #ffffff;
+}
+
+.site-v2.v2-theme.theme-natal .v2-contact-main {
+  gap: 16px;
+}
+
+.site-v2.v2-theme.theme-natal .v2-contact-icon {
+  width: 64px;
+  height: 64px;
+  background: #e60012;
+  color: #ffffff;
+}
+
+.site-v2.v2-theme.theme-natal .v2-contact-list > li > svg {
+  color: #f3d38b;
+}
+
+.site-v2.v2-theme.theme-natal .v2-contact-list strong {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.site-v2.v2-theme.theme-natal .v2-footer {
+  position: relative;
+  isolation: isolate;
+  /* Guirlanda como faixa no topo; o conteúdo começa abaixo dela. */
+  padding-top: 124px;
+  border-top: 0;
+  border-bottom: 3px solid #a87527;
+  background-color: #001c13;
+  background-image: var(--natal-garland);
+  background-position: center top;
+  background-size: auto 100px;
+  background-repeat: repeat-x;
+  color: #ffffff;
+}
+
+.site-v2.v2-theme.theme-natal .v2-footer-grid {
+  grid-template-columns:
+    minmax(0, 1.15fr)
+    minmax(0, 0.85fr)
+    minmax(0, 1.25fr)
+    minmax(0, 0.8fr)
+    minmax(0, 1.15fr);
+  gap: clamp(16px, 2vw, 30px);
+}
+
+.site-v2.v2-theme.theme-natal .v2-footer-logo {
+  max-width: calc(100% - 28px);
+}
+
+.site-v2.v2-theme.theme-natal .v2-footer-cta {
+  border-color: rgb(243 211 139 / 25%);
+  background: #073223;
+}
+
+.site-v2.v2-theme.theme-natal .v2-footer-col a,
+.site-v2.v2-theme.theme-natal .v2-footer-link,
+.site-v2.v2-theme.theme-natal .v2-footer-brand p,
+.site-v2.v2-theme.theme-natal .v2-footer-cta small,
+.site-v2.v2-theme.theme-natal .v2-footer-notice,
+.site-v2.v2-theme.theme-natal .v2-footer-bottom {
+  color: #eee9dc;
+  opacity: 1;
+  overflow-wrap: anywhere;
+}
+
+/* Moldura lateral transparente.
+   O tamanho acompanha a margem real do container, sem invadir cards.
+   Camada negativa dentro de um contexto isolado: atrás do conteúdo. */
+
+.site-v2.v2-theme.theme-natal .v2-segments::before,
+.site-v2.v2-theme.theme-natal .v2-segments::after,
+.site-v2.v2-theme.theme-natal .v2-brands-wrap::before,
+.site-v2.v2-theme.theme-natal .v2-brands-wrap::after,
+.site-v2.v2-theme.theme-natal .v2-contact-wrap::before,
+.site-v2.v2-theme.theme-natal .v2-contact-wrap::after,
+.site-v2.v2-theme.theme-natal .v2-footer::before,
+.site-v2.v2-theme.theme-natal .v2-footer::after {
+  content: "";
+  display: block;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: -1;
+  width: max(0px, calc(var(--natal-gutter) - 5px));
+  background-image: var(--natal-edge);
+  background-position: left bottom;
+  background-repeat: no-repeat;
+  background-size: 100% auto;
+  pointer-events: none;
+}
+
+.site-v2.v2-theme.theme-natal .v2-segments::before,
+.site-v2.v2-theme.theme-natal .v2-brands-wrap::before,
+.site-v2.v2-theme.theme-natal .v2-contact-wrap::before,
+.site-v2.v2-theme.theme-natal .v2-footer::before {
+  left: 0;
+}
+
+.site-v2.v2-theme.theme-natal .v2-segments::after,
+.site-v2.v2-theme.theme-natal .v2-brands-wrap::after,
+.site-v2.v2-theme.theme-natal .v2-contact-wrap::after,
+.site-v2.v2-theme.theme-natal .v2-footer::after {
+  right: 0;
+  transform: scaleX(-1);
+}
+
+/* Desktop: sobreposição dos benefícios com espaço reservado.
+   A seção pode crescer se os textos quebrarem; não tem altura fixa. */
+
+@media (min-width: 1181px) {
+  .site-v2.v2-theme.theme-natal .v2-hero:has(+ .v2-benefits) {
+    padding-bottom: 120px;
+  }
+
+  .site-v2.v2-theme.theme-natal .v2-hero + .v2-benefits {
+    min-height: 120px;
+    box-sizing: border-box;
+    margin-top: -120px;
+    padding-block: 12px 24px;
+    background: transparent;
+  }
+
+  .site-v2.v2-theme.theme-natal .v2-hero + .v2-benefits .v2-benefits-grid {
+    width: min(
+      1060px,
+      calc((100% - 2 * var(--natal-gutter)) * 0.68)
+    );
+    margin-left: max(
+      var(--natal-gutter),
+      calc((100% - 1840px) / 2)
+    );
+    margin-right: 0;
+    padding: 10px;
+    box-sizing: border-box;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+    border: 1px solid rgb(243 211 139 / 16%);
+    border-radius: 6px;
+    background: rgb(0 18 12 / 92%);
+  }
+
+  .site-v2.v2-theme.theme-natal .v2-featured .v2-product-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1025px) {
+  .site-v2.v2-theme.theme-natal .v2-segments-inner {
+    grid-template-columns: minmax(220px, 0.95fr) minmax(0, 2.65fr);
+  }
+}
+
+@media (min-width: 1361px) {
+  .site-v2.v2-theme.theme-natal .v2-contact {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.55fr);
+  }
+}
+
+/* Intermediários: evita comprimir marca, menu e busca. */
+
+@media (min-width: 1301px) {
+  .site-v2.v2-theme.theme-natal .v2-header-inner {
+    gap: clamp(14px, 1.5vw, 28px);
+  }
+
+  .site-v2.v2-theme.theme-natal .v2-nav {
+    gap: clamp(10px, 1.15vw, 22px);
+  }
+
+  .site-v2.v2-theme.theme-natal .v2-search {
+    flex: 1 1 260px;
+    min-width: 180px;
+  }
+}
+
+@media (max-width: 1180px) {
+  .site-v2.v2-theme.theme-natal .v2-hero-inner {
+    min-height: 420px;
+    padding-block: 36px;
+  }
+
+  .site-v2.v2-theme.theme-natal .v2-hero-copy {
+    width: 45%;
+    max-width: none;
+  }
+
+  .site-v2.v2-theme.theme-natal .v2-benefits-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .site-v2.v2-theme.theme-natal .v2-footer-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .site-v2.v2-theme.theme-natal .v2-footer-cta {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 860px) {
+  .site-v2.v2-theme.theme-natal .v2-hero-copy {
+    width: 48%;
+  }
+
+  .site-v2.v2-theme.theme-natal .v2-hero-media::before {
+    clip-path: polygon(0 0, 64% 0, 54% 100%, 0 100%);
+  }
+
+  .site-v2.v2-theme.theme-natal .v2-footer-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Mobile: texto sobre fundo sólido, fotografia abaixo.
+   Altura livre para títulos longos e ampliação de texto. */
+
+@media (max-width: 760px) {
+  .site-v2.v2-theme.theme-natal .v2-header-inner {
+    min-height: 68px;
+  }
+
+  .site-v2.v2-theme.theme-natal .v2-hero-inner {
+    min-height: 0;
+    padding-block: 30px calc(66.667vw + 18px);
+  }
+
+  .site-v2.v2-theme.theme-natal .v2-hero-copy {
+    width: 100%;
+    max-width: none;
+    gap: 15px;
+  }
+
+  .site-v2.v2-theme.theme-natal .v2-hero-media {
+    background-position: center bottom;
+    background-size: 100% auto;
+  }
+
+  .site-v2.v2-theme.theme-natal .v2-hero-media::before {
+    clip-path: none;
+    background: linear-gradient(
+      180deg,
+      #001c13 0%,
+      #001c13 calc(100% - 66.667vw),
+      rgb(0 28 19 / 10%) calc(100% - 48vw),
+      transparent 100%
+    );
+  }
+
+  .site-v2.v2-theme.theme-natal .v2-hero-media::after {
+    background: linear-gradient(
+      0deg,
+      rgb(0 28 19 / 65%),
+      transparent 18%
+    );
+  }
+
+  .site-v2.v2-theme.theme-natal .v2-hero h2 {
+    font-size: clamp(32px, 7.6vw, 46px);
+    overflow-wrap: anywhere;
+  }
+
+  .site-v2.v2-theme.theme-natal .v2-hero p {
+    max-width: none;
+    font-size: 16px;
+  }
+
+  .site-v2.v2-theme.theme-natal .v2-benefits {
+    padding-block: 12px;
+    background: #00291b;
+  }
+
+  .site-v2.v2-theme.theme-natal .v2-benefits-grid {
+    gap: 10px;
+  }
+
+  .site-v2.v2-theme.theme-natal .v2-benefit {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px 0;
+  }
+
+  .site-v2.v2-theme.theme-natal .v2-benefit-icon {
+    width: 24px;
+    height: 28px;
+  }
+
+  .site-v2.v2-theme.theme-natal .v2-benefit-icon svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .site-v2.v2-theme.theme-natal .v2-segments {
+    padding-block: 26px;
+  }
+
+  .site-v2.v2-theme.theme-natal .v2-segments-inner {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 22px;
+  }
+
+  .site-v2.v2-theme.theme-natal .v2-segments-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .site-v2.v2-theme.theme-natal .v2-segment-body {
+    padding: 12px;
+  }
+
+  .site-v2.v2-theme.theme-natal .v2-contact {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .site-v2.v2-theme.theme-natal .v2-contact-list {
+    flex-wrap: wrap;
+  }
+
+  .site-v2.v2-theme.theme-natal .v2-footer {
+    padding-top: 84px;
+    background-size: auto 64px;
+  }
+
+  .site-v2.v2-theme.theme-natal .v2-footer-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .site-v2.v2-theme.theme-natal .v2-footer-brand,
+  .site-v2.v2-theme.theme-natal .v2-footer-contact,
+  .site-v2.v2-theme.theme-natal .v2-footer-cta {
+    grid-column: 1 / -1;
+  }
+
+  .site-v2.v2-theme.theme-natal .v2-footer-cta .v2-button {
+    min-width: 0;
+    max-width: 100%;
+    padding-inline: 16px;
+    white-space: normal;
+  }
+}
+
+@media (max-width: 640px) {
+  .site-v2.v2-theme.theme-natal .v2-featured .v2-product-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .site-v2.v2-theme.theme-natal .v2-contact-list {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 380px) {
+  .site-v2.v2-theme.theme-natal .v2-footer-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

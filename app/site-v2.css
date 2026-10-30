@@ -398,6 +398,16 @@
   margin-top: 6px;
 }
 
+/* Tema de data: a arte do tema aparece inteira no quadro (sem o corte
+   que esconde o título da foto institucional). */
+.site-v2 .v2-hero.is-theme .v2-hero-media img {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
 /* 4. Diferenciais */
 .site-v2 .v2-benefits {
   padding: 22px 0 26px;

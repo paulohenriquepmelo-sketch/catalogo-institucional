@@ -21,6 +21,7 @@ import { ColorEditor } from './color-editor';
 import {
   campaignPreset,
   campaignThemes,
+  themesInAdjustment,
   defaultCampaign,
   type CampaignSlide,
   type CampaignThemeId,
@@ -37,7 +38,7 @@ export function CampaignEditor({
   onBusy: (busy: boolean) => void;
 }) {
   const campaign = config.campaign ?? defaultCampaign;
-  const [addTheme, setAddTheme] = useState<CampaignThemeId>('natal');
+  const [addTheme, setAddTheme] = useState<CampaignThemeId>('padrao');
   const change = (patch: Partial<Campaign>) =>
     onChange({ ...config, campaign: { ...campaign, ...patch } });
   function editSlide(id: string, patch: Partial<CampaignSlide>) {
@@ -111,6 +112,7 @@ export function CampaignEditor({
           <button
             type="button"
             key={theme.id}
+            disabled={themesInAdjustment.has(theme.id)}
             className={
               campaign.theme === theme.id && campaign.mode === 'theme'
                 ? 'selected'
@@ -129,6 +131,7 @@ export function CampaignEditor({
             <img src={theme.image} alt="" loading="lazy" />
             <span>
               {theme.name}
+              {themesInAdjustment.has(theme.id) && <small>Em ajuste</small>}
               {campaign.theme === theme.id && campaign.mode === 'theme' && (
                 <Check />
               )}
@@ -224,7 +227,11 @@ export function CampaignEditor({
                 onChange={(e) => setAddTheme(e.target.value as CampaignThemeId)}
               >
                 {campaignThemes.map((theme) => (
-                  <option key={theme.id} value={theme.id}>
+                  <option
+                    key={theme.id}
+                    value={theme.id}
+                    disabled={themesInAdjustment.has(theme.id)}
+                  >
                     {theme.name}
                   </option>
                 ))}
