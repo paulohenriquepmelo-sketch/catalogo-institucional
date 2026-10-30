@@ -99,3 +99,54 @@
 ) :is(.v2-brands-wrap, .v2-contact-wrap) {
   background-color: transparent;
 }
+
+/* Página do catálogo (/produtos): a área da lista tinha um cinza fixo
+   (marketing-polish.css) que cobria a textura do tema. */
+.public-catalog.site-v2.v2-theme:is(
+  .theme-natal,
+  .theme-ano-novo,
+  .theme-dia-das-maes,
+  .theme-aniversario,
+  .theme-carnaval,
+  .theme-dia-das-criancas,
+  .theme-black-friday
+) .campaign-catalog-content {
+  background: transparent;
+}
+
+/* Topo "Todos os produtos": era sempre azul. Agora usa a cor escura e a
+   arte do painel do tema, com véu para o texto branco. */
+.site-v2.v2-theme:is(
+  .theme-natal,
+  .theme-ano-novo,
+  .theme-dia-das-maes,
+  .theme-aniversario,
+  .theme-carnaval,
+  .theme-dia-das-criancas,
+  .theme-black-friday
+) .v2-catalog-intro {
+  background-color: var(--t-dark);
+  background-image:
+    linear-gradient(
+      90deg,
+      rgba(var(--t-rgb), 0.94) 0%,
+      rgba(var(--t-rgb), 0.82) 55%,
+      rgba(var(--t-rgb), 0.45) 100%
+    ),
+    var(--t-panel);
+  background-position: center, right center;
+  background-size: cover, cover;
+  background-repeat: no-repeat;
+}
+
+.site-v2.v2-theme:is(
+  .theme-natal,
+  .theme-ano-novo,
+  .theme-dia-das-maes,
+  .theme-aniversario,
+  .theme-carnaval,
+  .theme-dia-das-criancas,
+  .theme-black-friday
+) .v2-catalog-intro :is(.v2-eyebrow, p) {
+  color: #ffffff;
+}
