@@ -133,6 +133,9 @@ export type CatalogCampaign = {
   overlay: number;
   position: 'center' | 'top' | 'bottom';
   slides: CampaignSlide[];
+  // Ano em destaque no banner do tema Ano Novo (4 dígitos). Vazio usa o
+  // ano padrão definido em themeCopy (components/site-sections.tsx).
+  year: string;
 };
 export const defaultCampaign: CatalogCampaign = {
   enabled: true,
@@ -151,6 +154,7 @@ export const defaultCampaign: CatalogCampaign = {
   overlay: 15,
   position: 'center',
   slides: [],
+  year: '',
 };
 export function campaignPreset(
   theme: CampaignThemeId,

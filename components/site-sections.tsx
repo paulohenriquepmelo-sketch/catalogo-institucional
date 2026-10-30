@@ -74,7 +74,7 @@ const themeCopy = {
   'ano-novo': {
     topbar: 'Ano Novo, mais oportunidades para o seu negócio!',
     offers: 'Seleção de Ano Novo',
-    // Ano desenhado sobre a arte do banner. Trocar aqui a cada campanha.
+    // Ano padrão do banner; o editor pode trocar em "Ano em destaque".
     year: '2026',
   },
   'dia-das-maes': {
@@ -529,7 +529,12 @@ export function HomeHero({ config }: { config: CatalogConfig }) {
   // Tema de data ativo: a arte do tema cobre o banner e os textos vêm do editor.
   const seasonal = activeSeasonalTheme(config);
   const theme = seasonal?.campaign;
-  const year = seasonal && 'year' in seasonal.copy ? seasonal.copy.year : '';
+  // Ano do tema Ano Novo: o do editor; sem ele, o padrão de themeCopy.
+  const editorYear = typeof theme?.year === 'string' ? theme.year.trim() : '';
+  const year =
+    seasonal && 'year' in seasonal.copy
+      ? editorYear || seasonal.copy.year
+      : '';
   const eyebrow = theme?.eyebrow.trim();
   const title = theme?.title.trim();
   const description = theme?.description.trim();
@@ -549,7 +554,13 @@ export function HomeHero({ config }: { config: CatalogConfig }) {
               <span className="td-particle" key={i} />
             ))}
             <span className="td-ornament" />
-            {year && <span className="td-hero-year">{year}</span>}
+            {year && (
+              // Texto de verdade (editável), desenhado como números dourados
+              // em 3D; data-year alimenta a camada de volume no CSS.
+              <span className="td-hero-year" data-year={year}>
+                <span>{year}</span>
+              </span>
+            )}
           </span>
         )}
       </div>

@@ -139,6 +139,17 @@ export function CampaignEditor({
           </button>
         ))}
       </div>
+      {campaign.mode === 'theme' && campaign.theme === 'ano-novo' && (
+        <div className="settings-grid">
+          <Field
+            label="Ano em destaque no banner (4 dígitos)"
+            value={campaign.year}
+            onChange={(year) =>
+              change({ year: year.replace(/\D/g, '').slice(0, 4) })
+            }
+          />
+        </div>
+      )}
       {campaign.mode === 'image' && (
         <UploadField
           label="Imagem de fundo da campanha"

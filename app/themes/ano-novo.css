@@ -866,27 +866,68 @@
 }
 
 .site-v2.v2-theme.theme-ano-novo .td-hero-year {
+  /* Números dourados em 3D como no esboço, mas em texto editável:
+     a frente usa a textura dourada com brilho; o ::before, atrás,
+     faz o volume e a sombra. */
   position: absolute;
-  right: 6%;
+  /* À esquerda das taças da arte, como no esboço. */
+  right: 26%;
   top: 50%;
-  transform: translateY(-38%);
-  font: 900 clamp(84px, 13vw, 200px) / 1 var(--v2-display, Montserrat, sans-serif);
-  letter-spacing: -0.02em;
-  background: linear-gradient(180deg, #fff4c9 0%, #f7d273 32%, #c99222 62%, #8a5d12 100%);
+  transform: translateY(-36%);
+  font: 800 clamp(84px, 11.5vw, 184px) / 0.9 var(--font-ano-novo), "Arial Rounded MT Bold", sans-serif;
+  letter-spacing: 0.01em;
+  pointer-events: none;
+  user-select: none;
+}
+
+.site-v2.v2-theme.theme-ano-novo .td-hero-year > span {
+  position: relative;
+  z-index: 1;
+  background:
+    linear-gradient(
+      172deg,
+      rgb(255 252 228 / 95%) 0%,
+      rgb(255 236 160 / 55%) 26%,
+      transparent 44%,
+      rgb(255 240 180 / 60%) 68%,
+      transparent 100%
+    ),
+    /* Glitter uniforme: pontos de brilho em duas grades desencontradas. */
+    radial-gradient(circle, rgb(255 255 245 / 75%) 0 0.7px, transparent 1.4px) 0 0 / 13px 11px,
+    radial-gradient(circle, rgb(255 250 220 / 55%) 0 0.6px, transparent 1.2px) 5px 7px / 17px 19px,
+    radial-gradient(circle, rgb(255 255 255 / 70%) 0 1px, transparent 2px) 9px 2px / 29px 23px,
+    linear-gradient(180deg, #fff3c2 0%, #f3c552 30%, #b9780f 55%, #e8ad35 72%, #fff0b0 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  filter: drop-shadow(0 6px 0 #6b470c) drop-shadow(0 18px 24px rgba(0, 0, 0, 0.55));
-  pointer-events: none;
-  user-select: none;
+  -webkit-text-fill-color: transparent;
+}
+
+.site-v2.v2-theme.theme-ano-novo .td-hero-year::before {
+  content: attr(data-year);
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  color: #8a5a10;
+  -webkit-text-fill-color: #8a5a10;
+  text-shadow:
+    1px 1px 0 #7a4e0c,
+    2px 2px 0 #6e450a,
+    3px 3px 0 #643e09,
+    4px 4px 0 #5a3708,
+    5px 5px 0 #4f3007,
+    6px 7px 2px rgb(0 0 0 / 35%),
+    0 18px 30px rgb(0 0 0 / 55%),
+    0 0 40px rgb(255 200 90 / 35%);
 }
 
 @media (max-width: 760px) {
   .site-v2.v2-theme.theme-ano-novo .td-hero-year {
     top: auto;
-    bottom: 14vw;
-    right: 50%;
-    transform: translateX(50%);
-    font-size: 22vw;
+    bottom: 12vw;
+    right: auto;
+    left: 6vw;
+    transform: none;
+    font-size: 23vw;
   }
 }
