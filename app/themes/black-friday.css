@@ -209,8 +209,13 @@
    Não aplica filtros, blend modes ou transformações na imagem. */
 .site-v2.v2-theme.theme-black-friday :is(.v2-logo, .v2-footer-logo) {
   position: relative;
+  /* Margem branca em volta da marca: sem ela as letras encostam na moldura
+     e a logo parece espremida no fundo escuro. O recorte 5:1 continua no
+     conteúdo (box-sizing padrão), então a proporção original é mantida. */
+  box-sizing: content-box;
+  padding: 7px 14px;
   background: #ffffff;
-  border-radius: 4px;
+  border-radius: 8px;
   outline: 1px solid #ff3048;
   outline-offset: 3px;
   box-shadow:
@@ -798,10 +803,8 @@
 }
 
 .site-v2.v2-theme.theme-black-friday .v2-footer-logo {
-  width: min(190px, 100%);
-  max-width: 100%;
-  box-sizing: border-box;
-  padding: 0;
+  width: min(176px, calc(100% - 28px));
+  max-width: none;
 }
 
 .site-v2.v2-theme.theme-black-friday .v2-footer-brand p {
@@ -938,7 +941,8 @@
   }
 
   .site-v2.v2-theme.theme-black-friday .v2-logo {
-    width: 168px;
+    width: 150px;
+    padding: 5px 10px;
   }
 
   .site-v2.v2-theme.theme-black-friday .v2-menu-button {

@@ -104,7 +104,6 @@ export type CampaignThemeId = (typeof campaignThemes)[number]['id'];
 export const themesInAdjustment: ReadonlySet<CampaignThemeId> = new Set([
   'natal',
   'ano-novo',
-  'black-friday',
 ]);
 
 export type CampaignSlide = {
