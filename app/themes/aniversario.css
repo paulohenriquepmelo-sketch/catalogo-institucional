@@ -402,20 +402,16 @@
   line-height: 1.4;
 }
 
-/* Fundo sólido sob textos impede perda de contraste sobre confetes. */
+/* Textos direto sobre a arte, sem caixa azul (pedido do cliente);
+   a sombra garante a leitura sobre os confetes. */
 .site-v2.v2-theme.theme-aniversario .v2-brands-head > div,
 .site-v2.v2-theme.theme-aniversario .v2-brands .v2-link-light,
 .site-v2.v2-theme.theme-aniversario .v2-panel-note {
-  border-radius: 4px;
-  background-color: #042650;
-}
-
-.site-v2.v2-theme.theme-aniversario .v2-brands-head > div {
-  padding: 3px 7px;
-}
-
-.site-v2.v2-theme.theme-aniversario .v2-brands .v2-link-light {
-  padding-inline: 7px;
+  background: none;
+  text-shadow:
+    0 1px 2px rgb(2 16 40 / 95%),
+    0 0 6px rgb(2 16 40 / 90%),
+    0 0 16px rgb(2 16 40 / 75%);
 }
 
 .site-v2.v2-theme.theme-aniversario .v2-brands .v2-eyebrow-light {
@@ -520,16 +516,21 @@
   padding: 18px 22px;
   border-radius: 10px;
   background-color: #042650;
+  /* Sem a faixa azul sólida por cima: a arte aparece por inteiro e
+     só um véu leve fica atrás dos textos. */
   background-image:
     linear-gradient(
       90deg,
-      #042650 0%,
-      #064483 68%,
-      rgb(4 38 80 / 12%) 100%
+      rgb(4 38 80 / 62%) 0%,
+      rgb(4 38 80 / 35%) 60%,
+      rgb(4 38 80 / 5%) 100%
     ),
     var(--t-panel);
-  background-position: center, right center;
-  background-size: cover, auto 100%;
+  background-position: center, center;
+  background-size: cover, cover;
+  text-shadow:
+    0 1px 2px rgb(2 16 40 / 90%),
+    0 0 12px rgb(2 16 40 / 70%);
   background-repeat: no-repeat;
 }
 
@@ -900,4 +901,9 @@
     transition: none !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* O botão dourado do contato não leva a sombra dos textos. */
+.site-v2.v2-theme.theme-aniversario .v2-contact .v2-button {
+  text-shadow: none;
 }
