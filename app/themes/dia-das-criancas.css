@@ -781,3 +781,29 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Textos dos painéis sem caixa de fundo (pedido do cliente). Nas marcas
+   (azul) a sombra é escura; nas ofertas (amarelo) o texto azul-marinho
+   ganha um halo claro. */
+.site-v2.v2-theme.theme-dia-das-criancas .v2-brands:not(.v2-offers) .v2-brands-head > div,
+.site-v2.v2-theme.theme-dia-das-criancas .v2-brands:not(.v2-offers) .v2-link-light {
+  background: none;
+  text-shadow:
+    0 1px 2px rgb(0 0 0 / 85%),
+    0 0 6px rgb(0 0 0 / 70%),
+    0 0 16px rgb(0 0 0 / 55%);
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-brands:not(.v2-offers) .v2-brands-head > div {
+  padding: 0;
+}
+
+.site-v2.v2-theme.theme-dia-das-criancas .v2-offers .v2-brands-head > div,
+.site-v2.v2-theme.theme-dia-das-criancas .v2-offers .v2-panel-note {
+  padding: 0;
+  background: none;
+  text-shadow:
+    0 0 2px rgb(255 248 220 / 95%),
+    0 0 8px rgb(255 248 220 / 90%),
+    0 0 18px rgb(255 248 220 / 75%);
+}
