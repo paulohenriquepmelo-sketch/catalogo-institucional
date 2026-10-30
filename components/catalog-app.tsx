@@ -42,6 +42,7 @@ import {
   SiteFooter,
   SiteHeader,
   SiteTopbar,
+  activeSeasonalTheme,
 } from './site-sections';
 import { PromoPopupDialog } from './promo-popup';
 
@@ -102,6 +103,17 @@ export function CatalogApp({
   useEffect(() => {
     void load();
   }, [editorPreview]);
+  // Os popups abrem num portal, fora do <main> do tema: o tema de data
+  // ativo vai para o <html> e app/theme-popups.css pinta o fundo deles.
+  const seasonalThemeId = activeSeasonalTheme(config)?.campaign.theme;
+  useEffect(() => {
+    const root = document.documentElement;
+    if (seasonalThemeId) root.dataset.temaSazonal = seasonalThemeId;
+    else delete root.dataset.temaSazonal;
+    return () => {
+      delete root.dataset.temaSazonal;
+    };
+  }, [seasonalThemeId]);
   const filtered = useMemo(() => {
     const found = discover(items, filters);
     if (!quick) return found;
