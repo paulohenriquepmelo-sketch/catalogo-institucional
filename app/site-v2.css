@@ -2275,3 +2275,34 @@
     gap: 16px;
   }
 }
+
+/* Tela de carregamento: a logo some e aparece até a configuração chegar
+   (components/catalog-app.tsx). Cobre a página para o visual Padrão não
+   piscar antes do tema de data. */
+.site-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  background: #ffffff;
+}
+.site-loader img {
+  width: min(440px, 86vw);
+  height: auto;
+  animation: site-loader-pulse 1.6s ease-in-out infinite;
+}
+@keyframes site-loader-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.2;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .site-loader img {
+    animation: none;
+  }
+}

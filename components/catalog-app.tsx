@@ -68,6 +68,9 @@ export function CatalogApp({
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [limit, setLimit] = useState(fullCatalogPage ? PAGE_SIZE : 12);
   const [loading, setLoading] = useState(true);
+  // Primeira carga: a logo pulsando cobre a página até a configuração chegar,
+  // para não aparecer o visual Padrão antes do tema de data.
+  const [booted, setBooted] = useState(false);
   const [error, setError] = useState('');
   async function load() {
     setLoading(true);
@@ -98,6 +101,7 @@ export function CatalogApp({
       );
     } finally {
       setLoading(false);
+      setBooted(true);
     }
   }
   useEffect(() => {
@@ -532,6 +536,18 @@ export function CatalogApp({
     document.getElementById('catalogo')?.scrollIntoView({ block: 'start' });
   }
   return (
+    <>
+      {!booted && (
+        <div className="site-loader" role="status">
+          <img
+            src="/distribuidora-laurencini-logo.jpeg"
+            alt=""
+            width={1600}
+            height={960}
+          />
+          <span className="sr-only">Carregando o site…</span>
+        </div>
+      )}
       <main
         id="inicio"
         className={`public-catalog site-v2 ${fullCatalogPage ? 'full-catalog-page' : ''} ${themeId ? `v2-theme theme-${themeId}` : ''}`}
@@ -650,5 +666,6 @@ export function CatalogApp({
           style={style}
         />
       </main>
+    </>
     );
 }
