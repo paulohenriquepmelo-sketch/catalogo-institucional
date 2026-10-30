@@ -101,11 +101,8 @@ export const campaignThemes = [
 export type CampaignThemeId = (typeof campaignThemes)[number]['id'];
 // Temas ainda em ajuste com o cliente: aparecem no editor, mas não podem
 // ser ativados. Remover o id daqui quando o tema for aprovado.
-export const themesInAdjustment: ReadonlySet<CampaignThemeId> = new Set([
-  'natal',
-  'ano-novo',
-  'black-friday',
-]);
+export const themesInAdjustment: ReadonlySet<CampaignThemeId> =
+  new Set<CampaignThemeId>([]);
 
 export type CampaignSlide = {
   id: string;
