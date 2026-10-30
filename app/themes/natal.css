@@ -787,3 +787,52 @@
     pointer-events: none;
   }
 }
+
+/* Títulos em arte fixa, iguais ao esboço (pedido do cliente).
+   O texto continua no HTML para leitores de tela e busca, só fica
+   sem tamanho visual; a arte entra como fundo do próprio título. */
+.site-v2.v2-theme.theme-natal .v2-hero h2 {
+  width: min(560px, 100%);
+  aspect-ratio: 1200 / 703;
+  margin: 0;
+  background: url("/themes/natal-titulo.webp") left center / contain no-repeat;
+  -webkit-background-clip: border-box;
+  background-clip: border-box;
+  -webkit-text-stroke: 0;
+  font-size: 0;
+  filter: drop-shadow(0 8px 18px rgb(0 0 0 / 50%));
+}
+
+.site-v2.v2-theme.theme-natal .v2-hero h2 .v2-hero-title-accent {
+  font-size: 0;
+}
+
+.site-v2.v2-theme.theme-natal #ofertas .v2-brands-head > div {
+  width: min(470px, 100%);
+  aspect-ratio: 1200 / 262;
+  background: url("/themes/natal-selecao.webp") left center / contain no-repeat;
+}
+
+.site-v2.v2-theme.theme-natal #ofertas .v2-brands-head > div > * {
+  font-size: 0;
+  margin: 0;
+}
+
+@media (min-width: 1025px) {
+  .site-v2.v2-theme.theme-natal #ofertas .v2-brands-head::after {
+    content: "";
+    width: 300px;
+    max-width: none;
+    aspect-ratio: 1200 / 460;
+    background: url("/themes/natal-frase.webp") right center / contain no-repeat;
+    transform: none;
+    text-shadow: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .site-v2.v2-theme.theme-natal .v2-hero h2 {
+    width: min(420px, 100%);
+    font-size: 0;
+  }
+}

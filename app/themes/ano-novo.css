@@ -389,11 +389,12 @@
   line-height: 1.4;
 }
 
-/* Fond opaque pour garantir la lisibilité sur les décors. */
+/* Textos direto sobre a arte, sem caixa (pedido do cliente); a sombra
+   garante a leitura sobre o dourado. */
 .site-v2.v2-theme.theme-ano-novo .v2-brands-head > div {
-  border-radius: 4px;
-  background: #06264c;
-  box-shadow: 0 0 0 5px #06264c;
+  text-shadow:
+    0 1px 2px rgb(0 0 0 / 85%),
+    0 0 14px rgb(0 0 0 / 60%);
 }
 
 .site-v2.v2-theme.theme-ano-novo .v2-link-light {
@@ -493,8 +494,8 @@
 }
 
 .site-v2.v2-theme.theme-ano-novo .v2-offers .v2-brands-head > div {
-  padding: 6px 10px;
-  background: #06264c;
+  padding: 0;
+  background: none;
   box-shadow: none;
 }
 
@@ -521,11 +522,13 @@
   width: fit-content;
   max-width: 100%;
   margin-top: 12px;
-  padding: 6px 10px;
-  border-radius: 4px;
-  background: #06264c;
+  padding: 0;
+  background: none;
   color: #ffffff;
   line-height: 1.45;
+  text-shadow:
+    0 1px 2px rgb(0 0 0 / 90%),
+    0 0 10px rgb(0 0 0 / 70%);
 }
 
 /* Contato: compacto, com decoração à direita. */
@@ -930,4 +933,14 @@
     transform: none;
     font-size: 23vw;
   }
+}
+
+/* Ofertas sem caixa azul: sombra mais forte para ler sobre o dourado. */
+.site-v2.v2-theme.theme-ano-novo .v2-offers .v2-brands-head > div,
+.site-v2.v2-theme.theme-ano-novo .v2-offers .v2-panel-note {
+  text-shadow:
+    0 1px 2px rgb(25 12 0 / 95%),
+    0 0 6px rgb(25 12 0 / 90%),
+    0 0 18px rgb(25 12 0 / 75%),
+    0 0 34px rgb(0 0 0 / 55%);
 }
