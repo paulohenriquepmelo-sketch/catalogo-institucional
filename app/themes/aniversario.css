@@ -907,3 +907,13 @@
 .site-v2.v2-theme.theme-aniversario .v2-contact .v2-button {
   text-shadow: none;
 }
+
+@media (max-width: 760px) {
+  .site-v2.v2-theme.theme-aniversario .v2-contact {
+    background-image:
+      linear-gradient(180deg, rgb(4 38 80 / 78%), rgb(4 38 80 / 60%)),
+      var(--t-panel);
+    background-size: cover, cover;
+    background-position: center, center;
+  }
+}
