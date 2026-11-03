@@ -15,7 +15,7 @@ export function useResponsiveLayout() {
     const isTablet = width >= 600;
 
     const columns =
-      width < 360 ? 1 :
+      width < 360 ? 2 :
       width < 430 ? 2 :
       width < 600 ? 2 :
       width < 900 ? 3 :

@@ -7,7 +7,7 @@ import { isDiscontinued, useCatalog, useCatalogSearch } from '@/lib/catalog-stor
 import { useAfterFirstFrame } from '@/lib/useAfterFirstFrame';
 import { useAppTheme } from '@/lib/theme-provider';
 import { readableColor } from '@/lib/theme-contrast';
-import { radius, spacing, typography } from '@/lib/theme';
+import { market, radius, spacing, typography } from '@/lib/theme';
 import type { Product } from '@/lib/api';
 
 const ALL = 'Todos';
@@ -52,20 +52,20 @@ function useStyles() {
     label: { ...typography.small, fontWeight: '700', color: tokens.muted },
     chips: { gap: spacing.sm },
     chip: {
-      minHeight: 44,
+      minHeight: 40,
       minWidth: 44,
-      paddingHorizontal: spacing.md,
-      paddingVertical: spacing.sm,
-      borderRadius: radius.pill,
+      paddingHorizontal: 11,
+      borderRadius: market.radius,
       borderWidth: 1,
-      borderColor: tokens.border,
-      backgroundColor: tokens.soft,
+      borderColor: '#dddddd',
+      backgroundColor: '#ffffff',
       justifyContent: 'center',
       maxWidth: 300,
     },
-    active: { backgroundColor: tokens.accent, borderColor: tokens.accent },
-    chipText: { ...typography.body, color: tokens.ink },
-    activeText: { color: readableColor(tokens.onAccent, tokens.accent), fontWeight: '700' },
+    // Filtro ativo do modelo: borda e texto na cor do app, fundo claro.
+    active: { backgroundColor: '#eaf0fb', borderColor: tokens.link },
+    chipText: { fontSize: 13, color: '#666666' },
+    activeText: { color: readableColor(tokens.link, '#eaf0fb'), fontWeight: '700' },
     clear: {
       minHeight: 44,
       minWidth: 44,

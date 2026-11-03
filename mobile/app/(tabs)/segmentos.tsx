@@ -37,7 +37,7 @@ export default function SegmentosScreen() {
     empty: {
       padding: spacing.xl,
       backgroundColor: tokens.soft,
-      borderRadius: radius.md,
+      borderRadius: 3,
       alignItems: 'center',
     },
     emptyText: { ...typography.body, color: tokens.muted },
@@ -112,7 +112,7 @@ const SegmentCard = memo(function SegmentCard({
   const styles = useMemo(() => StyleSheet.create({
     card: {
       minHeight: 44,
-      borderRadius: radius.md,
+      borderRadius: 3,
       borderWidth: 1,
       borderColor: tokens.border,
       backgroundColor: tokens.soft,

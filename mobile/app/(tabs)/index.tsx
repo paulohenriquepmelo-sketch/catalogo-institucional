@@ -2,9 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { router, useNavigation } from 'expo-router';
 import type { NavigationProp, ParamListBase } from 'expo-router/react-navigation';
 import {
-  Image,
   Linking,
-  Platform,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -13,33 +11,29 @@ import {
   View,
 } from 'react-native';
 import { AppIcon, type AppIconName } from '@/components/AppIcon';
-import { BannerCarousel } from '@/components/BannerCarousel';
-import { CachedImage } from '@/components/CachedImage';
-import { ProductRow } from '@/components/ProductRow';
+import { BrandMarquee } from '@/components/BrandMarquee';
+import { ProductCard } from '@/components/ProductCard';
+import { PromoStrip } from '@/components/PromoStrip';
 import { ThemedBackground } from '@/components/ThemedBackground';
-import { PanelHeading, ThemedPanel } from '@/components/ThemedPanel';
+import { PanelHeading, ThemedPanel, usePanelSurface } from '@/components/ThemedPanel';
 import { useCatalog } from '@/lib/catalog-store';
 import {
   activeOffers,
   BASE_URL,
-  campaignBackground,
   newProducts,
   publishedBrands,
+  type Product,
 } from '@/lib/api';
-import { useLocalImageUri } from '@/lib/image-cache';
 import { useAppTheme } from '@/lib/theme-provider';
-import { splitThemeTitle } from '@/lib/theme-registry';
-import { panelAccent, readableColor } from '@/lib/theme-contrast';
-import { radius, spacing, typography } from '@/lib/theme';
+import { readableColor } from '@/lib/theme-contrast';
+import { useResponsiveLayout } from '@/lib/useResponsiveLayout';
+import { market } from '@/lib/theme';
 
-const LOCAL_HERO = require('../../assets/hero-laurencini.png');
-// O navegador não implementa resolveAssetSource. A proporção de reserva
-// só define o quadro; contain mantém a arte institucional inteira.
-const LOCAL_SOURCE = Platform.OS === 'web' ? undefined : Image.resolveAssetSource(LOCAL_HERO);
-const LOCAL_RATIO = LOCAL_SOURCE?.height
-  ? LOCAL_SOURCE.width / LOCAL_SOURCE.height
-  : 3;
-const PRELOAD_TABS = ['catalogo', 'segmentos', 'ofertas', 'novidades', 'marcas'] as const;
+const PRELOAD_TABS = ['catalogo', 'segmentos', 'novidades', 'marcas'] as const;
+const GUTTER = 15;
+const HIGHLIGHTS = 8;
+
+type Filtro = 'todos' | 'novidades' | 'ofertas';
 
 function normalizeText(text: string) {
   return text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
@@ -53,111 +47,19 @@ function iconForSection(name: string): AppIconName {
   if (/limpez|saneant/.test(normalized)) return 'spray';
   if (/perfum|cosmet/.test(normalized)) return 'flask';
   if (/descart|copo/.test(normalized)) return 'cafe';
-  if (/biscoit|bomb|doce|choc/.test(normalized)) return 'cube';
+  if (/biscoit|bomb|doce|choc/.test(normalized)) return 'candy';
   return 'grid';
-}
-
-function useHomeStyles() {
-  const { tokens } = useAppTheme();
-  return useMemo(() => StyleSheet.create({
-    scroll: { flex: 1 },
-    content: { paddingBottom: spacing.xl, gap: spacing.lg },
-    notice: { padding: spacing.md, backgroundColor: tokens.soft },
-    noticeText: { ...typography.body, color: tokens.ink },
-    heroText: { padding: spacing.xl, gap: spacing.md },
-    eyebrow: {
-      ...typography.small,
-      color: '#ffffff',
-      fontWeight: '700',
-      textTransform: 'uppercase',
-    },
-    title: {
-      fontSize: 30,
-      fontWeight: '800',
-      color: '#ffffff',
-      textShadowColor: '#000000',
-      textShadowOffset: { width: 0, height: 2 },
-      textShadowRadius: 4,
-    },
-    titleArt: { width: '100%', maxWidth: 340, aspectRatio: 1200 / 703 },
-    titleAccent: { color: panelAccent(tokens.titleAccent, tokens.dark) },
-    description: { ...typography.body, color: '#ffffff' },
-    year: {
-      fontSize: 64,
-      fontWeight: '900',
-      color: panelAccent('#f7d273', tokens.dark),
-      fontVariant: ['tabular-nums'],
-    },
-    heroImage: { width: '100%' },
-    button: {
-      minHeight: 48,
-      minWidth: 44,
-      justifyContent: 'center',
-      alignItems: 'center',
-      alignSelf: 'flex-start',
-      paddingHorizontal: spacing.lg,
-      paddingVertical: spacing.md,
-      backgroundColor: tokens.accent,
-      borderRadius: radius.md,
-    },
-    buttonText: {
-      ...typography.body,
-      fontWeight: '800',
-      color: readableColor(tokens.onAccent, tokens.accent),
-    },
-    benefits: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      padding: spacing.lg,
-      gap: spacing.lg,
-    },
-    benefit: { flexGrow: 1, flexBasis: 140, gap: spacing.sm },
-    benefitText: { ...typography.small, color: '#ffffff' },
-    categories: { paddingHorizontal: spacing.lg, gap: spacing.sm },
-    category: {
-      width: 148,
-      minHeight: 100,
-      backgroundColor: tokens.soft,
-      borderColor: tokens.border,
-      borderWidth: 1,
-      borderRadius: radius.md,
-      padding: spacing.md,
-      gap: spacing.sm,
-    },
-    categoryText: { ...typography.body, color: tokens.ink, fontWeight: '700' },
-    section: { paddingBottom: spacing.lg, gap: spacing.sm },
-    brandRow: { paddingHorizontal: spacing.lg, gap: spacing.md },
-    brandCard: {
-      width: 144,
-      minHeight: 112,
-      backgroundColor: tokens.soft,
-      borderColor: tokens.border,
-      borderWidth: 1,
-      borderRadius: radius.md,
-      padding: spacing.sm,
-      gap: spacing.sm,
-      alignItems: 'center',
-    },
-    brandLogo: { width: '100%', height: 64, backgroundColor: '#ffffff' },
-    brandName: { ...typography.body, color: tokens.ink, textAlign: 'center' },
-    contact: { padding: spacing.lg, gap: spacing.md },
-    contactTitle: { ...typography.title, color: '#ffffff' },
-    countdown: {
-      paddingHorizontal: spacing.lg,
-      paddingBottom: spacing.sm,
-      color: '#ffffff',
-      ...typography.body,
-      fontVariant: ['tabular-nums'],
-    },
-  }), [tokens]);
 }
 
 export default function HomeScreen() {
   const { config, products, refreshing, refresh, offline } = useCatalog();
-  const { tokens, copy } = useAppTheme();
-  const styles = useHomeStyles();
+  const { id, tokens } = useAppTheme();
+  const { width, columns } = useResponsiveLayout();
+  const surface = usePanelSurface();
   const navigation = useNavigation<NavigationProp<ParamListBase>>();
+  const [filtro, setFiltro] = useState<Filtro>('todos');
   const hasProducts = products.length > 0;
+  const inner = width - GUTTER * 2;
 
   useEffect(() => {
     if (!hasProducts) return;
@@ -168,23 +70,42 @@ export default function HomeScreen() {
   }, [navigation, hasProducts]);
 
   const offers = useMemo(
-    () => activeOffers(products, config?.offers.limit ?? 12),
-    [products, config?.offers.limit],
+    () => config?.offers.published ? activeOffers(products, config.offers.limit ?? 12) : [],
+    [products, config?.offers.published, config?.offers.limit],
   );
   const news = useMemo(
-    () => newProducts(products, config?.newProducts.fromCode, config?.newProducts.limit ?? 12),
-    [products, config?.newProducts.fromCode, config?.newProducts.limit],
+    () => config?.newProducts.published
+      ? newProducts(products, config.newProducts.fromCode, config.newProducts.limit ?? 12)
+      : [],
+    [products, config?.newProducts.published, config?.newProducts.fromCode, config?.newProducts.limit],
   );
+  const newIds = useMemo(() => new Set(news.map((product) => product.id)), [news]);
+  const highlights = useMemo(() => {
+    if (filtro === 'ofertas') return offers.slice(0, HIGHLIGHTS);
+    if (filtro === 'novidades') return news.slice(0, HIGHLIGHTS);
+    // "Todos" intercala ofertas e novidades, sem repetir produto.
+    const mixed: Product[] = [];
+    const seen = new Set<Product['id']>();
+    for (let index = 0; mixed.length < HIGHLIGHTS && (index < offers.length || index < news.length); index++) {
+      for (const product of [offers[index], news[index]]) {
+        if (product && !seen.has(product.id) && mixed.length < HIGHLIGHTS) {
+          seen.add(product.id);
+          mixed.push(product);
+        }
+      }
+    }
+    return mixed;
+  }, [filtro, offers, news]);
+  const filtros = useMemo(() => {
+    const list: [Filtro, string][] = [['todos', 'Todos']];
+    if (news.length) list.push(['novidades', 'Novidades']);
+    if (offers.length) list.push(['ofertas', 'Ofertas']);
+    return list;
+  }, [news.length, offers.length]);
   const brands = useMemo(
-    () => publishedBrands(config?.brands ?? []).slice(0, 10),
+    () => publishedBrands(config?.brands ?? []).slice(0, 14),
     [config?.brands],
   );
-  const catalogSizeLabel = useMemo(() => {
-    const count = products.filter((product) => product.published !== false).length;
-    if (count < 100) return 'Mix completo para o seu negócio';
-    const rounded = Math.floor(count / 100) * 100;
-    return `Mais de ${String(rounded).replace(/\B(?=(\d{3})+(?!\d))/g, '.')} produtos`;
-  }, [products]);
   const shortcuts = useMemo(() => {
     const counts = new Map<string, number>();
     for (const product of products) {
@@ -194,16 +115,105 @@ export default function HomeScreen() {
     }
     return Array.from(counts.entries())
       .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'pt-BR'))
-      .slice(0, 8)
+      .slice(0, 6)
       .map(([label]) => ({ label, icon: iconForSection(label) }));
   }, [products]);
-  const nextOfferEnd = useMemo(
-    () => offers
-      .map((product) => product.details?.offer?.endsAt)
-      .filter((value): value is string => Boolean(value))
-      .sort()[0],
-    [offers],
-  );
+
+  const catWidth = (inner - 7 * 2) / 3;
+  const cardWidth = (inner - 24 - (columns - 1) * 8) / columns;
+  // Texto solto sobre a página: no tema escuro o fundo é tokens.paper.
+  const page = id === 'padrao' ? market.page : tokens.paper;
+  const muted = readableColor('#777777', page);
+  const pageInk = readableColor('#333333', page);
+  const link = readableColor(tokens.link, surface);
+
+  const styles = useMemo(() => StyleSheet.create({
+    scroll: { flex: 1 },
+    content: { paddingHorizontal: GUTTER, paddingTop: 13, paddingBottom: 28 },
+    notice: {
+      padding: 10,
+      marginBottom: 12,
+      borderRadius: market.radius,
+      backgroundColor: '#fff4e5',
+    },
+    noticeText: { fontSize: 13, color: '#5c3b00' },
+    crumbs: { fontSize: 12, color: muted, marginBottom: 14 },
+    welcome: { marginBottom: 14 },
+    h1: { fontSize: 19, fontWeight: '700', color: pageInk, marginBottom: 4 },
+    lead: { fontSize: 13, color: muted },
+    cats: { flexDirection: 'row', flexWrap: 'wrap', gap: 7, marginBottom: 14 },
+    cat: {
+      width: catWidth,
+      minHeight: 74,
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 6,
+      padding: 6,
+      borderRadius: market.radius,
+      backgroundColor: surface,
+      shadowColor: '#000000',
+      shadowOpacity: 0.05,
+      shadowRadius: 2,
+      shadowOffset: { width: 0, height: 1 },
+      elevation: 1,
+    },
+    catText: {
+      fontSize: 11,
+      fontWeight: '600',
+      textAlign: 'center',
+      color: readableColor('#444444', surface),
+    },
+    panel: { marginBottom: 14 },
+    sort: {
+      minHeight: 36,
+      justifyContent: 'center',
+      paddingHorizontal: 10,
+      borderRadius: market.radius,
+      borderWidth: 1,
+      borderColor: '#dddddd',
+    },
+    sortText: { fontSize: 11, color: readableColor('#555555', surface) },
+    toolbar: {
+      marginTop: 12,
+      marginBottom: 12,
+      paddingVertical: 10,
+      gap: 8,
+      borderTopWidth: 1,
+      borderBottomWidth: 1,
+      borderColor: '#f0f0f0',
+    },
+    count: { fontSize: 11, color: readableColor('#555555', surface) },
+    countSoft: { color: readableColor('#999999', surface) },
+    filters: { flexDirection: 'row', gap: 5 },
+    filter: {
+      minHeight: 34,
+      justifyContent: 'center',
+      paddingHorizontal: 11,
+      borderRadius: market.radius,
+      borderWidth: 1,
+      borderColor: '#dddddd',
+      backgroundColor: surface,
+    },
+    filterOn: { borderColor: tokens.link, backgroundColor: '#eaf0fb' },
+    filterText: { fontSize: 11, color: readableColor('#666666', surface) },
+    filterTextOn: { color: readableColor(tokens.link, '#eaf0fb'), fontWeight: '700' },
+    grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+    empty: { fontSize: 13, color: readableColor('#78827d', surface), paddingVertical: 8 },
+    contact: { marginBottom: 18, gap: 12 },
+    contactTitle: { fontSize: 14, fontWeight: '700', color: readableColor('#333333', surface) },
+    contactText: { fontSize: 12, color: readableColor('#888888', surface), marginTop: 4 },
+    contactButton: {
+      alignSelf: 'flex-start',
+      minHeight: 40,
+      justifyContent: 'center',
+      paddingHorizontal: 14,
+      borderRadius: market.radius,
+      backgroundColor: tokens.dark,
+    },
+    contactButtonText: { fontSize: 12, fontWeight: '700', color: '#ffffff' },
+    footer: { gap: 5 },
+    footerText: { fontSize: 11, color: muted },
+  }), [tokens, surface, catWidth, muted, pageInk]);
 
   return (
     <ThemedBackground>
@@ -227,221 +237,124 @@ export default function HomeScreen() {
           </View>
         ) : null}
 
-        <HeroBanner catalogSizeLabel={catalogSizeLabel} />
-        {config?.banners?.length ? <BannerCarousel banners={config.banners} /> : null}
+        <Text style={styles.crumbs}>Início   ›   Catálogo</Text>
+        <View style={styles.welcome}>
+          <Text accessibilityRole="header" style={styles.h1}>Encontre o que sua loja precisa</Text>
+          <Text style={styles.lead}>Navegue por segmentos, marcas e novidades do nosso catálogo.</Text>
+        </View>
 
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.categories}
-        >
-          {shortcuts.map((shortcut) => (
-            <Pressable
-              key={shortcut.label}
-              accessibilityRole="button"
-              onPress={() => router.navigate({
-                pathname: '/(tabs)/catalogo',
-                params: { section: shortcut.label },
-              })}
-              style={styles.category}
-            >
-              <AppIcon name={shortcut.icon} size={26} color={tokens.link} />
-              <Text style={styles.categoryText}>{shortcut.label}</Text>
-            </Pressable>
-          ))}
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => router.navigate('/(tabs)/catalogo')}
-            style={styles.category}
-          >
-            <AppIcon name="grid" size={26} color={tokens.link} />
-            <Text style={styles.categoryText}>Ver todos os produtos</Text>
-          </Pressable>
-        </ScrollView>
+        <PromoStrip width={inner} />
 
-        {config?.offers.published && offers.length > 0 ? (
-          <ThemedPanel variant="ofertas" style={styles.section}>
-            <PanelHeading
-              title={copy.offers}
-              subtitle="Qualidade e economia para o seu negócio."
-              actionLabel="Ver todas as ofertas"
-              onAction={() => router.navigate('/(tabs)/ofertas')}
-            />
-            {nextOfferEnd ? <OfferCountdown endsAt={nextOfferEnd} /> : null}
-            <ProductRow products={offers} />
-          </ThemedPanel>
+        {shortcuts.length ? (
+          <View style={styles.cats}>
+            {shortcuts.map((shortcut) => (
+              <Pressable
+                key={shortcut.label}
+                accessibilityRole="button"
+                accessibilityLabel={`Ver produtos de ${shortcut.label}`}
+                onPress={() => router.navigate({
+                  pathname: '/(tabs)/catalogo',
+                  params: { section: shortcut.label },
+                })}
+                style={styles.cat}
+              >
+                <AppIcon name={shortcut.icon} size={24} color={link} />
+                <Text style={styles.catText} numberOfLines={2}>
+                  {shortcut.label.replace(/^\d+\s*-\s*/, '')}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
         ) : null}
 
-        {config?.newProducts.published && news.length > 0 ? (
-          <ThemedPanel style={styles.section}>
-            <PanelHeading
-              title="Acabaram de chegar"
-              subtitle="Novidades para completar seu mix."
-              actionLabel="Ver todas as novidades"
-              onAction={() => router.navigate('/(tabs)/novidades')}
-            />
-            <ProductRow products={news} />
+        {highlights.length || filtro !== 'todos' ? (
+          <ThemedPanel style={styles.panel}>
+            <View>
+              <PanelHeading
+                title="Produtos em destaque"
+                subtitle="Confira alguns itens selecionados do catálogo"
+              />
+            </View>
+            <View style={styles.toolbar}>
+              <Text style={styles.count}>
+                Produtos para conhecer <Text style={styles.countSoft}>· sem exibição de preços</Text>
+              </Text>
+              <View style={styles.filters} accessibilityRole="tablist">
+                {filtros.map(([key, label]) => {
+                  const on = filtro === key;
+                  return (
+                    <Pressable
+                      key={key}
+                      accessibilityRole="tab"
+                      accessibilityState={{ selected: on }}
+                      onPress={() => setFiltro(key)}
+                      style={[styles.filter, on && styles.filterOn]}
+                    >
+                      <Text style={[styles.filterText, on && styles.filterTextOn]}>{label}</Text>
+                    </Pressable>
+                  );
+                })}
+                <View style={{ flex: 1 }} />
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={() => router.navigate('/(tabs)/catalogo')}
+                  style={styles.sort}
+                >
+                  <Text style={styles.sortText}>Ver catálogo</Text>
+                </Pressable>
+              </View>
+            </View>
+            <View style={styles.grid}>
+              {highlights.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  width={cardWidth}
+                  tag={newIds.has(product.id) ? 'Novidade' : 'Destaque'}
+                />
+              ))}
+            </View>
+            {!highlights.length ? <Text style={styles.empty}>Nada neste filtro no momento.</Text> : null}
           </ThemedPanel>
         ) : null}
 
         {brands.length > 0 ? (
-          <ThemedPanel variant="marcas" style={styles.section}>
+          <ThemedPanel style={styles.panel}>
             <PanelHeading
-              title="Marcas"
-              subtitle="Qualidade que você já conhece."
-              actionLabel="Ver todas as marcas"
+              title="Marcas parceiras"
+              subtitle="Qualidade e confiança para o seu negócio"
+              actionLabel="Ver todas"
               onAction={() => router.navigate('/(tabs)/marcas')}
             />
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.brandRow}
-            >
-              {brands.map((brand) => (
-                <Pressable
-                  key={brand.name}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Ver produtos de ${brand.name}`}
-                  onPress={() => router.navigate({
-                    pathname: '/(tabs)/catalogo',
-                    params: { brand: brand.name },
-                  })}
-                  style={styles.brandCard}
-                >
-                  {brand.logo ? <CachedImage uri={brand.logo} style={styles.brandLogo} /> : null}
-                  <Text style={styles.brandName}>{brand.name}</Text>
-                </Pressable>
-              ))}
-            </ScrollView>
+            <BrandMarquee brands={brands} />
           </ThemedPanel>
         ) : null}
 
         <ThemedPanel style={styles.contact}>
-          <Text accessibilityRole="header" style={styles.contactTitle}>
-            Seja um cliente Laurencini
-          </Text>
-          <Text style={styles.description}>
-            Fale com nossa equipe e conheça as condições para o seu negócio.
-          </Text>
+          <View>
+            <Text accessibilityRole="header" style={styles.contactTitle}>
+              Quer saber mais sobre algum produto?
+            </Text>
+            <Text style={styles.contactText}>
+              Fale com nossa equipe comercial para consultar disponibilidade.
+            </Text>
+          </View>
           <Pressable
             accessibilityRole="link"
             onPress={() => {
               void Linking.openURL(config?.email ? `mailto:${config.email}` : BASE_URL);
             }}
-            style={styles.button}
+            style={styles.contactButton}
           >
-            <Text style={styles.buttonText}>Quero ser cliente</Text>
+            <Text style={styles.contactButtonText}>Falar com consultor  ↗</Text>
           </Pressable>
         </ThemedPanel>
+
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>© {new Date().getFullYear()} Distribuidora Laurencini</Text>
+          <Text style={styles.footerText}>Catálogo institucional para clientes e parceiros</Text>
+        </View>
       </ScrollView>
     </ThemedBackground>
-  );
-}
-
-function HeroBanner({ catalogSizeLabel }: { catalogSizeLabel: string }) {
-  const { config } = useCatalog();
-  const { id, arts, year } = useAppTheme();
-  const styles = useHomeStyles();
-  const campaign = config?.campaign;
-  const configuredArt = id === 'padrao' ? campaignBackground(config) : arts.hero;
-  const uri = useLocalImageUri(configuredArt || undefined);
-  const [ratio, setRatio] = useState(LOCAL_RATIO);
-
-  useEffect(() => {
-    setRatio(LOCAL_RATIO);
-    if (!uri) return;
-    let active = true;
-    Image.getSize(uri, (width, height) => {
-      if (active && width > 0 && height > 0) setRatio(width / height);
-    }, () => undefined);
-    return () => { active = false; };
-  }, [uri]);
-
-  const [first, second, third] = splitThemeTitle(
-    campaign?.title?.trim() || 'Distribuidora Laurencini | Seu mix completo',
-  );
-
-  return (
-    <ThemedPanel art={id === 'padrao' ? undefined : arts.hero}>
-      <View style={styles.heroText}>
-        {campaign?.eyebrow ? <Text style={styles.eyebrow}>{campaign.eyebrow}</Text> : null}
-        {id === 'natal' && arts.extras.titulo ? (
-          // Natal: título em arte fixa, igual ao esboço aprovado no site.
-          <View
-            accessible
-            accessibilityRole="header"
-            accessibilityLabel={[first, second, third].filter(Boolean).join(' ')}
-          >
-            <CachedImage uri={arts.extras.titulo} style={styles.titleArt} resizeMode="contain" />
-          </View>
-        ) : (
-          <Text accessibilityRole="header" style={styles.title}>
-            {first}
-            {second ? <Text style={styles.titleAccent}>{'\n'}{second}</Text> : null}
-            {third ? <Text>{'\n'}{third}</Text> : null}
-          </Text>
-        )}
-        {id === 'ano-novo' ? <Text style={styles.year}>{year}</Text> : null}
-        <Text style={styles.description}>
-          {campaign?.description || 'Atacado e distribuição para abastecer o seu negócio.'}
-        </Text>
-        <Pressable
-          accessibilityRole="button"
-          style={styles.button}
-          onPress={() => router.navigate('/(tabs)/catalogo')}
-        >
-          <Text style={styles.buttonText}>Explorar catálogo</Text>
-        </Pressable>
-      </View>
-
-      {/* No celular, a arte inteira vem abaixo do texto, sem faixas fixas. */}
-      <Image
-        source={uri ? { uri } : LOCAL_HERO}
-        style={[styles.heroImage, { aspectRatio: ratio }]}
-        resizeMode="contain"
-        fadeDuration={0}
-        accessible={false}
-      />
-      <View style={styles.benefits}>
-        <Benefit icon="truck" label="Entrega no Norte e na região Serrana do ES" />
-        <Benefit icon="cube" label={catalogSizeLabel} />
-        <Benefit icon="business" label="Atacado e distribuição para o seu negócio" />
-      </View>
-    </ThemedPanel>
-  );
-}
-
-function Benefit({ icon, label }: { icon: AppIconName; label: string }) {
-  const styles = useHomeStyles();
-  return (
-    <View style={styles.benefit}>
-      <AppIcon name={icon} size={24} color="#ffffff" />
-      <Text style={styles.benefitText}>{label}</Text>
-    </View>
-  );
-}
-
-function OfferCountdown({ endsAt }: { endsAt: string }) {
-  const styles = useHomeStyles();
-  const [now, setNow] = useState(Date.now());
-  useEffect(() => {
-    const timer = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const end = new Date(`${endsAt}T23:59:59`).getTime();
-  if (!Number.isFinite(end)) return null;
-  const remaining = Math.max(0, end - now);
-  const days = Math.floor(remaining / 86_400_000);
-  const hours = Math.floor(remaining / 3_600_000) % 24;
-  const minutes = Math.floor(remaining / 60_000) % 60;
-  const seconds = Math.floor(remaining / 1000) % 60;
-
-  return (
-    <Text style={styles.countdown}>
-      {remaining > 0
-        ? `Termina em ${days} dias, ${hours}h ${minutes}min ${seconds}s`
-        : 'Prazo encerrado'}
-    </Text>
   );
 }

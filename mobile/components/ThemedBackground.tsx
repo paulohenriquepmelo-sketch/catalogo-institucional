@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { useLocalImageUri } from '@/lib/image-cache';
 import { useAppTheme } from '@/lib/theme-provider';
+import { market } from '@/lib/theme';
 
 const TILE_SIZE = 240;
 
@@ -24,10 +25,10 @@ export function ThemedBackground({
   const [size, setSize] = useState({ width: 0, height: 0 });
 
   const styles = useMemo(() => StyleSheet.create({
-    root: { flex: 1, backgroundColor: tokens.paper },
+    root: { flex: 1, backgroundColor: id === 'padrao' ? market.page : tokens.paper },
     decoration: { ...StyleSheet.absoluteFill, overflow: 'hidden' },
     tile: { position: 'absolute', width: TILE_SIZE, height: TILE_SIZE },
-  }), [tokens]);
+  }), [id, tokens]);
 
   const onLayout = useCallback((event: LayoutChangeEvent) => {
     const { width, height } = event.nativeEvent.layout;
