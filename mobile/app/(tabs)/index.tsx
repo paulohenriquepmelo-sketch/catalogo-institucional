@@ -51,6 +51,20 @@ function iconForSection(name: string): AppIconName {
   return 'grid';
 }
 
+type Shortcut = { label: string; icon: AppIconName };
+type CatItem = Shortcut | 'mais' | 'menos' | null;
+
+/** Monta as linhas de três: até cinco atalhos e "Ver mais", ou todos e "Ver menos". */
+function catRows(shortcuts: Shortcut[], expanded: boolean): CatItem[][] {
+  const items: CatItem[] = shortcuts.length <= 6
+    ? [...shortcuts]
+    : expanded ? [...shortcuts, 'menos'] : [...shortcuts.slice(0, 5), 'mais'];
+  while (items.length % 3) items.push(null);
+  const rows: CatItem[][] = [];
+  for (let index = 0; index < items.length; index += 3) rows.push(items.slice(index, index + 3));
+  return rows;
+}
+
 export default function HomeScreen() {
   const { config, products, refreshing, refresh, offline } = useCatalog();
   const { id, tokens } = useAppTheme();
@@ -58,6 +72,7 @@ export default function HomeScreen() {
   const surface = usePanelSurface();
   const navigation = useNavigation<NavigationProp<ParamListBase>>();
   const [filtro, setFiltro] = useState<Filtro>('todos');
+  const [allCats, setAllCats] = useState(false);
   const hasProducts = products.length > 0;
   const inner = width - GUTTER * 2;
 
@@ -115,11 +130,9 @@ export default function HomeScreen() {
     }
     return Array.from(counts.entries())
       .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'pt-BR'))
-      .slice(0, 6)
       .map(([label]) => ({ label, icon: iconForSection(label) }));
   }, [products]);
 
-  const catWidth = (inner - 7 * 2) / 3;
   const cardWidth = (inner - 24 - (columns - 1) * 8) / columns;
   // Texto solto sobre a página: no tema escuro o fundo é tokens.paper.
   const page = id === 'padrao' ? market.page : tokens.paper;
@@ -141,9 +154,11 @@ export default function HomeScreen() {
     welcome: { marginBottom: 14 },
     h1: { fontSize: 19, fontWeight: '700', color: pageInk, marginBottom: 4 },
     lead: { fontSize: 13, color: muted },
-    cats: { flexDirection: 'row', flexWrap: 'wrap', gap: 7, marginBottom: 14 },
+    cats: { gap: 7, marginBottom: 14 },
+    catRow: { flexDirection: 'row', gap: 7 },
+    catGap: { flex: 1 },
     cat: {
-      width: catWidth,
+      flex: 1,
       minHeight: 74,
       alignItems: 'center',
       justifyContent: 'center',
@@ -213,7 +228,7 @@ export default function HomeScreen() {
     contactButtonText: { fontSize: 12, fontWeight: '700', color: '#ffffff' },
     footer: { gap: 5 },
     footerText: { fontSize: 11, color: muted },
-  }), [tokens, surface, catWidth, muted, pageInk]);
+  }), [tokens, surface, muted, pageInk]);
 
   return (
     <ThemedBackground>
@@ -246,23 +261,39 @@ export default function HomeScreen() {
         <PromoStrip width={inner} />
 
         {shortcuts.length ? (
+          // Três por linha e duas linhas; "Ver mais" abre o restante aqui mesmo.
           <View style={styles.cats}>
-            {shortcuts.map((shortcut) => (
-              <Pressable
-                key={shortcut.label}
-                accessibilityRole="button"
-                accessibilityLabel={`Ver produtos de ${shortcut.label}`}
-                onPress={() => router.navigate({
-                  pathname: '/(tabs)/catalogo',
-                  params: { section: shortcut.label },
-                })}
-                style={styles.cat}
-              >
-                <AppIcon name={shortcut.icon} size={24} color={link} />
-                <Text style={styles.catText} numberOfLines={2}>
-                  {shortcut.label.replace(/^\d+\s*-\s*/, '')}
-                </Text>
-              </Pressable>
+            {catRows(shortcuts, allCats).map((row, rowIndex) => (
+              <View key={rowIndex} style={styles.catRow}>
+                {row.map((item, index) => item === 'mais' || item === 'menos' ? (
+                  <Pressable
+                    key={item}
+                    accessibilityRole="button"
+                    accessibilityState={{ expanded: allCats }}
+                    onPress={() => setAllCats(item === 'mais')}
+                    style={styles.cat}
+                  >
+                    <AppIcon name={item === 'mais' ? 'grid' : 'chevron-down'} size={24} color={link} />
+                    <Text style={styles.catText}>{item === 'mais' ? 'Ver mais' : 'Ver menos'}</Text>
+                  </Pressable>
+                ) : item ? (
+                  <Pressable
+                    key={item.label}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Ver produtos de ${item.label}`}
+                    onPress={() => router.navigate({
+                      pathname: '/(tabs)/catalogo',
+                      params: { section: item.label },
+                    })}
+                    style={styles.cat}
+                  >
+                    <AppIcon name={item.icon} size={24} color={link} />
+                    <Text style={styles.catText} numberOfLines={2}>
+                      {item.label.replace(/^\d+\s*-\s*/, '')}
+                    </Text>
+                  </Pressable>
+                ) : <View key={`vazio-${index}`} style={styles.catGap} />)}
+              </View>
             ))}
           </View>
         ) : null}
@@ -321,8 +352,8 @@ export default function HomeScreen() {
         {brands.length > 0 ? (
           <ThemedPanel style={styles.panel}>
             <PanelHeading
-              title="Marcas parceiras"
-              subtitle="Qualidade e confiança para o seu negócio"
+              title="Marcas que comercializamos"
+              subtitle="Trabalhamos com uma ampla variedade de produtos de marcas reconhecidas no mercado, oferecendo qualidade e opções para abastecer o seu negócio."
               actionLabel="Ver todas"
               onAction={() => router.navigate('/(tabs)/marcas')}
             />

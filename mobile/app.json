@@ -2,7 +2,7 @@
   "expo": {
     "name": "Catálogo Laurencini",
     "slug": "catalogo-laurencini-app",
-    "version": "1.4.0",
+    "version": "1.4.1",
     "orientation": "default",
     "icon": "./assets/icon.png",
     "scheme": "catalogolaurencini",
@@ -17,7 +17,7 @@
         "INTERNET",
         "ACCESS_NETWORK_STATE"
       ],
-      "versionCode": 6
+      "versionCode": 7
     },
     "plugins": [
       "expo-router",

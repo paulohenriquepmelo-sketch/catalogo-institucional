@@ -112,9 +112,9 @@ export default function MarcasScreen() {
         ListHeaderComponent={
           <ThemedPanel variant="marcas" style={styles.header}>
             <PanelHeading
-              title="Marcas"
+              title="Marcas que comercializamos"
               subtitle={ready
-                ? `${brands.length} ${brands.length === 1 ? 'marca parceira' : 'marcas parceiras'}`
+                ? `${brands.length} ${brands.length === 1 ? 'marca' : 'marcas'}`
                 : 'Carregando…'}
             />
           </ThemedPanel>

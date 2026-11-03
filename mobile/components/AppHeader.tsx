@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
-import { Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { usePathname, useRouter, type Href } from 'expo-router';
+import { Image, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppIcon } from '@/components/AppIcon';
 import { useCatalog, useCatalogSearch } from '@/lib/catalog-store';
@@ -15,15 +15,6 @@ import { market, spacing } from '@/lib/theme';
 
 const LOGO = require('@/assets/logo.png');
 
-// Mesma ordem da barra azul do modelo.
-const NAV: { label: string; href: Href; match: string[] }[] = [
-  { label: 'Início', href: '/(tabs)', match: ['/'] },
-  { label: 'Catálogo', href: '/(tabs)/catalogo', match: ['/catalogo'] },
-  { label: 'Segmentos', href: '/(tabs)/segmentos', match: ['/segmentos'] },
-  { label: 'Ofertas e novidades', href: '/(tabs)/novidades', match: ['/novidades', '/ofertas'] },
-  { label: 'Marcas', href: '/(tabs)/marcas', match: ['/marcas'] },
-];
-
 export function AppHeader({
   canGoBack = false,
   onBack,
@@ -36,7 +27,6 @@ export function AppHeader({
   const { tokens } = useAppTheme();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const pathname = usePathname();
   const seenAt = useNotificationsSeenAt();
   const notifications = useMemo(
     () => buildNotifications(products, config),
@@ -93,19 +83,6 @@ export function AppHeader({
       backgroundColor: market.imageBg,
       borderLeftWidth: 1,
       borderLeftColor: '#eeeeee',
-    },
-    nav: { height: 42, flexGrow: 0, backgroundColor: tokens.dark },
-    navContent: { paddingHorizontal: 15, gap: 20, alignItems: 'stretch' },
-    navItem: { justifyContent: 'center' },
-    navText: { color: '#ffffff', fontSize: 13 },
-    navActive: { fontWeight: '700' },
-    underline: {
-      position: 'absolute',
-      left: 0,
-      right: 0,
-      bottom: 0,
-      height: 2,
-      backgroundColor: tokens.accent,
     },
   }), [tokens]);
 
@@ -170,29 +147,6 @@ export function AppHeader({
           </Pressable>
         </View>
       </View>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.nav}
-        contentContainerStyle={styles.navContent}
-        accessibilityRole="tablist"
-      >
-        {NAV.map((item) => {
-          const active = item.match.includes(pathname);
-          return (
-            <Pressable
-              key={item.label}
-              accessibilityRole="tab"
-              accessibilityState={{ selected: active }}
-              onPress={() => router.navigate(item.href)}
-              style={styles.navItem}
-            >
-              <Text style={[styles.navText, active && styles.navActive]}>{item.label}</Text>
-              {active ? <View style={styles.underline} /> : null}
-            </Pressable>
-          );
-        })}
-      </ScrollView>
     </View>
   );
 }

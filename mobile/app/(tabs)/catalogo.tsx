@@ -1,13 +1,23 @@
 import { useDeferredValue, useEffect, useMemo, useState } from 'react';
 import { useLocalSearchParams } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  FlatList,
+  Modal,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { AppIcon } from '@/components/AppIcon';
 import { ProductGrid } from '@/components/ProductGrid';
-import { PanelHeading, ThemedPanel } from '@/components/ThemedPanel';
+import { ThemedPanel, usePanelSurface } from '@/components/ThemedPanel';
 import { isDiscontinued, useCatalog, useCatalogSearch } from '@/lib/catalog-store';
 import { useAfterFirstFrame } from '@/lib/useAfterFirstFrame';
 import { useAppTheme } from '@/lib/theme-provider';
 import { readableColor } from '@/lib/theme-contrast';
-import { market, radius, spacing, typography } from '@/lib/theme';
+import { market } from '@/lib/theme';
 import type { Product } from '@/lib/api';
 
 const ALL = 'Todos';
@@ -41,51 +51,72 @@ function firstParam(value?: string | string[]) {
 
 function useStyles() {
   const { tokens } = useAppTheme();
+  const surface = usePanelSurface();
   return useMemo(() => StyleSheet.create({
-    filters: {
-      padding: spacing.lg,
-      gap: spacing.md,
-      backgroundColor: tokens.soft,
-    },
-    notice: { ...typography.body, color: tokens.ink },
-    group: { gap: spacing.sm },
-    label: { ...typography.small, fontWeight: '700', color: tokens.muted },
-    chips: { gap: spacing.sm },
-    chip: {
-      minHeight: 40,
-      minWidth: 44,
-      paddingHorizontal: 11,
+    head: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 },
+    title: { fontSize: 16, fontWeight: '700', color: readableColor(tokens.ink, surface) },
+    result: { fontSize: 12, color: readableColor('#777777', surface) },
+    notice: { fontSize: 12, color: readableColor('#5c3b00', surface), marginTop: 6 },
+    selects: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 10 },
+    select: {
+      flexGrow: 1,
+      flexBasis: '45%',
+      minHeight: 44,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      paddingHorizontal: 10,
       borderRadius: market.radius,
       borderWidth: 1,
       borderColor: '#dddddd',
       backgroundColor: '#ffffff',
-      justifyContent: 'center',
-      maxWidth: 300,
     },
-    // Filtro ativo do modelo: borda e texto na cor do app, fundo claro.
-    active: { backgroundColor: '#eaf0fb', borderColor: tokens.link },
-    chipText: { fontSize: 13, color: '#666666' },
-    activeText: { color: readableColor(tokens.link, '#eaf0fb'), fontWeight: '700' },
-    clear: {
-      minHeight: 44,
-      minWidth: 44,
-      padding: spacing.md,
-      alignSelf: 'flex-start',
-      justifyContent: 'center',
-      borderRadius: radius.md,
+    selectOn: { borderColor: tokens.link, backgroundColor: '#eaf0fb' },
+    selectText: { flex: 1, minWidth: 0 },
+    selectLabel: { fontSize: 10, fontWeight: '700', letterSpacing: 0.5, color: '#888888' },
+    selectValue: { fontSize: 13, color: '#333333' },
+    selectValueOn: { color: readableColor(tokens.link, '#eaf0fb'), fontWeight: '700' },
+    clear: { minHeight: 44, justifyContent: 'center', alignSelf: 'flex-start' },
+    clearText: { fontSize: 12, fontWeight: '700', color: readableColor(tokens.link, surface) },
+    backdrop: { flex: 1, backgroundColor: '#00000066', justifyContent: 'flex-end' },
+    sheet: {
+      maxHeight: '75%',
+      backgroundColor: '#ffffff',
+      borderTopLeftRadius: 12,
+      borderTopRightRadius: 12,
+      paddingTop: 14,
+    },
+    sheetHead: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      paddingBottom: 10,
+    },
+    sheetTitle: { fontSize: 16, fontWeight: '700', color: '#25332c' },
+    close: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+    sheetSearch: {
+      marginHorizontal: 16,
+      marginBottom: 8,
+      height: 42,
+      paddingHorizontal: 12,
+      borderRadius: market.radius,
       borderWidth: 1,
-      borderColor: tokens.border,
-      backgroundColor: tokens.soft,
+      borderColor: '#dddddd',
+      fontSize: 14,
+      color: '#333333',
     },
-    clearText: { ...typography.body, color: tokens.link, fontWeight: '700' },
-    result: {
-      ...typography.small,
-      color: tokens.muted,
-      borderTopColor: tokens.border,
+    option: {
+      minHeight: 48,
+      justifyContent: 'center',
+      paddingHorizontal: 16,
       borderTopWidth: 1,
-      paddingTop: spacing.md,
+      borderTopColor: '#f0f0f0',
     },
-  }), [tokens]);
+    optionOn: { backgroundColor: '#eaf0fb' },
+    optionText: { fontSize: 14, color: '#333333' },
+    optionTextOn: { color: readableColor(tokens.link, '#eaf0fb'), fontWeight: '700' },
+  }), [tokens, surface]);
 }
 
 export default function CatalogoScreen() {
@@ -228,20 +259,26 @@ export default function CatalogoScreen() {
       emptyMessage="Nenhum produto encontrado. Tente ajustar os filtros ou sua busca."
       emptyAction={hasActiveFilters ? clearButton : null}
       header={
-        <>
-          <ThemedPanel>
-            <PanelHeading title="Todos os produtos" />
-          </ThemedPanel>
-          <View style={styles.filters}>
-            {offline ? (
-              <Text style={styles.notice}>Sem conexão — mostrando o último catálogo salvo.</Text>
-            ) : null}
-            <FilterGroup
-              label="DEPARTAMENTO"
+        <ThemedPanel>
+          <View style={styles.head}>
+            <Text accessibilityRole="header" style={styles.title}>Todos os produtos</Text>
+            <Text style={styles.result}>
+              {ready
+                ? `${filtered.length} produto${filtered.length !== 1 ? 's' : ''}`
+                : 'Carregando…'}
+            </Text>
+          </View>
+          {offline ? (
+            <Text style={styles.notice}>Sem conexão — mostrando o último catálogo salvo.</Text>
+          ) : null}
+          {/* Filtros compactos: cada botão abre a lista de opções. */}
+          <View style={styles.selects}>
+            <FilterSelect
+              label="Departamento"
               options={departments}
-              selected={selectedDepartment || ALL}
+              selected={selectedDepartment}
               onSelect={(value) => {
-                setSelectedDepartment(value === ALL ? '' : value);
+                setSelectedDepartment(value);
                 setSelectedSection('');
                 setSelectedCategory('');
                 setSelectedBrand('');
@@ -249,47 +286,42 @@ export default function CatalogoScreen() {
             />
             {selectedDepartment ? (
               <>
-                <FilterGroup
-                  label="SEÇÃO"
+                <FilterSelect
+                  label="Seção"
                   options={sections}
-                  selected={selectedSection || ALL}
+                  selected={selectedSection}
                   onSelect={(value) => {
-                    setSelectedSection(value === ALL ? '' : value);
+                    setSelectedSection(value);
                     setSelectedCategory('');
                     setSelectedBrand('');
                   }}
                 />
-                <FilterGroup
-                  label="CATEGORIA"
+                <FilterSelect
+                  label="Categoria"
                   options={categories}
-                  selected={selectedCategory || ALL}
+                  selected={selectedCategory}
                   onSelect={(value) => {
-                    setSelectedCategory(value === ALL ? '' : value);
+                    setSelectedCategory(value);
                     setSelectedBrand('');
                   }}
                 />
               </>
             ) : null}
-            <FilterGroup
-              label="MARCA"
+            <FilterSelect
+              label="Marca"
               options={brandNames}
-              selected={selectedBrand || ALL}
-              onSelect={(value) => setSelectedBrand(value === ALL ? '' : value)}
+              selected={selectedBrand}
+              onSelect={setSelectedBrand}
             />
-            {hasActiveFilters ? clearButton : null}
-            <Text style={styles.result}>
-              {ready
-                ? `${filtered.length} produto${filtered.length !== 1 ? 's' : ''} encontrado${filtered.length !== 1 ? 's' : ''}`
-                : 'Carregando produtos…'}
-            </Text>
           </View>
-        </>
+          {hasActiveFilters ? clearButton : null}
+        </ThemedPanel>
       }
     />
   );
 }
 
-function FilterGroup({
+function FilterSelect({
   label,
   options,
   selected,
@@ -301,31 +333,80 @@ function FilterGroup({
   onSelect: (value: string) => void;
 }) {
   const styles = useStyles();
+  const insets = useSafeAreaInsets();
+  const [open, setOpen] = useState(false);
+  const [term, setTerm] = useState('');
+  const visible = useMemo(() => {
+    const query = normalize(term);
+    return query ? options.filter((option) => normalize(option).includes(query)) : options;
+  }, [options, term]);
   if (options.length <= 1) return null;
 
+  const on = Boolean(selected);
+  const close = () => {
+    setOpen(false);
+    setTerm('');
+  };
+
   return (
-    <View style={styles.group}>
-      <Text style={styles.label}>{label}</Text>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-        contentContainerStyle={styles.chips}
+    <>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`${label}: ${selected || ALL}. Toque para escolher`}
+        onPress={() => setOpen(true)}
+        style={[styles.select, on && styles.selectOn]}
       >
-        {options.map((option) => (
-          <Pressable
-            key={option}
-            accessibilityRole="button"
-            accessibilityState={{ selected: option === selected }}
-            onPress={() => onSelect(option)}
-            style={[styles.chip, option === selected && styles.active]}
-          >
-            <Text style={[styles.chipText, option === selected && styles.activeText]}>
-              {option}
-            </Text>
+        <View style={styles.selectText}>
+          <Text style={styles.selectLabel}>{label.toUpperCase()}</Text>
+          <Text style={[styles.selectValue, on && styles.selectValueOn]} numberOfLines={1}>
+            {selected || ALL}
+          </Text>
+        </View>
+        <AppIcon name="chevron-down" size={18} color="#666666" />
+      </Pressable>
+      <Modal visible={open} transparent animationType="slide" onRequestClose={close}>
+        <Pressable style={styles.backdrop} onPress={close} accessibilityLabel="Fechar">
+          <Pressable style={[styles.sheet, { paddingBottom: insets.bottom + 8 }]} onPress={() => undefined}>
+            <View style={styles.sheetHead}>
+              <Text accessibilityRole="header" style={styles.sheetTitle}>{label}</Text>
+              <Pressable accessibilityRole="button" accessibilityLabel="Fechar" onPress={close} style={styles.close}>
+                <AppIcon name="close-circle" size={24} color="#666666" />
+              </Pressable>
+            </View>
+            {options.length > 8 ? (
+              <TextInput
+                value={term}
+                onChangeText={setTerm}
+                placeholder={`Buscar ${label.toLowerCase()}`}
+                placeholderTextColor="#888888"
+                accessibilityLabel={`Buscar ${label.toLowerCase()}`}
+                style={styles.sheetSearch}
+              />
+            ) : null}
+            <FlatList
+              data={visible}
+              keyExtractor={(item) => item}
+              keyboardShouldPersistTaps="handled"
+              renderItem={({ item }) => {
+                const active = item === (selected || ALL);
+                return (
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: active }}
+                    onPress={() => {
+                      onSelect(item === ALL ? '' : item);
+                      close();
+                    }}
+                    style={[styles.option, active && styles.optionOn]}
+                  >
+                    <Text style={[styles.optionText, active && styles.optionTextOn]}>{item}</Text>
+                  </Pressable>
+                );
+              }}
+            />
           </Pressable>
-        ))}
-      </ScrollView>
-    </View>
+        </Pressable>
+      </Modal>
+    </>
   );
 }
