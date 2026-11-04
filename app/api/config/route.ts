@@ -3,6 +3,7 @@ import {
   getPublicCatalog,
   saveConfig,
 } from '@/lib/catalog-repository';
+import { publicCatalogRevision } from '@/lib/published-catalog';
 import {
   authorizeMutation,
   getEditorUser,
@@ -16,7 +17,11 @@ export async function GET(request: Request) {
   try {
     const settings = editor
       ? await getConfig()
-      : await getPublicCatalog().then(({ config, revision }) => ({ config, revision }));
+      : await getPublicCatalog().then(({ config, revision, publishedAt }) => ({
+          config,
+          revision: publicCatalogRevision({ revision, publishedAt }),
+          publishedAt,
+        }));
     return Response.json(settings, {
       headers: {
         'cache-control': editor

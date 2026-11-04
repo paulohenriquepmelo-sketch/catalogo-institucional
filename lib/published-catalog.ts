@@ -16,6 +16,20 @@ export type PublishedCatalogSnapshot = {
   products: Product[];
 };
 
+/**
+ * Versão pública vista pelo site e pelo app. Muda a cada publicação, inclusive
+ * quando só produtos ou fotos mudaram e a configuração continua igual; o app
+ * compara este número para saber se precisa baixar o catálogo de novo.
+ */
+export function publicCatalogRevision(
+  snapshot: Pick<PublishedCatalogSnapshot, 'revision' | 'publishedAt'>,
+) {
+  const publishedAt = Date.parse(snapshot.publishedAt);
+  return Number.isSafeInteger(publishedAt) && publishedAt > 0
+    ? publishedAt
+    : snapshot.revision;
+}
+
 export async function publishedCatalogSnapshotExists() {
   return Boolean(await env.FILES.head(PUBLISHED_CATALOG_KEY));
 }
