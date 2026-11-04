@@ -6,6 +6,7 @@ import { Image, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'r
 import { AppIcon } from '@/components/AppIcon';
 import { ProductRow } from '@/components/ProductRow';
 import { ThemedBackground } from '@/components/ThemedBackground';
+import { WhatsAppIcon } from '@/components/WhatsAppIcon';
 import { PanelHeading, ThemedPanel } from '@/components/ThemedPanel';
 import { isDiscontinued, useCatalog } from '@/lib/catalog-store';
 import { isOfferEligible, similarProducts } from '@/lib/api';
@@ -105,13 +106,22 @@ export default function ProdutoScreen() {
     },
     detailLabel: { ...typography.small, color: tokens.muted },
     detailValue: { ...typography.body, color: tokens.ink },
-    link: {
-      minHeight: 44,
-      minWidth: 44,
-      justifyContent: 'center',
-      paddingVertical: spacing.sm,
-    },
     linkText: { ...typography.body, color: tokens.link, fontWeight: '700' },
+    contacts: { gap: spacing.sm, marginTop: spacing.sm },
+    contact: {
+      minHeight: 52,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.md,
+      paddingVertical: spacing.sm,
+      paddingHorizontal: spacing.md,
+      borderWidth: 1,
+      borderColor: tokens.border,
+      borderRadius: radius.sm,
+    },
+    contactIcon: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
+    contactCopy: { flex: 1, minWidth: 0 },
+    contactLabel: { ...typography.small, color: tokens.muted },
     related: { paddingBottom: spacing.lg },
     empty: { padding: spacing.xl, backgroundColor: tokens.soft },
   }), [tokens]);
@@ -129,6 +139,10 @@ export default function ProdutoScreen() {
 
   const offer = product.details?.offer;
   const email = config?.email;
+  const whatsapp = config?.whatsapp;
+  // Número do Brasil no formato do wa.me: 55 + DDD + número.
+  const localDigits = (whatsapp ?? '').replace(/\D/g, '');
+  const whatsappDigits = localDigits.startsWith('55') && localDigits.length > 11 ? localDigits : `55${localDigits}`;
 
   return (
     <ThemedBackground>
@@ -210,15 +224,44 @@ export default function ProdutoScreen() {
 
           <View style={styles.surface}>
             <Text accessibilityRole="header" style={styles.blockTitle}>Contato comercial</Text>
-            {email ? (
-              <Pressable
-                accessibilityRole="link"
-                accessibilityLabel={`Enviar e-mail para ${email}`}
-                style={styles.link}
-                onPress={() => { void Linking.openURL(`mailto:${email}`); }}
-              >
-                <Text style={styles.linkText}>{email}</Text>
-              </Pressable>
+            {email || whatsapp ? (
+              <View style={styles.contacts}>
+                {email ? (
+                  <Pressable
+                    accessibilityRole="link"
+                    accessibilityLabel={`Enviar e-mail para ${email}`}
+                    style={styles.contact}
+                    onPress={() => { void Linking.openURL(`mailto:${email}`); }}
+                  >
+                    <View style={[styles.contactIcon, { backgroundColor: tokens.link }]}>
+                      <AppIcon name="mail" size={18} color="#ffffff" />
+                    </View>
+                    <View style={styles.contactCopy}>
+                      <Text style={styles.contactLabel}>E-mail</Text>
+                      <Text style={styles.linkText}>{email}</Text>
+                    </View>
+                  </Pressable>
+                ) : null}
+                {whatsapp && whatsappDigits.length >= 10 ? (
+                  <Pressable
+                    accessibilityRole="link"
+                    accessibilityLabel={`Conversar no WhatsApp pelo número ${whatsapp}`}
+                    style={styles.contact}
+                    onPress={() => {
+                      const text = encodeURIComponent(`Olá! Gostaria de saber mais sobre o produto ${product.name} (código ${product.code}).`);
+                      void Linking.openURL(`https://wa.me/${whatsappDigits}?text=${text}`);
+                    }}
+                  >
+                    <View style={[styles.contactIcon, { backgroundColor: '#25d366' }]}>
+                      <WhatsAppIcon size={18} color="#ffffff" />
+                    </View>
+                    <View style={styles.contactCopy}>
+                      <Text style={styles.contactLabel}>WhatsApp</Text>
+                      <Text style={styles.linkText}>{whatsapp}</Text>
+                    </View>
+                  </Pressable>
+                ) : null}
+              </View>
             ) : (
               <Text style={styles.text}>Contato comercial ainda não cadastrado.</Text>
             )}
