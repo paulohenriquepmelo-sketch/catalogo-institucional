@@ -28,7 +28,7 @@ import {
   GET as getProducts,
   POST as postProduct,
 } from '../app/api/products/route';
-import { POST as postConfig } from '../app/api/config/route';
+import { GET as getConfigRoute, POST as postConfig } from '../app/api/config/route';
 import { POST as postLogout } from '../app/api/editor/logout/route';
 import {
   GET as getHistory,
@@ -462,6 +462,26 @@ void test('persistent workflow: migrations, seeded records, drafts, revisions, A
   database.exec('DELETE FROM products');
   assert.equal((await listCatalogProducts(true)).length, 0);
   assert.equal((await getConfig()).config.name, 'Catálogo de teste');
+});
+
+void test('public revision changes on every publication, even when only products change', async () => {
+  const publish = async (publishedAt: string) => {
+    await writePublishedCatalogSnapshot({
+      version: 1,
+      revision: 40,
+      publishedAt,
+      config: clone(),
+      products: [products[0]],
+    });
+    const response = await getConfigRoute(new Request('https://catalog.test/api/config'));
+    assert.equal(response.status, 200);
+    return (await response.json()) as { revision: number; publishedAt: string };
+  };
+  const first = await publish('2026-11-04T10:00:00.000Z');
+  const second = await publish('2026-11-04T10:05:00.000Z');
+  assert.ok(Number.isSafeInteger(first.revision) && first.revision > 0);
+  assert.notEqual(first.revision, second.revision);
+  assert.equal(second.publishedAt, '2026-11-04T10:05:00.000Z');
 });
 
 void test('published snapshots remove expired discounts without requiring republication', async () => {
