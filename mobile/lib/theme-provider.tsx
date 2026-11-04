@@ -64,12 +64,12 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
       if (localUriFor(arts.hero)) finish();
 
-      // Enfileira o hero primeiro; fundo e painel vêm imediatamente depois.
+      // Enfileira o hero primeiro; o painel vem imediatamente depois.
       void ensureCachedImage(arts.hero, true).then((uri) => {
         if (uri) finish();
       });
       void prefetchThemeImages(
-        [arts.hero, arts.background, arts.panel],
+        [arts.hero, arts.panel],
         Object.values(arts.extras),
       );
     };

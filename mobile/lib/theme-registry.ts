@@ -242,7 +242,6 @@ export function resolveThemeId(config: CatalogConfig | null): ThemeId {
 export function themeArtUrls(arts: ThemeArts): string[] {
   return [
     arts.hero,
-    arts.background,
     arts.panel,
     ...Object.values(arts.extras),
   ];
