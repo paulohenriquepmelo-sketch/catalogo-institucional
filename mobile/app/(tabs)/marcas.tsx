@@ -51,7 +51,7 @@ export default function MarcasScreen() {
     card: {
       marginBottom: spacing.md,
       minHeight: 140,
-      borderRadius: radius.md,
+      borderRadius: 3,
       borderWidth: 1,
       borderColor: tokens.border,
       backgroundColor: tokens.soft,
@@ -65,7 +65,7 @@ export default function MarcasScreen() {
     empty: {
       padding: spacing.xl,
       backgroundColor: tokens.soft,
-      borderRadius: radius.md,
+      borderRadius: 3,
       alignItems: 'center',
     },
     emptyText: { ...typography.body, color: tokens.muted },
@@ -112,9 +112,9 @@ export default function MarcasScreen() {
         ListHeaderComponent={
           <ThemedPanel variant="marcas" style={styles.header}>
             <PanelHeading
-              title="Marcas"
+              title="Marcas que comercializamos"
               subtitle={ready
-                ? `${brands.length} ${brands.length === 1 ? 'marca parceira' : 'marcas parceiras'}`
+                ? `${brands.length} ${brands.length === 1 ? 'marca' : 'marcas'}`
                 : 'Carregando…'}
             />
           </ThemedPanel>

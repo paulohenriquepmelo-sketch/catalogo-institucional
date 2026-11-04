@@ -75,3 +75,11 @@ export const typography = {
   body: { fontSize: 14, fontWeight: '400' as const },
   small: { fontSize: 12, fontWeight: '400' as const },
 };
+
+/** Superfícies da vitrine (modelo aprovado em 03/11/2026). */
+export const market = {
+  page: '#f2f2f2',
+  line: '#e5e5e5',
+  imageBg: '#fafafa',
+  radius: 3,
+};

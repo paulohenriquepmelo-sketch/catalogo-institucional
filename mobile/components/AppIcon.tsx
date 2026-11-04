@@ -17,6 +17,7 @@ import {
   Bell,
   BadgeInfo,
   Building2,
+  Check,
   ChevronDown,
   ChevronRight,
   CircleAlert,
@@ -36,11 +37,13 @@ import {
   ShieldCheck,
   ShoppingBasket,
   SoapDispenserDroplet,
+  SlidersHorizontal,
   Sparkles,
   SprayCan,
   Tag,
   Tags,
   Truck,
+  X,
   XCircle,
 } from 'lucide-react-native';
 
@@ -54,9 +57,11 @@ export type AppIconName =
   | 'business'
   | 'candy'
   | 'cafe'
+  | 'check'
   | 'chevron-down'
   | 'chevron-forward'
   | 'circle-alert'
+  | 'close'
   | 'cloud-offline'
   | 'close-circle'
   | 'cube'
@@ -80,6 +85,7 @@ export type AppIconName =
   | 'restaurant'
   | 'search'
   | 'shield-checkmark'
+  | 'sliders'
   | 'soup'
   | 'sparkles'
   | 'spray'
@@ -97,10 +103,12 @@ const icons: Record<AppIconName, ComponentType<LucideProps>> = {
   business: Building2,
   candy: Candy,
   cafe: CupSoda,
+  check: Check,
   'chevron-down': ChevronDown,
   'chevron-forward': ChevronRight,
   'circle-alert': CircleAlert,
   'cloud-offline': CloudOff,
+  close: X,
   'close-circle': XCircle,
   cube: Package,
   'fast-food': Hamburger,
@@ -123,6 +131,7 @@ const icons: Record<AppIconName, ComponentType<LucideProps>> = {
   restaurant: UtensilsCrossed,
   search: Search,
   'shield-checkmark': ShieldCheck,
+  sliders: SlidersHorizontal,
   soup: Soup,
   sparkles: Sparkles,
   spray: SprayCan,

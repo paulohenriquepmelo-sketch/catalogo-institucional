@@ -7,51 +7,29 @@ import {
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
-import { CachedImage } from '@/components/CachedImage';
 import { useAppTheme } from '@/lib/theme-provider';
-import { spacing, typography } from '@/lib/theme';
+import { readableColor } from '@/lib/theme-contrast';
+import { market } from '@/lib/theme';
 
 export type PanelVariant = 'default' | 'marcas' | 'ofertas' | 'segmentos';
 
+/** Painel branco da vitrine. O tema aparece no fundo da página e no card principal. */
+export function usePanelSurface() {
+  const { tokens, dark } = useAppTheme();
+  return dark ? tokens.soft : '#ffffff';
+}
+
 export function ThemedPanel({
   children,
-  variant = 'default',
-  art,
   style,
 }: {
   children: ReactNode;
   variant?: PanelVariant;
-  art?: string;
   style?: StyleProp<ViewStyle>;
 }) {
-  const { id, tokens, arts } = useAppTheme();
-  const uri = art ?? (
-    id === 'padrao'
-      ? undefined
-      : arts.extras[variant] || arts.panel
-  );
-  const styles = useMemo(() => StyleSheet.create({
-    panel: { position: 'relative', backgroundColor: tokens.dark },
-    decoration: { ...StyleSheet.absoluteFill, overflow: 'hidden' },
-    image: { width: '100%', height: '100%' },
-    veil: {
-      ...StyleSheet.absoluteFill,
-      backgroundColor: tokens.dark,
-      opacity: 0.94,
-    },
-  }), [tokens]);
-
+  const surface = usePanelSurface();
   return (
-    <View style={[styles.panel, style]}>
-      <View
-        pointerEvents="none"
-        accessibilityElementsHidden
-        importantForAccessibility="no-hide-descendants"
-        style={styles.decoration}
-      >
-        <CachedImage uri={uri} style={styles.image} resizeMode="cover" />
-        <View style={styles.veil} />
-      </View>
+    <View style={[styles.panel, { backgroundColor: surface }, style]}>
       {children}
     </View>
   );
@@ -69,39 +47,43 @@ export function PanelHeading({
   onAction?: () => void;
 }) {
   const { tokens } = useAppTheme();
-  const styles = useMemo(() => StyleSheet.create({
-    root: { padding: spacing.lg, gap: spacing.sm },
-    title: {
-      ...typography.title,
-      color: '#ffffff',
-      textShadowColor: '#000000',
-      textShadowOffset: { width: 0, height: 1 },
-      textShadowRadius: 3,
-    },
-    subtitle: { ...typography.body, color: '#ffffff' },
-    action: {
-      minHeight: 44,
-      minWidth: 44,
-      alignSelf: 'flex-start',
-      justifyContent: 'center',
-      paddingHorizontal: spacing.md,
-      borderWidth: 1,
-      borderColor: '#ffffff',
-      borderRadius: 8,
-      backgroundColor: tokens.dark,
-    },
-    actionText: { ...typography.body, fontWeight: '700', color: '#ffffff' },
-  }), [tokens]);
+  const surface = usePanelSurface();
+  const colors = useMemo(() => ({
+    title: { color: readableColor(tokens.ink, surface) },
+    subtitle: { color: readableColor('#777777', surface) },
+    action: { color: readableColor(tokens.link, surface) },
+  }), [tokens, surface]);
 
   return (
-    <View style={styles.root}>
-      <Text accessibilityRole="header" style={styles.title}>{title}</Text>
-      {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
+    <View style={styles.heading}>
+      <View style={styles.headingText}>
+        <Text accessibilityRole="header" style={[styles.title, colors.title]}>{title}</Text>
+        {subtitle ? <Text style={[styles.subtitle, colors.subtitle]}>{subtitle}</Text> : null}
+      </View>
       {actionLabel && onAction ? (
         <Pressable accessibilityRole="button" onPress={onAction} style={styles.action}>
-          <Text style={styles.actionText}>{actionLabel}</Text>
+          <Text style={[styles.actionText, colors.action]}>{actionLabel} →</Text>
         </Pressable>
       ) : null}
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  panel: {
+    borderRadius: market.radius,
+    paddingHorizontal: 12,
+    paddingVertical: 13,
+    shadowColor: '#000000',
+    shadowOpacity: 0.06,
+    shadowRadius: 2,
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 1,
+  },
+  heading: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  headingText: { flex: 1, minWidth: 0 },
+  title: { fontSize: 16, fontWeight: '700', marginBottom: 3 },
+  subtitle: { fontSize: 12 },
+  action: { minHeight: 44, justifyContent: 'center' },
+  actionText: { fontSize: 12, fontWeight: '700' },
+});

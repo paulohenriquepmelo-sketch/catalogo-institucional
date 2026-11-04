@@ -26,6 +26,7 @@ export function ProductGrid({
   onRefresh,
   renderFooter,
   resetKey = 'produtos',
+  tag,
 }: {
   products: Product[];
   ready: boolean;
@@ -36,17 +37,18 @@ export function ProductGrid({
   onRefresh?: () => void;
   renderFooter?: (product: Product) => ReactNode;
   resetKey?: string;
+  tag?: string;
 }) {
   const { tokens } = useAppTheme();
   const { columns, width } = useResponsiveLayout();
-  const cellWidth = Math.max(1, (width - 32 - (columns - 1) * 12) / columns);
+  const cellWidth = Math.max(1, (width - 30 - (columns - 1) * 10) / columns);
   const styles = useMemo(() => StyleSheet.create({
     list: { flex: 1 },
-    content: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxl },
-    row: { gap: spacing.md },
-    item: { marginBottom: spacing.md },
-    card: { width: '100%' },
-    header: { marginHorizontal: -spacing.lg, marginBottom: spacing.lg },
+    content: { paddingHorizontal: 15, paddingTop: 13, paddingBottom: spacing.xxl },
+    row: { gap: 10 },
+    item: { marginBottom: 10 },
+    card: { width: '100%', flexGrow: 1 },
+    header: { marginBottom: 14 },
     empty: {
       padding: spacing.xl,
       gap: spacing.md,
@@ -62,11 +64,11 @@ export function ProductGrid({
   const renderProduct = useCallback<ListRenderItem<Product>>(
     ({ item }) => (
       <View style={[styles.item, { width: cellWidth }]}>
-        <ProductCard product={item} style={styles.card} />
+        <ProductCard product={item} style={styles.card} tag={tag} />
         {renderFooter?.(item)}
       </View>
     ),
-    [cellWidth, renderFooter, styles],
+    [cellWidth, renderFooter, styles, tag],
   );
 
   const batch = Math.max(4, columns * 2);

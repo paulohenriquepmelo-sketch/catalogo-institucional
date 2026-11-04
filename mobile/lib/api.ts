@@ -111,6 +111,7 @@ export type CatalogConfig = {
   tagline: string;
   logo: string;
   email: string;
+  whatsapp: string;
   footer: string;
   primary: string;
   accent: string;
@@ -265,6 +266,7 @@ function normalizeConfig(value: unknown): CatalogConfig {
     tagline: stringValue(value.tagline),
     logo: mediaUrl(stringValue(value.logo)),
     email: stringValue(value.email),
+    whatsapp: stringValue(value.whatsapp),
     footer: stringValue(value.footer),
     primary: stringValue(value.primary, '#263f85'),
     accent: stringValue(value.accent, '#d92826'),
